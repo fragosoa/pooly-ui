@@ -28,38 +28,41 @@ const PublicGallery = () => {
         fetchEvents();
     }, []);
 
-    if (loading) return <div className="container"><p>Loading events...</p></div>;
+    if (loading) return <div className="container" style={{ marginTop: '4rem' }}><p>Loading events...</p></div>;
 
     return (
-        <div className="container" style={{ paddingBottom: '4rem' }}>
-            <header style={{ margin: '3rem 0', textAlign: 'center' }}>
+        <div style={{ paddingBottom: '4rem' }}>
+            <section className="hero-banner">
                 <h1 className="page-title">Citizen Voices</h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '1.25rem', maxWidth: '600px', margin: '0 auto' }}>
+                <p>
                     Participate in active events and help shape the future of our community.
                 </p>
-            </header>
+            </section>
 
-            {error && (
-                <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--glass-border)', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    {error} (Showing demo events)
-                </div>
-            )}
+            <div className="container">
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
-                {events.map(event => (
-                    <div key={event.id} className="glass-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', transition: 'var(--transition)' }}>
-                        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>{event.name}</h2>
-                        <p style={{ color: 'var(--text-muted)', flex: 1, marginBottom: '2rem' }}>{event.description}</p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-                            <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                                Ends: {new Date(event.end_date).toLocaleDateString()}
-                            </span>
-                            <Link to={`/submit/${event.id}`} className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
-                                Respond
-                            </Link>
-                        </div>
+                {error && (
+                    <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--glass-border)', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        {error} (Showing demo events)
                     </div>
-                ))}
+                )}
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
+                    {events.map(event => (
+                        <div key={event.id} className="glass-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', transition: 'var(--transition)' }}>
+                            <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>{event.name}</h2>
+                            <p style={{ color: 'var(--text-muted)', flex: 1, marginBottom: '2rem' }}>{event.description}</p>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                                <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                                    Ends: {new Date(event.end_date).toLocaleDateString()}
+                                </span>
+                                <Link to={`/submit/${event.id}`} className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
+                                    Respond
+                                </Link>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
