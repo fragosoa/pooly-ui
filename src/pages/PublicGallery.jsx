@@ -2,58 +2,79 @@ import { Link } from 'react-router-dom';
 
 const PublicGallery = () => {
     return (
-        <div style={{ paddingBottom: '6rem' }}>
+        <div style={{ background: 'var(--bg-dark)' }}>
             <section className="hero-banner">
-                <h1 className="page-title">Citizen Voices</h1>
-                <p>
-                    A secure and private platform for citizen participation.
-                    Empowering communities through transparent collaboration and AI-driven insights.
+                <h1 className="hero-headline">
+                    Surveys,
+                    <span className="hero-pill">
+                        <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'currentColor', opacity: 0.5 }}></span>
+                        insights,
+                    </span>
+                    <span className="hero-pill">
+                        <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><path d="M2 10C5 10 7 2 12 2C17 2 19 10 22 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+                        and rewards
+                    </span>
+                    <br />
+                    unite for a thrilling experience
+                </h1>
+                <p style={{ maxWidth: '600px' }}>
+                    Delve into Pooly, where surveys, insights, and impactful decisions converge.
+                    Join us in the fascinating world of community collaboration.
                 </p>
                 <div className="cta-group">
-                    <Link to="/login" className="btn btn-primary" style={{ padding: '1rem 2rem' }}>
-                        Admin Login
-                    </Link>
-                    <Link to="/register" className="btn btn-outline" style={{ padding: '1rem 2rem' }}>
-                        Create Account
+                    <Link to="/register" className="btn-premium">
+                        Get started — it's free →
                     </Link>
                 </div>
             </section>
 
             <div className="container">
-                <div className="feature-grid">
-                    <div className="glass-card feature-card">
-                        <h3>Private & Secure</h3>
-                        <p>
-                            Events are shared privately via unique links. Your data is protected
-                            and only accessible to authorized organizers.
-                        </p>
+                <section id="features" style={{ padding: '8rem 0' }}>
+                    <h2 style={{ fontSize: '3rem', marginBottom: '3rem', textAlign: 'center' }}>Features</h2>
+                    <div className="feature-grid">
+                        <div className="glass-card feature-card">
+                            <h3>Private sharing</h3>
+                            <p>Share polls securely with specific groups via encrypted unique links.</p>
+                        </div>
+                        <div className="glass-card feature-card">
+                            <h3>AI Analysis</h3>
+                            <p>Get instant sentiment analysis and key-point extraction from all responses.</p>
+                        </div>
+                        <div className="glass-card feature-card">
+                            <h3>Data Control</h3>
+                            <p>Completely own and control who sees your community data and when.</p>
+                        </div>
                     </div>
-                    <div className="glass-card feature-card">
-                        <h3>Community Driven</h3>
-                        <p>
-                            Participate in urban planning, local initiatives, and community
-                            projects directly from your browser.
-                        </p>
-                    </div>
-                    <div className="glass-card feature-card">
-                        <h3>AI powered Insights</h3>
-                        <p>
-                            Organizers gain deep understanding from citizen feedback through
-                            advanced analysis and sentiment mapping.
-                        </p>
-                    </div>
-                </div>
+                </section>
 
-                <div style={{ marginTop: '6rem', textAlign: 'center' }}>
-                    <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', fontWeight: '700' }}>Ready to shape the future?</h2>
-                    <p style={{ color: 'var(--text-muted)', maxWidth: '700px', margin: '0 auto 3rem auto', fontSize: '1.1rem' }}>
-                        Join thousands of citizens already participating in shaping their local environment.
-                        Request a private link from your local organizer to get started.
+                <section id="use-cases" style={{ padding: '8rem 0' }}>
+                    <h2 style={{ fontSize: '3rem', marginBottom: '3rem', textAlign: 'center' }}>Use cases</h2>
+                    <div className="feature-grid">
+                        <div className="glass-card feature-card">
+                            <h3>Urban Planning</h3>
+                            <p>Gather citizen feedback on new infrastructure or park developments.</p>
+                        </div>
+                        <div className="glass-card feature-card">
+                            <h3>Event Surveying</h3>
+                            <p>Understand attendee satisfaction and gather improvement suggestions.</p>
+                        </div>
+                        <div className="glass-card feature-card">
+                            <h3>Product Discovery</h3>
+                            <p>Test new ideas directly with your core community and iterate fast.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="walkthrough" style={{ padding: '8rem 0', textAlign: 'center' }}>
+                    <h2 style={{ fontSize: '3.5rem', marginBottom: '1.5rem', fontWeight: '800' }}>Platform Walkthrough</h2>
+                    <p style={{ color: 'var(--text-muted)', maxWidth: '750px', margin: '0 auto 4rem auto', fontSize: '1.2rem' }}>
+                        Experience the most fluid way to gather and analyze community feedback.
+                        From poll creation to AI insights, everything is designed for clarity.
                     </p>
-                    <Link to="/register" className="btn btn-primary" style={{ fontSize: '1.1rem', padding: '1rem 3rem' }}>
-                        Join the Movement
-                    </Link>
-                </div>
+                    <div className="glass-card" style={{ padding: '4rem', minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <p style={{ color: 'var(--text-muted)' }}>[ Walkthrough Video or Interactive Demo Placeholder ]</p>
+                    </div>
+                </section>
             </div>
         </div>
     );
