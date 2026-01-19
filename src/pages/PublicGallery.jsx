@@ -2,6 +2,9 @@ import { Link } from 'react-router-dom';
 import privateImg from '../assets/features/private_sharing.png';
 import aiImg from '../assets/features/ai_analysis.png';
 import dataImg from '../assets/features/data_control.png';
+import urbanImg from '../assets/features/urban_planning.png';
+import eventImg from '../assets/features/event_surveying.png';
+import productImg from '../assets/features/product_discovery.png';
 
 const features = [
     {
@@ -18,6 +21,24 @@ const features = [
         title: "Data Control and Privacy",
         description: "Completely own and control who sees your community data and when. Transparent ownership for empowering decisions.",
         image: dataImg
+    }
+];
+
+const useCases = [
+    {
+        title: "Urban Planning",
+        description: "Gather citizen feedback on new infrastructure or park developments. Visualizing the city's future through community collaboration.",
+        image: urbanImg
+    },
+    {
+        title: "Event Surveying",
+        description: "Understand attendee satisfaction and gather improvement suggestions. From conferences to festivals, clarify every voice.",
+        image: eventImg
+    },
+    {
+        title: "Product Discovery",
+        description: "Test new ideas directly with your core community and iterate fast. Insights that drive meaningful innovation.",
+        image: productImg
     }
 ];
 
@@ -51,6 +72,7 @@ const PublicGallery = () => {
 
             <div className="container">
                 <section id="features" style={{ padding: '8rem 0' }}>
+                    <h2 style={{ fontSize: '3rem', marginBottom: '3rem', textAlign: 'center' }}>Features</h2>
                     <div className="feature-grid">
                         {features.map((f, i) => (
                             <div key={i} className="premium-card">
@@ -69,18 +91,17 @@ const PublicGallery = () => {
                 <section id="use-cases" style={{ padding: '8rem 0' }}>
                     <h2 style={{ fontSize: '3rem', marginBottom: '3rem', textAlign: 'center' }}>Use cases</h2>
                     <div className="feature-grid">
-                        <div className="glass-card feature-card">
-                            <h3>Urban Planning</h3>
-                            <p>Gather citizen feedback on new infrastructure or park developments.</p>
-                        </div>
-                        <div className="glass-card feature-card">
-                            <h3>Event Surveying</h3>
-                            <p>Understand attendee satisfaction and gather improvement suggestions.</p>
-                        </div>
-                        <div className="glass-card feature-card">
-                            <h3>Product Discovery</h3>
-                            <p>Test new ideas directly with your core community and iterate fast.</p>
-                        </div>
+                        {useCases.map((u, i) => (
+                            <div key={i} className="premium-card">
+                                <div className="premium-card-image" style={{ background: '#0e0e0e' }}>
+                                    <img src={u.image} alt={u.title} />
+                                </div>
+                                <div className="premium-card-content">
+                                    <h3>{u.title}</h3>
+                                    <p>{u.description}</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </section>
 
