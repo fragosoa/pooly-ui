@@ -234,23 +234,59 @@ button {
 
 .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2.5rem;
-    margin-top: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 3rem;
+    margin: 4rem 0;
 }
 
-.feature-card {
-    padding: 3rem;
+.premium-card {
+    background: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    overflow: hidden;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+}
+
+.premium-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
+}
+
+.premium-card-image {
+    width: 100%;
+    height: 240px;
+    background: #0d0d0d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.premium-card-image img {
+    width: 160px;
+    height: 160px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.2));
+}
+
+.premium-card-content {
+    padding: 2.5rem;
     text-align: center;
 }
 
-.feature-card h3 {
+.premium-card h3 {
     font-size: 1.5rem;
+    font-weight: 700;
     margin-bottom: 1rem;
-    color: var(--primary);
+    color: var(--text-main);
 }
 
-.feature-card p {
+.premium-card p {
+    font-size: 1rem;
     color: var(--text-muted);
     line-height: 1.6;
 }

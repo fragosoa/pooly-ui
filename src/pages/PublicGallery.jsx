@@ -1,4 +1,25 @@
 import { Link } from 'react-router-dom';
+import privateImg from '../assets/features/private_sharing.png';
+import aiImg from '../assets/features/ai_analysis.png';
+import dataImg from '../assets/features/data_control.png';
+
+const features = [
+    {
+        title: "Private Sharing",
+        description: "Share polls securely with specific groups via encrypted unique links. Your community data stays within your trusted circle.",
+        image: privateImg
+    },
+    {
+        title: "AI Analysis",
+        description: "Get instant sentiment analysis and key-point extraction from all responses. Turn thousands of voices into clear, actionable insights.",
+        image: aiImg
+    },
+    {
+        title: "Data Control and Privacy",
+        description: "Completely own and control who sees your community data and when. Transparent ownership for empowering decisions.",
+        image: dataImg
+    }
+];
 
 const PublicGallery = () => {
     return (
@@ -30,20 +51,18 @@ const PublicGallery = () => {
 
             <div className="container">
                 <section id="features" style={{ padding: '8rem 0' }}>
-                    <h2 style={{ fontSize: '3rem', marginBottom: '3rem', textAlign: 'center' }}>Features</h2>
                     <div className="feature-grid">
-                        <div className="glass-card feature-card">
-                            <h3>Private sharing</h3>
-                            <p>Share polls securely with specific groups via encrypted unique links.</p>
-                        </div>
-                        <div className="glass-card feature-card">
-                            <h3>AI Analysis</h3>
-                            <p>Get instant sentiment analysis and key-point extraction from all responses.</p>
-                        </div>
-                        <div className="glass-card feature-card">
-                            <h3>Data Control</h3>
-                            <p>Completely own and control who sees your community data and when.</p>
-                        </div>
+                        {features.map((f, i) => (
+                            <div key={i} className="premium-card">
+                                <div className="premium-card-image">
+                                    <img src={f.image} alt={f.title} />
+                                </div>
+                                <div className="premium-card-content">
+                                    <h3>{f.title}</h3>
+                                    <p>{f.description}</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </section>
 
