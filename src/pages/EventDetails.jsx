@@ -14,16 +14,17 @@ const EventDetails = () => {
         const fetchEventDetails = async () => {
             try {
                 const response = await api.get(`/events/${eventId}/details`);
-                setEvent(response.data);
+                // Backend returns { status: "success", data: { ...event, questions: [...] } }
+                setEvent(response.data.data);
             } catch (err) {
                 console.error('Failed to fetch event details:', err);
                 setError('Failed to load event details.');
-                // Mock data
+                // Mock data as fallback
                 setEvent({
                     id: eventId,
                     name: 'Urban Mobility 2026',
                     description: 'What do you think about the new bike lanes in the city center?',
-                    end_date: '2026-12-31',
+                    end: '2026-12-31',
                     questions: [
                         {
                             id: 101,
@@ -62,7 +63,9 @@ const EventDetails = () => {
         }
     };
 
-    if (loading) return <div className="container"><p>Loading event details...</p></div>;
+    if (loading) return <div className="container" style={{ paddingTop: '8rem' }}><p>Loading event details...</p></div>;
+    if (!event && error) return <div className="container" style={{ paddingTop: '8rem' }}><p style={{ color: '#ef4444' }}>{error}</p></div>;
+    if (!event) return null;
 
     return (
         <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
@@ -81,18 +84,31 @@ const EventDetails = () => {
                     >
                         {analyzing ? 'Analyzing...' : 'Trigger Analysis'}
                     </button>
-                    {analysisStatus && <p style={{ fontSize: '0.875rem', color: analysisStatus.includes('success') ? 'var(--primary)' : '#ef4444' }}>{analysisStatus}</p>}
+                    {analysisStatus && (
+                        <p style={{ fontSize: '0.875rem', color: analysisStatus.includes('success') ? 'var(--primary)' : '#ef4444' }}>
+                            {analysisStatus}
+                        </p>
+                    )}
                 </div>
             </header>
 
-            {error && (
+            {error && !event.questions && (
                 <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--glass-border)', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', color: 'var(--text-muted)' }}>
                     {error} (Showing demo data)
                 </div>
             )}
 
             <section style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                <h2 style={{ fontSize: '1.75rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>Questions & Responses</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
+                    <h2 style={{ fontSize: '1.75rem' }}>Questions & Responses</h2>
+                    <button
+                        className="btn btn-premium"
+                        style={{ padding: '0.6rem 1.4rem', fontSize: '0.9rem' }}
+                        onClick={() => alert('Report generation will be implemented soon!')}
+                    >
+                        Generate Report
+                    </button>
+                </div>
 
                 {event.questions?.map(question => (
                     <div key={question.id} className="glass-card" style={{ overflow: 'hidden' }}>
