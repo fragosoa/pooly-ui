@@ -8,7 +8,7 @@ const Register = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { register } = useAuth();
+    const { register, login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -21,9 +21,18 @@ const Register = () => {
         setError('');
         try {
             await register(username, password);
-            navigate('/login');
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed. Try a different username.');
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            await login(username, password);
+            navigate('/admin');
+        } catch (err) {
+            setError('Account created, but auto-login failed. Please try logging in manually.');
+            console.error('Auto-login error:', err);
         } finally {
             setIsLoading(false);
         }

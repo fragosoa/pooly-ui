@@ -28,6 +28,7 @@ const Navbar = () => {
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 {user ? (
                     <>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginRight: '0.5rem' }}>{user.username}</span>
                         <Link to="/admin" className="nav-pill-link">Dashboard</Link>
                         <button onClick={handleLogout} className="btn-outline" style={{ padding: '0.6rem 1.2rem', borderRadius: '999px', fontSize: '0.9rem' }}>Logout</button>
                     </>

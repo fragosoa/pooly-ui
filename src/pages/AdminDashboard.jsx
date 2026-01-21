@@ -13,14 +13,14 @@ const AdminDashboard = () => {
         const fetchUserEvents = async () => {
             try {
                 const response = await api.get('/events');
-                setEvents(response.data);
+                setEvents(response.data.events || []);
             } catch (err) {
                 console.error('Failed to fetch user events:', err);
                 setError('Failed to load your events.');
                 // Mock data for admin demo
                 setEvents([
-                    { id: 1, name: 'Urban Mobility 2026', description: 'What do you think about the new bike lanes...', end_date: '2026-12-31', response_count: 45 },
-                    { id: 4, name: 'Community Garden Survey', description: 'Should we expand the public garden?', end_date: '2026-05-30', response_count: 12 },
+                    { id: 1, name: 'Urban Mobility 2026', description: 'What do you think about the new bike lanes...', end: '2026-12-31', response_count: 45 },
+                    { id: 4, name: 'Community Garden Survey', description: 'Should we expand the public garden?', end: '2026-05-30', response_count: 12 },
                 ]);
             } finally {
                 setLoading(false);
@@ -61,7 +61,7 @@ const AdminDashboard = () => {
                             <div>
                                 <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{event.name}</h3>
                                 <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                                    Ends: {new Date(event.end_date).toLocaleDateString()} • {event.response_count || 0} responses
+                                    Ends: {new Date(event.end).toLocaleDateString()} • {event.response_count || 0} responses
                                 </p>
                             </div>
                             <div style={{ display: 'flex', gap: '1rem' }}>
