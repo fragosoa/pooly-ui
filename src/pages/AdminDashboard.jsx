@@ -32,7 +32,7 @@ const AdminDashboard = () => {
     if (loading) return <div className="container"><p>Loading your dashboard...</p></div>;
 
     return (
-        <div className="container" style={{ paddingBottom: '4rem' }}>
+        <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
             <header style={{ margin: '3rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                     <h1 className="page-title">Welcome, {user?.username}</h1>

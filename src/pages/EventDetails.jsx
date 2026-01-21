@@ -65,7 +65,7 @@ const EventDetails = () => {
     if (loading) return <div className="container"><p>Loading event details...</p></div>;
 
     return (
-        <div className="container" style={{ paddingBottom: '4rem' }}>
+        <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
             <header style={{ margin: '3rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                     <Link to="/admin" style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'inline-block' }}>← Back to Dashboard</Link>

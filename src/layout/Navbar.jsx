@@ -18,12 +18,14 @@ const Navbar = () => {
                 poolQ
             </Link>
 
-            <div className="nav-pill-group">
-                <Link to="#features" className="nav-pill-link">Features</Link>
-                <Link to="#use-cases" className="nav-pill-link">Use cases</Link>
-                <Link to="#prices" className="nav-pill-link">Prices</Link>
-                <Link to="#company" className="nav-pill-link">Company</Link>
-            </div>
+            {!user && (
+                <div className="nav-pill-group">
+                    <Link to="#features" className="nav-pill-link">Features</Link>
+                    <Link to="#use-cases" className="nav-pill-link">Use cases</Link>
+                    <Link to="#prices" className="nav-pill-link">Prices</Link>
+                    <Link to="#company" className="nav-pill-link">Company</Link>
+                </div>
+            )}
 
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 {user ? (
