@@ -99,15 +99,8 @@ const EventDetails = () => {
             )}
 
             <section style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
+                <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
                     <h2 style={{ fontSize: '1.75rem' }}>Questions & Responses</h2>
-                    <button
-                        className="btn btn-premium"
-                        style={{ padding: '0.6rem 1.4rem', fontSize: '0.9rem' }}
-                        onClick={() => alert('Report generation will be implemented soon!')}
-                    >
-                        Generate Report
-                    </button>
                 </div>
 
                 {event.questions?.map(question => (
