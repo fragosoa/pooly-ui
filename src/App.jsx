@@ -6,7 +6,7 @@ import PublicGallery from './pages/PublicGallery';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
-import ResponseSubmission from './pages/ResponseSubmission';
+import PublicSurvey from './pages/PublicSurvey';
 import CreateEvent from './pages/CreateEvent';
 import EventDetails from './pages/EventDetails';
 
@@ -14,15 +14,17 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Navbar />
         <Routes>
-          <Route path="/" element={<PublicGallery />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/submit/:eventId" element={<ResponseSubmission />} />
-          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin/create" element={<ProtectedRoute><CreateEvent /></ProtectedRoute>} />
-          <Route path="/admin/events/:eventId" element={<ProtectedRoute><EventDetails /></ProtectedRoute>} />
+          {/* Encuesta pública - sin navbar para experiencia limpia */}
+          <Route path="/encuesta/:publicId" element={<PublicSurvey />} />
+
+          {/* Rutas con navbar */}
+          <Route path="/" element={<><Navbar /><PublicGallery /></>} />
+          <Route path="/login" element={<><Navbar /><Login /></>} />
+          <Route path="/register" element={<><Navbar /><Register /></>} />
+          <Route path="/admin" element={<><Navbar /><ProtectedRoute><AdminDashboard /></ProtectedRoute></>} />
+          <Route path="/admin/create" element={<><Navbar /><ProtectedRoute><CreateEvent /></ProtectedRoute></>} />
+          <Route path="/admin/events/:eventId" element={<><Navbar /><ProtectedRoute><EventDetails /></ProtectedRoute></>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
