@@ -1,62 +1,86 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        try {
-            const token = localStorage.getItem('token');
-            const storedUser = localStorage.getItem('user');
+  useEffect(() => {
+    const initAuth = () => {
+      try {
+        const token = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
 
-            if (token && token !== 'undefined' && storedUser && storedUser !== 'undefined') {
-                setUser(JSON.parse(storedUser));
-            } else if (token === 'undefined' || storedUser === 'undefined') {
-                // Clean up corrupted storage
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-            }
-        } catch (error) {
-            console.error('Failed to parse user session:', error);
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-        } finally {
-            setLoading(false);
+        if (token && storedUser && token !== 'undefined' && storedUser !== 'undefined') {
+          setUser(JSON.parse(storedUser));
+        } else {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
         }
-    }, []);
-
-    const login = async (username, password) => {
-        const response = await api.post('/login', { username, password });
-        const { access_token: token, user: userData } = response.data;
-
-        if (!token || !userData) {
-            throw new Error('Invalid server response: missing token or user data');
-        }
-
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
-        return userData;
-    };
-
-    const register = async (username, password) => {
-        await api.post('/create_user', { username, password });
-    };
-
-    const logout = () => {
+      } catch (error) {
+        console.error('Auth init error:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
+    initAuth();
+  }, []);
 
-export const useAuth = () => useContext(AuthContext);
+  const login = async (username, password) => {
+    const response = await api.post('/login', { username, password });
+    const { access_token: token, user: userData } = response.data;
+
+    if (!token || !userData) {
+      throw new Error('Invalid response');
+    }
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    return userData;
+  };
+
+  const register = async (username, password) => {
+    await api.post('/create_user', { username, password });
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
+
+  // Wait for auth check before rendering
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        color: '#6B7280'
+      }}>
+        Cargando...
+      </div>
+    );
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+}
