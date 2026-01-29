@@ -1,121 +1,216 @@
 import { Link } from 'react-router-dom';
-import privateImg from '../assets/features/private_sharing.png';
-import aiImg from '../assets/features/ai_analysis.png';
-import dataImg from '../assets/features/data_control.png';
-import urbanImg from '../assets/features/urban_planning.png';
-import eventImg from '../assets/features/event_surveying.png';
-import productImg from '../assets/features/product_discovery.png';
-
-const features = [
-    {
-        title: "Private Sharing",
-        description: "Share polls securely with specific groups via encrypted unique links. Your community data stays within your trusted circle.",
-        image: privateImg
-    },
-    {
-        title: "AI Analysis",
-        description: "Get instant sentiment analysis and key-point extraction from all responses. Turn thousands of voices into clear, actionable insights.",
-        image: aiImg
-    },
-    {
-        title: "Data Control and Privacy",
-        description: "Completely own and control who sees your community data and when. Transparent ownership for empowering decisions.",
-        image: dataImg
-    }
-];
-
-const useCases = [
-    {
-        title: "Urban Planning",
-        description: "Gather citizen feedback on new infrastructure or park developments. Visualizing the city's future through community collaboration.",
-        image: urbanImg
-    },
-    {
-        title: "Event Surveying",
-        description: "Understand attendee satisfaction and gather improvement suggestions. From conferences to festivals, clarify every voice.",
-        image: eventImg
-    },
-    {
-        title: "Product Discovery",
-        description: "Test new ideas directly with your core community and iterate fast. Insights that drive meaningful innovation.",
-        image: productImg
-    }
-];
 
 const PublicGallery = () => {
     return (
-        <div style={{ background: 'var(--bg-dark)' }}>
-            <section className="hero-banner">
-                <h1 className="hero-headline">
-                    Surveys,
-                    <span className="hero-pill">
-                        <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'currentColor', opacity: 0.5 }}></span>
-                        insights,
-                    </span>
-                    <span className="hero-pill">
-                        <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><path d="M2 10C5 10 7 2 12 2C17 2 19 10 22 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-                        and rewards
-                    </span>
-                    <br />
-                    unite for a thrilling experience
+        <div>
+            {/* Hero Section */}
+            <section className="hero">
+                <div className="hero-badge">
+                    <span className="hero-badge-dot"></span>
+                    Plataforma de participación ciudadana
+                </div>
+
+                <h1 className="hero-title">
+                    Transforma miles de voces en{' '}
+                    <span className="hero-title-accent">insights accionables</span>
                 </h1>
-                <p style={{ maxWidth: '600px' }}>
-                    Delve into Pooly, where surveys, insights, and impactful decisions converge.
-                    Join us in the fascinating world of community collaboration.
+
+                <p className="hero-description">
+                    Crea encuestas, recolecta opiniones de tu comunidad y obtén análisis
+                    automático con IA. Descubre patrones, sentimientos y prioridades
+                    sin categorías predefinidas.
                 </p>
-                <div className="cta-group">
-                    <Link to="/register" className="btn-premium">
-                        Get started — it's free →
+
+                <div className="hero-cta">
+                    <Link to="/register" className="btn btn-primary btn-large">
+                        Comenzar gratis
+                    </Link>
+                    <Link to="/login" className="btn btn-secondary btn-large">
+                        Ya tengo cuenta
                     </Link>
                 </div>
             </section>
 
-            <div className="container">
-                <section id="features" style={{ padding: '8rem 0' }}>
-                    <h2 style={{ fontSize: '3rem', marginBottom: '3rem', textAlign: 'center' }}>Features</h2>
-                    <div className="feature-grid">
-                        {features.map((f, i) => (
-                            <div key={i} className="premium-card">
-                                <div className="premium-card-image">
-                                    <img src={f.image} alt={f.title} />
-                                </div>
-                                <div className="premium-card-content">
-                                    <h3>{f.title}</h3>
-                                    <p>{f.description}</p>
-                                </div>
-                            </div>
-                        ))}
+            {/* How it Works */}
+            <section className="section" style={{ background: 'var(--bg-secondary)' }}>
+                <div className="container">
+                    <div className="section-header">
+                        <h2>Cómo funciona</h2>
+                        <p>
+                            Tres pasos simples para convertir la retroalimentación de tu
+                            comunidad en decisiones informadas.
+                        </p>
                     </div>
-                </section>
 
-                <section id="use-cases" style={{ padding: '8rem 0' }}>
-                    <h2 style={{ fontSize: '3rem', marginBottom: '3rem', textAlign: 'center' }}>Use cases</h2>
-                    <div className="feature-grid">
-                        {useCases.map((u, i) => (
-                            <div key={i} className="premium-card">
-                                <div className="premium-card-image" style={{ background: '#0e0e0e' }}>
-                                    <img src={u.image} alt={u.title} />
-                                </div>
-                                <div className="premium-card-content">
-                                    <h3>{u.title}</h3>
-                                    <p>{u.description}</p>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="steps-grid">
+                        <div className="step-card">
+                            <div className="step-number">1</div>
+                            <h3>Crea tu encuesta</h3>
+                            <p>
+                                Define las preguntas abiertas que quieres hacer a tu comunidad.
+                                Sin límites de opciones predefinidas.
+                            </p>
+                        </div>
+
+                        <div className="step-card">
+                            <div className="step-number">2</div>
+                            <h3>Comparte el enlace</h3>
+                            <p>
+                                Distribuye el enlace único. Los participantes responden
+                                de forma anónima desde cualquier dispositivo.
+                            </p>
+                        </div>
+
+                        <div className="step-card">
+                            <div className="step-number">3</div>
+                            <h3>Obtén insights</h3>
+                            <p>
+                                Nuestra IA agrupa respuestas, identifica temas emergentes
+                                y analiza el sentimiento automáticamente.
+                            </p>
+                        </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <section id="walkthrough" style={{ padding: '8rem 0', textAlign: 'center' }}>
-                    <h2 style={{ fontSize: '3.5rem', marginBottom: '1.5rem', fontWeight: '800' }}>Platform Walkthrough</h2>
-                    <p style={{ color: 'var(--text-muted)', maxWidth: '750px', margin: '0 auto 4rem auto', fontSize: '1.2rem' }}>
-                        Experience the most fluid way to gather and analyze community feedback.
-                        From poll creation to AI insights, everything is designed for clarity.
+            {/* Features */}
+            <section className="section">
+                <div className="container">
+                    <div className="section-header">
+                        <h2>Potenciado por inteligencia artificial</h2>
+                        <p>
+                            Tecnología avanzada de NLP para entender lo que tu comunidad
+                            realmente necesita.
+                        </p>
+                    </div>
+
+                    <div className="features-grid">
+                        <div className="feature-card">
+                            <div className="feature-icon">
+                                <span style={{ fontSize: '1.5rem' }}>✨</span>
+                            </div>
+                            <h3>Descubrimiento automático</h3>
+                            <p>
+                                Traduce miles de voces individuales en categorías claras
+                                sin necesidad de definirlas previamente. La IA encuentra
+                                los patrones por ti.
+                            </p>
+                        </div>
+
+                        <div className="feature-card">
+                            <div className="feature-icon">
+                                <span style={{ fontSize: '1.5rem' }}>📊</span>
+                            </div>
+                            <h3>Análisis de prioridades</h3>
+                            <p>
+                                Clasifica los temas por importancia, sentimiento y urgencia.
+                                Toma decisiones basadas en datos reales de tu comunidad.
+                            </p>
+                        </div>
+
+                        <div className="feature-card">
+                            <div className="feature-icon">
+                                <span style={{ fontSize: '1.5rem' }}>🌍</span>
+                            </div>
+                            <h3>Multilingüe</h3>
+                            <p>
+                                Soporte para más de 50 idiomas. Recibe respuestas en cualquier
+                                idioma y obtén análisis unificados y coherentes.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Use Cases */}
+            <section className="section" style={{ background: 'var(--bg-secondary)' }}>
+                <div className="container">
+                    <div className="section-header">
+                        <h2>Casos de uso</h2>
+                        <p>
+                            Desde planeación urbana hasta investigación de mercado,
+                            Pooly se adapta a tus necesidades.
+                        </p>
+                    </div>
+
+                    <div className="features-grid">
+                        <div className="feature-card">
+                            <div className="feature-icon" style={{ background: 'var(--secondary-light)' }}>
+                                <span style={{ fontSize: '1.5rem' }}>🏙️</span>
+                            </div>
+                            <h3>Planeación urbana</h3>
+                            <p>
+                                Recolecta retroalimentación ciudadana sobre infraestructura,
+                                parques y servicios públicos. Visualiza el futuro de tu ciudad
+                                a través de la colaboración comunitaria.
+                            </p>
+                        </div>
+
+                        <div className="feature-card">
+                            <div className="feature-icon" style={{ background: '#FEF3C7' }}>
+                                <span style={{ fontSize: '1.5rem' }}>🎪</span>
+                            </div>
+                            <h3>Eventos y conferencias</h3>
+                            <p>
+                                Entiende la satisfacción de los asistentes y recopila
+                                sugerencias de mejora. Desde conferencias hasta festivales,
+                                clarifica cada voz.
+                            </p>
+                        </div>
+
+                        <div className="feature-card">
+                            <div className="feature-icon" style={{ background: '#EDE9FE' }}>
+                                <span style={{ fontSize: '1.5rem' }}>🚀</span>
+                            </div>
+                            <h3>Investigación de producto</h3>
+                            <p>
+                                Prueba nuevas ideas directamente con tu comunidad e itera
+                                rápidamente. Insights que impulsan innovación significativa.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Stats */}
+            <section className="stats-section">
+                <div className="container">
+                    <div className="stats-grid">
+                        <div className="stat-item">
+                            <h3>50+</h3>
+                            <p>Idiomas soportados</p>
+                        </div>
+                        <div className="stat-item">
+                            <h3>GPT-4</h3>
+                            <p>Análisis inteligente</p>
+                        </div>
+                        <div className="stat-item">
+                            <h3>100%</h3>
+                            <p>Anónimo y seguro</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Final CTA */}
+            <section className="cta-section">
+                <div className="container">
+                    <h2>Empieza a escuchar a tu comunidad</h2>
+                    <p>
+                        Crea tu primera encuesta en minutos. Sin tarjeta de crédito requerida.
                     </p>
-                    <div className="glass-card" style={{ padding: '4rem', minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <p style={{ color: 'var(--text-muted)' }}>[ Walkthrough Video or Interactive Demo Placeholder ]</p>
-                    </div>
-                </section>
-            </div>
+                    <Link to="/register" className="btn btn-large">
+                        Crear cuenta gratis
+                    </Link>
+                </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="footer">
+                <div className="container">
+                    <p>© 2025 Pooly. Plataforma de participación ciudadana.</p>
+                </div>
+            </footer>
         </div>
     );
 };

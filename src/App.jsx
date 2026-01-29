@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './layout/Navbar';
@@ -6,48 +6,27 @@ import PublicGallery from './pages/PublicGallery';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
-import ResponseSubmission from './pages/ResponseSubmission';
+import PublicSurvey from './pages/PublicSurvey';
 import CreateEvent from './pages/CreateEvent';
 import EventDetails from './pages/EventDetails';
-
-// Shared layout wrapper
-const AppLayout = ({ children }) => (
-  <>
-    <Navbar />
-    <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-      {children}
-    </main>
-  </>
-);
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppLayout>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<PublicGallery />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/submit/:eventId" element={<ResponseSubmission />} />
+      <BrowserRouter>
+        <Routes>
+          {/* Encuesta pública - sin navbar para experiencia limpia */}
+          <Route path="/encuesta/:publicId" element={<PublicSurvey />} />
 
-            {/* Protected Admin Routes */}
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute>
-                  <Routes>
-                    <Route index element={<AdminDashboard />} />
-                    <Route path="create" element={<CreateEvent />} />
-                    <Route path="events/:eventId" element={<EventDetails />} />
-                  </Routes>
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </AppLayout>
-      </Router>
+          {/* Rutas con navbar */}
+          <Route path="/" element={<><Navbar /><PublicGallery /></>} />
+          <Route path="/login" element={<><Navbar /><Login /></>} />
+          <Route path="/register" element={<><Navbar /><Register /></>} />
+          <Route path="/admin" element={<><Navbar /><ProtectedRoute><AdminDashboard /></ProtectedRoute></>} />
+          <Route path="/admin/create" element={<><Navbar /><ProtectedRoute><CreateEvent /></ProtectedRoute></>} />
+          <Route path="/admin/events/:eventId" element={<><Navbar /><ProtectedRoute><EventDetails /></ProtectedRoute></>} />
+        </Routes>
+      </BrowserRouter>
     </AuthProvider>
   );
 }

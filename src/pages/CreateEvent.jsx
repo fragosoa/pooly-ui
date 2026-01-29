@@ -8,7 +8,6 @@ const CreateEvent = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // Form State
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -42,10 +41,9 @@ const CreateEvent = () => {
         setIsLoading(true);
         setError('');
         try {
-            // Clean up empty questions
             const cleanedQuestions = formData.questions.filter(q => q.trim() !== '');
             if (cleanedQuestions.length === 0) {
-                throw new Error('Please add at least one question.');
+                throw new Error('Por favor agrega al menos una pregunta.');
             }
 
             await api.post('/events/new', {
@@ -54,31 +52,51 @@ const CreateEvent = () => {
             });
             navigate('/admin');
         } catch (err) {
-            setError(err.response?.data?.message || err.message || 'Failed to create event.');
+            setError(err.response?.data?.message || err.message || 'Error al crear la encuesta.');
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
-            <header style={{ margin: '3rem 0' }}>
-                <Link to="/admin" style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'inline-block' }}>← Back to Dashboard</Link>
-                <h1 className="page-title">Create New Event</h1>
-                <p style={{ color: 'var(--text-muted)' }}>Step {step} of 2: {step === 1 ? 'Event Details' : 'Add Questions'}</p>
+        <div className="container" style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+            <header style={{ marginBottom: '2rem' }}>
+                <Link to="/admin" style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'inline-block', fontSize: '0.875rem' }}>
+                    ← Volver al panel
+                </Link>
+                <h1 className="page-title">Crear nueva encuesta</h1>
+                <p style={{ color: 'var(--text-secondary)' }}>
+                    Paso {step} de 2: {step === 1 ? 'Detalles de la encuesta' : 'Agregar preguntas'}
+                </p>
             </header>
 
+            {/* Progress indicator */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', maxWidth: '600px' }}>
+                <div style={{
+                    flex: 1,
+                    height: '4px',
+                    borderRadius: '2px',
+                    background: 'var(--primary)'
+                }}></div>
+                <div style={{
+                    flex: 1,
+                    height: '4px',
+                    borderRadius: '2px',
+                    background: step === 2 ? 'var(--primary)' : 'var(--border)'
+                }}></div>
+            </div>
+
             {error && (
-                <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '1rem', borderRadius: '8px', marginBottom: '2rem' }}>
+                <div className="alert alert-error">
                     {error}
                 </div>
             )}
 
-            <div className="glass-card" style={{ padding: '3rem', maxWidth: '800px', margin: '0 auto' }}>
+            <div className="card" style={{ padding: '2rem', maxWidth: '600px' }}>
                 {step === 1 && (
                     <form onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
                         <div className="input-group">
-                            <label className="input-label">Event Name</label>
+                            <label className="input-label">Nombre de la encuesta</label>
                             <input
                                 type="text"
                                 name="name"
@@ -86,24 +104,23 @@ const CreateEvent = () => {
                                 value={formData.name}
                                 onChange={handleInputChange}
                                 required
-                                placeholder="e.g., Urban Mobility 2026"
+                                placeholder="ej. Movilidad Urbana 2026"
                             />
                         </div>
                         <div className="input-group">
-                            <label className="input-label">Description</label>
+                            <label className="input-label">Descripción</label>
                             <textarea
                                 name="description"
                                 className="input-field"
-                                rows="4"
+                                rows="3"
                                 value={formData.description}
                                 onChange={handleInputChange}
                                 required
-                                placeholder="Describe the purpose of this event..."
-                                style={{ resize: 'vertical' }}
+                                placeholder="Describe el propósito de esta encuesta..."
                             />
                         </div>
                         <div className="input-group">
-                            <label className="input-label">End Date</label>
+                            <label className="input-label">Fecha de cierre</label>
                             <input
                                 type="date"
                                 name="end_date"
@@ -113,52 +130,88 @@ const CreateEvent = () => {
                                 required
                             />
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
-                            <button type="submit" className="btn btn-primary">Next: Add Questions →</button>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+                            <button type="submit" className="btn btn-primary">
+                                Siguiente: Agregar preguntas
+                            </button>
                         </div>
                     </form>
                 )}
 
                 {step === 2 && (
                     <form onSubmit={handleSubmit}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <label className="input-label">Questions</label>
-                            {formData.questions.map((question, index) => (
-                                <div key={index} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                                    <textarea
-                                        className="input-field"
-                                        rows="2"
-                                        value={question}
-                                        onChange={(e) => handleQuestionChange(index, e.target.value)}
-                                        placeholder={`Question ${index + 1}`}
-                                        style={{ resize: 'vertical' }}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeQuestion(index)}
-                                        className="btn btn-outline"
-                                        style={{ padding: '0.75rem', borderColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}
-                                        title="Remove question"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            ))}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label className="input-label" style={{ marginBottom: '1rem', display: 'block' }}>
+                                Preguntas de la encuesta
+                            </label>
+                            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', marginBottom: '1rem' }}>
+                                Escribe preguntas abiertas para que los participantes puedan responder libremente.
+                            </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {formData.questions.map((question, index) => (
+                                    <div key={index} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                                        <span style={{
+                                            width: '28px',
+                                            height: '28px',
+                                            background: 'var(--primary-50)',
+                                            color: 'var(--primary)',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '0.875rem',
+                                            fontWeight: '600',
+                                            flexShrink: 0,
+                                            marginTop: '0.5rem'
+                                        }}>
+                                            {index + 1}
+                                        </span>
+                                        <textarea
+                                            className="input-field"
+                                            rows="2"
+                                            value={question}
+                                            onChange={(e) => handleQuestionChange(index, e.target.value)}
+                                            placeholder={`Escribe la pregunta ${index + 1}`}
+                                            style={{ flex: 1 }}
+                                        />
+                                        {formData.questions.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => removeQuestion(index)}
+                                                className="btn btn-outline"
+                                                style={{
+                                                    padding: '0.5rem',
+                                                    color: 'var(--error)',
+                                                    borderColor: 'var(--error-light)',
+                                                    marginTop: '0.25rem'
+                                                }}
+                                                title="Eliminar pregunta"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         <button
                             type="button"
                             onClick={addQuestion}
                             className="btn btn-outline"
-                            style={{ width: '100%', marginTop: '1.5rem', borderStyle: 'dashed' }}
+                            style={{ width: '100%', borderStyle: 'dashed' }}
                         >
-                            + Add Another Question
+                            + Agregar otra pregunta
                         </button>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-                            <button type="button" onClick={() => setStep(1)} className="btn btn-outline">← Back to Details</button>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+                            <button type="button" onClick={() => setStep(1)} className="btn btn-secondary">
+                                Anterior
+                            </button>
                             <button type="submit" className="btn btn-primary" disabled={isLoading}>
-                                {isLoading ? 'Creating Event...' : 'Launch Event 🚀'}
+                                {isLoading ? 'Creando...' : 'Crear encuesta'}
                             </button>
                         </div>
                     </form>

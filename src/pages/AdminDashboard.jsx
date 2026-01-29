@@ -16,11 +16,10 @@ const AdminDashboard = () => {
                 setEvents(response.data.events || []);
             } catch (err) {
                 console.error('Failed to fetch user events:', err);
-                setError('Failed to load your events.');
-                // Mock data for admin demo
+                setError('No se pudieron cargar tus eventos.');
                 setEvents([
-                    { id: 1, name: 'Urban Mobility 2026', description: 'What do you think about the new bike lanes...', end: '2026-12-31', response_count: 45 },
-                    { id: 4, name: 'Community Garden Survey', description: 'Should we expand the public garden?', end: '2026-05-30', response_count: 12 },
+                    { id: 1, name: 'Movilidad Urbana 2026', description: '¿Qué opinas sobre las nuevas ciclovías...', end: '2026-12-31', response_count: 45 },
+                    { id: 4, name: 'Encuesta del Jardín Comunitario', description: '¿Deberíamos expandir el jardín público?', end: '2026-05-30', response_count: 12 },
                 ]);
             } finally {
                 setLoading(false);
@@ -29,47 +28,75 @@ const AdminDashboard = () => {
         fetchUserEvents();
     }, []);
 
-    if (loading) return <div className="container"><p>Loading your dashboard...</p></div>;
+    if (loading) {
+        return (
+            <div className="container" style={{ paddingTop: '8rem', textAlign: 'center' }}>
+                <p style={{ color: 'var(--text-secondary)' }}>Cargando tu panel de control...</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
-            <header style={{ margin: '3rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="container" style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+            <header className="dashboard-header">
                 <div>
-                    <h1 className="page-title">Welcome, {user?.username}</h1>
-                    <p style={{ color: 'var(--text-muted)' }}>Manage your community events and analyze responses.</p>
+                    <h1 className="page-title">Hola, {user?.username}</h1>
+                    <p className="page-subtitle" style={{ marginBottom: 0 }}>
+                        Gestiona tus encuestas y analiza las respuestas de tu comunidad.
+                    </p>
                 </div>
                 <Link to="/admin/create" className="btn btn-primary">
-                    <span style={{ fontSize: '1.5rem', lineHeight: '1' }}>+</span> Create New Event
+                    + Nueva encuesta
                 </Link>
             </header>
 
             {error && (
-                <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--glass-border)', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', color: 'var(--text-muted)' }}>
-                    {error} (Showing demo data)
+                <div className="alert alert-error" style={{ background: 'var(--primary-50)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>
+                    {error} (Mostrando datos de demostración)
                 </div>
             )}
 
             {events.length === 0 ? (
-                <div className="glass-card" style={{ padding: '4rem', textAlign: 'center' }}>
-                    <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>You haven't created any events yet.</p>
-                    <Link to="/admin/create" className="btn btn-primary">Create Your First Event</Link>
+                <div className="card" style={{ padding: '4rem', textAlign: 'center' }}>
+                    <h3 style={{ marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
+                        Aún no tienes encuestas
+                    </h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+                        Crea tu primera encuesta para comenzar a recolectar opiniones.
+                    </p>
+                    <Link to="/admin/create" className="btn btn-primary">
+                        Crear mi primera encuesta
+                    </Link>
                 </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gap: '1rem' }}>
                     {events.map(event => (
-                        <div key={event.id} className="glass-card" style={{ padding: '1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'var(--transition)' }}>
+                        <div key={event.id} className="event-card">
                             <div>
-                                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{event.name}</h3>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                                    Ends: {new Date(event.end).toLocaleDateString()} • {event.response_count || 0} responses
-                                </p>
+                                <h3>{event.name}</h3>
+                                <div className="event-card-meta">
+                                    <span>Finaliza: {new Date(event.end).toLocaleDateString('es-MX')}</span>
+                                    <span>{event.response_count || 0} respuestas</span>
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '1rem' }}>
-                                <Link to={`/admin/events/${event.id}`} className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
-                                    View Details
+                            <div className="event-card-actions">
+                                <Link
+                                    to={`/admin/events/${event.id}`}
+                                    className="btn btn-secondary"
+                                    style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+                                >
+                                    Ver detalles
                                 </Link>
-                                <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', borderColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}>
-                                    Delete
+                                <button
+                                    className="btn btn-outline"
+                                    style={{
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.875rem',
+                                        color: 'var(--error)',
+                                        borderColor: 'var(--error-light)'
+                                    }}
+                                >
+                                    Eliminar
                                 </button>
                             </div>
                         </div>
