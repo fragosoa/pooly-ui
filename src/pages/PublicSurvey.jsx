@@ -55,16 +55,17 @@ export default function PublicSurvey() {
         throw new Error('Por favor responde al menos una pregunta.');
       }
 
-      // Enviar cada respuesta
-      const submissionPromises = answeredQuestions.map(([questionId, text]) =>
-        api.post('/register_response', {
-          text,
-          question_id: parseInt(questionId),
-          public_id: publicId
-        })
-      );
+      // Construir payload con todas las respuestas
+      const payload = {
+        public_id: publicId,
+        responses: answeredQuestions.map(([questionId, text]) => ({
+          text: text.trim(),
+          question_id: parseInt(questionId)
+        }))
+      };
 
-      await Promise.all(submissionPromises);
+      // Una sola llamada al backend
+      await api.post(`/events/public/${publicId}/respond`, payload);
       setSuccess(true);
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Error al enviar las respuestas.');
