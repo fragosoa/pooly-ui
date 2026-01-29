@@ -11,6 +11,14 @@ export default function EventDetails() {
   const [analysisStatus, setAnalysisStatus] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // Tabs state
+  const [activeTab, setActiveTab] = useState('responses');
+
+  // Reports state
+  const [reports, setReports] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
+  const [reportsError, setReportsError] = useState('');
+
   // El enlace usa el public_id del evento
   const shareUrl = event?.public_id
     ? `${window.location.origin}/encuesta/${event.public_id}`
@@ -56,6 +64,71 @@ export default function EventDetails() {
     fetchEventDetails();
   }, [eventId]);
 
+  // Fetch reports
+  const fetchReports = async () => {
+    setReportsLoading(true);
+    setReportsError('');
+    try {
+      const response = await api.get(`/events/${eventId}/reports`);
+      if (response.data.status === 'success') {
+        setReports(response.data.reports || []);
+      } else {
+        setReports([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch reports:', err);
+      setReportsError('No se pudieron cargar los reportes.');
+      // Mock data para desarrollo
+      setReports([
+        {
+          id: 1,
+          event_id: eventId,
+          category: 'Transporte público',
+          volume: 45,
+          percentage: 35.5,
+          urgency: 0.8,
+          sentiment: -0.2,
+          summary: 'Los ciudadanos expresan preocupación por la frecuencia del transporte público y la saturación en horas pico.',
+          examples: ['Necesitamos más autobuses', 'El metro siempre está lleno'],
+          timestamp: '2026-01-29T10:30:00'
+        },
+        {
+          id: 2,
+          event_id: eventId,
+          category: 'Ciclovías',
+          volume: 30,
+          percentage: 23.6,
+          urgency: 0.6,
+          sentiment: 0.4,
+          summary: 'Solicitudes de expansión de la red de ciclovías con enfoque en seguridad y conectividad.',
+          examples: ['Más carriles para bicicletas', 'Conectar el centro con los barrios'],
+          timestamp: '2026-01-29T10:30:00'
+        },
+        {
+          id: 3,
+          event_id: eventId,
+          category: 'Estacionamiento',
+          volume: 20,
+          percentage: 15.7,
+          urgency: 0.4,
+          sentiment: -0.5,
+          summary: 'Quejas sobre la falta de estacionamiento en zonas comerciales y costos elevados.',
+          examples: ['No hay donde estacionarse', 'Los parquímetros son muy caros'],
+          timestamp: '2026-01-29T10:30:00'
+        }
+      ]);
+    } finally {
+      setReportsLoading(false);
+    }
+  };
+
+  // Fetch reports when tab changes to reports
+  useEffect(() => {
+    if (activeTab === 'reports' && reports.length === 0 && !reportsLoading) {
+      fetchReports();
+    }
+  }, [activeTab]);
+
   const handleAnalyze = async () => {
     setAnalyzing(true);
     setAnalysisStatus('');
@@ -78,6 +151,19 @@ export default function EventDetails() {
     } catch (err) {
       console.error('Failed to copy:', err);
     }
+  };
+
+  // Helper functions for reports
+  const getSentimentLabel = (sentiment) => {
+    if (sentiment >= 0.3) return { text: 'Positivo', class: 'positive' };
+    if (sentiment <= -0.3) return { text: 'Negativo', class: 'negative' };
+    return { text: 'Neutral', class: 'neutral' };
+  };
+
+  const getUrgencyLabel = (urgency) => {
+    if (urgency >= 0.7) return { text: 'Alta', class: 'high' };
+    if (urgency >= 0.4) return { text: 'Media', class: 'medium' };
+    return { text: 'Baja', class: 'low' };
   };
 
   const totalResponses = event?.questions?.reduce(
@@ -169,46 +255,179 @@ export default function EventDetails() {
         </div>
       )}
 
-      <section>
-        <h2 className="section-title" style={{ marginBottom: '1.5rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border)' }}>
-          Preguntas y Respuestas
-        </h2>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {event.questions?.map((question, index) => (
-            <div key={question.id} className="card" style={{ overflow: 'hidden', padding: 0 }}>
-              <div style={{
-                padding: '1rem 1.25rem',
-                background: 'var(--bg-secondary)',
-                borderBottom: '1px solid var(--border)'
-              }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-                  <span style={{ color: 'var(--primary)', marginRight: '0.5rem' }}>{index + 1}.</span>
-                  {question.text}
-                </h3>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  {question.responses?.length || 0} respuestas
-                </span>
-              </div>
-              <div style={{ padding: '1rem 1.25rem' }}>
-                {question.responses?.length === 0 ? (
-                  <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                    Sin respuestas aún.
-                  </p>
-                ) : (
-                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {question.responses?.map(response => (
-                      <li key={response.id} className="response-item">
-                        {response.text}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          ))}
+      {/* Tabs Navigation */}
+      <div className="tabs-container">
+        <div className="tabs-nav">
+          <button
+            className={`tab-btn ${activeTab === 'responses' ? 'active' : ''}`}
+            onClick={() => setActiveTab('responses')}
+          >
+            <span className="tab-icon">💬</span>
+            Respuestas
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'reports' ? 'active' : ''}`}
+            onClick={() => setActiveTab('reports')}
+          >
+            <span className="tab-icon">📊</span>
+            Reportes IA
+            {reports.length > 0 && (
+              <span className="tab-badge">{reports.length}</span>
+            )}
+          </button>
         </div>
-      </section>
+
+        {/* Tab Content */}
+        <div className="tab-content">
+          {/* Responses Tab */}
+          {activeTab === 'responses' && (
+            <section>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {event.questions?.map((question, index) => (
+                  <div key={question.id} className="card" style={{ overflow: 'hidden', padding: 0 }}>
+                    <div style={{
+                      padding: '1rem 1.25rem',
+                      background: 'var(--bg-secondary)',
+                      borderBottom: '1px solid var(--border)'
+                    }}>
+                      <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+                        <span style={{ color: 'var(--primary)', marginRight: '0.5rem' }}>{index + 1}.</span>
+                        {question.text}
+                      </h3>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        {question.responses?.length || 0} respuestas
+                      </span>
+                    </div>
+                    <div style={{ padding: '1rem 1.25rem' }}>
+                      {question.responses?.length === 0 ? (
+                        <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                          Sin respuestas aún.
+                        </p>
+                      ) : (
+                        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {question.responses?.map(response => (
+                            <li key={response.id} className="response-item">
+                              {response.text}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Reports Tab */}
+          {activeTab === 'reports' && (
+            <section>
+              {/* Reports Header */}
+              <div className="reports-header">
+                <div>
+                  <h3 className="reports-title">Análisis de Respuestas</h3>
+                  <p className="reports-subtitle">
+                    {reports.length > 0
+                      ? `${reports.length} categorías identificadas por IA`
+                      : 'Los reportes aparecerán aquí después del análisis'}
+                  </p>
+                </div>
+                <button
+                  onClick={fetchReports}
+                  className="btn btn-secondary"
+                  disabled={reportsLoading}
+                >
+                  {reportsLoading ? (
+                    <>
+                      <span className="btn-spinner"></span>
+                      Cargando...
+                    </>
+                  ) : (
+                    <>↻ Actualizar</>
+                  )}
+                </button>
+              </div>
+
+              {reportsError && (
+                <div className="alert" style={{ background: 'var(--primary-light)', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                  {reportsError} (Mostrando datos de demostración)
+                </div>
+              )}
+
+              {/* Loading State */}
+              {reportsLoading && reports.length === 0 && (
+                <div className="reports-loading">
+                  <div className="reports-spinner"></div>
+                  <p>Cargando reportes...</p>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!reportsLoading && reports.length === 0 && (
+                <div className="reports-empty">
+                  <div className="reports-empty-icon">📊</div>
+                  <h4>Sin reportes disponibles</h4>
+                  <p>Presiona "Analizar con IA" para generar un análisis de las respuestas.</p>
+                </div>
+              )}
+
+              {/* Reports Grid */}
+              {reports.length > 0 && (
+                <div className="reports-grid">
+                  {reports.map(report => {
+                    const sentiment = getSentimentLabel(report.sentiment);
+                    const urgency = getUrgencyLabel(report.urgency);
+
+                    return (
+                      <div key={report.id} className="report-card">
+                        <div className="report-card-header">
+                          <h4 className="report-category">{report.category}</h4>
+                          <div className="report-badges">
+                            <span className={`report-badge sentiment-${sentiment.class}`}>
+                              {sentiment.text}
+                            </span>
+                            <span className={`report-badge urgency-${urgency.class}`}>
+                              Urgencia: {urgency.text}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="report-stats">
+                          <div className="report-stat">
+                            <span className="report-stat-value">{report.volume}</span>
+                            <span className="report-stat-label">menciones</span>
+                          </div>
+                          <div className="report-stat">
+                            <span className="report-stat-value">{report.percentage.toFixed(1)}%</span>
+                            <span className="report-stat-label">del total</span>
+                          </div>
+                        </div>
+
+                        <p className="report-summary">{report.summary}</p>
+
+                        {report.examples && report.examples.length > 0 && (
+                          <div className="report-examples">
+                            <span className="report-examples-label">Ejemplos:</span>
+                            <ul className="report-examples-list">
+                              {report.examples.map((example, idx) => (
+                                <li key={idx}>"{example}"</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        <div className="report-timestamp">
+                          Generado: {new Date(report.timestamp).toLocaleString('es-MX')}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
