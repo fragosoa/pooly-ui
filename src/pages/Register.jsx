@@ -14,7 +14,7 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (password !== confirmPassword) {
-            return setError('Passwords do not match');
+            return setError('Las contraseñas no coinciden');
         }
 
         setIsLoading(true);
@@ -22,7 +22,7 @@ const Register = () => {
         try {
             await register(username, password);
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed. Try a different username.');
+            setError(err.response?.data?.message || 'Error en el registro. Intenta con otro nombre de usuario.');
             setIsLoading(false);
             return;
         }
@@ -31,7 +31,7 @@ const Register = () => {
             await login(username, password);
             navigate('/admin');
         } catch (err) {
-            setError('Account created, but auto-login failed. Please try logging in manually.');
+            setError('Cuenta creada, pero el inicio de sesión automático falló. Por favor inicia sesión manualmente.');
             console.error('Auto-login error:', err);
         } finally {
             setIsLoading(false);
@@ -39,31 +39,31 @@ const Register = () => {
     };
 
     return (
-        <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
-            <div className="glass-card" style={{ padding: '3rem', width: '100%', maxWidth: '450px' }}>
-                <h1 className="page-title" style={{ fontSize: '2rem', textAlign: 'center' }}>Create Account</h1>
-                <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginBottom: '2rem' }}>Join Pooly to start creating your own events</p>
+        <div className="auth-container">
+            <div className="auth-card">
+                <h1>Crear cuenta</h1>
+                <p className="subtitle">Únete a Pooly y comienza a crear encuestas</p>
 
                 {error && (
-                    <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                    <div className="alert alert-error">
                         {error}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit}>
                     <div className="input-group">
-                        <label className="input-label">Username</label>
+                        <label className="input-label">Usuario</label>
                         <input
                             type="text"
                             className="input-field"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
-                            placeholder="Choose a username"
+                            placeholder="Elige un nombre de usuario"
                         />
                     </div>
                     <div className="input-group">
-                        <label className="input-label">Password</label>
+                        <label className="input-label">Contraseña</label>
                         <input
                             type="password"
                             className="input-field"
@@ -74,7 +74,7 @@ const Register = () => {
                         />
                     </div>
                     <div className="input-group">
-                        <label className="input-label">Confirm Password</label>
+                        <label className="input-label">Confirmar contraseña</label>
                         <input
                             type="password"
                             className="input-field"
@@ -84,13 +84,18 @@ const Register = () => {
                             placeholder="••••••••"
                         />
                     </div>
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={isLoading}>
-                        {isLoading ? 'Creating account...' : 'Create Account'}
+                    <button
+                        type="submit"
+                        className="btn btn-primary"
+                        style={{ width: '100%', marginTop: '0.5rem' }}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
                     </button>
                 </form>
 
-                <p style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                    Already have an account? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>Login here</Link>
+                <p className="auth-footer">
+                    ¿Ya tienes cuenta? <Link to="/login">Inicia sesión aquí</Link>
                 </p>
             </div>
         </div>

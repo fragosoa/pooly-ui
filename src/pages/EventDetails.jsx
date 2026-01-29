@@ -9,36 +9,37 @@ const EventDetails = () => {
     const [error, setError] = useState('');
     const [analyzing, setAnalyzing] = useState(false);
     const [analysisStatus, setAnalysisStatus] = useState('');
+    const [copied, setCopied] = useState(false);
+
+    const shareUrl = `${window.location.origin}/submit/${eventId}`;
 
     useEffect(() => {
         const fetchEventDetails = async () => {
             try {
                 const response = await api.get(`/events/${eventId}/details`);
-                // Backend returns { status: "success", data: { ...event, questions: [...] } }
                 setEvent(response.data.data);
             } catch (err) {
                 console.error('Failed to fetch event details:', err);
-                setError('Failed to load event details.');
-                // Mock data as fallback
+                setError('No se pudieron cargar los detalles del evento.');
                 setEvent({
                     id: eventId,
-                    name: 'Urban Mobility 2026',
-                    description: 'What do you think about the new bike lanes in the city center?',
+                    name: 'Movilidad Urbana 2026',
+                    description: '¿Qué opinas sobre las nuevas ciclovías en el centro de la ciudad?',
                     end: '2026-12-31',
                     questions: [
                         {
                             id: 101,
-                            text: 'What is your main mode of transport?',
+                            text: '¿Cuál es tu principal medio de transporte?',
                             responses: [
-                                { id: 1001, text: 'I use the subway everyday.' },
-                                { id: 1002, text: 'Mostly bicycle, but it feels unsafe.' }
+                                { id: 1001, text: 'Uso el metro todos los días.' },
+                                { id: 1002, text: 'Principalmente bicicleta, pero me siento inseguro.' }
                             ]
                         },
                         {
                             id: 102,
-                            text: 'Are you satisfied with the current bike lanes?',
+                            text: '¿Estás satisfecho con las ciclovías actuales?',
                             responses: [
-                                { id: 2001, text: 'No, they are too narrow.' }
+                                { id: 2001, text: 'No, son demasiado angostas.' }
                             ]
                         }
                     ]
@@ -55,74 +56,158 @@ const EventDetails = () => {
         setAnalysisStatus('');
         try {
             await api.post(`/events/${eventId}/analyze`);
-            setAnalysisStatus('Analysis triggered successfully!');
+            setAnalysisStatus('¡Análisis iniciado exitosamente!');
         } catch (err) {
-            setAnalysisStatus('Failed to trigger analysis. Please try again.');
+            setAnalysisStatus('Error al iniciar el análisis. Intenta de nuevo.');
         } finally {
             setAnalyzing(false);
         }
     };
 
-    if (loading) return <div className="container" style={{ paddingTop: '8rem' }}><p>Loading event details...</p></div>;
-    if (!event && error) return <div className="container" style={{ paddingTop: '8rem' }}><p style={{ color: '#ef4444' }}>{error}</p></div>;
+    const handleCopyLink = async () => {
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    };
+
+    const totalResponses = event?.questions?.reduce(
+        (sum, q) => sum + (q.responses?.length || 0), 0
+    ) || 0;
+
+    if (loading) {
+        return (
+            <div className="container" style={{ paddingTop: '8rem', textAlign: 'center' }}>
+                <p style={{ color: 'var(--text-secondary)' }}>Cargando detalles del evento...</p>
+            </div>
+        );
+    }
+
+    if (!event && error) {
+        return (
+            <div className="container" style={{ paddingTop: '8rem' }}>
+                <div className="alert alert-error">{error}</div>
+            </div>
+        );
+    }
+
     if (!event) return null;
 
     return (
-        <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
-            <header style={{ margin: '3rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                    <Link to="/admin" style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'inline-block' }}>← Back to Dashboard</Link>
-                    <h1 className="page-title" style={{ fontSize: '2.5rem' }}>{event.name}</h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>{event.description}</p>
+        <div className="container" style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+            <header style={{ marginBottom: '2rem' }}>
+                <Link to="/admin" style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'inline-block', fontSize: '0.875rem' }}>
+                    ← Volver al panel
+                </Link>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                        <h1 className="page-title">{event.name}</h1>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>{event.description}</p>
+                        <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>
+                            <span>Finaliza: {new Date(event.end).toLocaleDateString('es-MX')}</span>
+                            <span>{totalResponses} respuestas totales</span>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        <button
+                            onClick={handleCopyLink}
+                            className="btn btn-secondary"
+                            style={{ fontSize: '0.875rem' }}
+                        >
+                            {copied ? '¡Copiado!' : 'Copiar enlace'}
+                        </button>
+                        <button
+                            onClick={handleAnalyze}
+                            className="btn btn-primary"
+                            disabled={analyzing}
+                            style={{ fontSize: '0.875rem' }}
+                        >
+                            {analyzing ? 'Analizando...' : 'Analizar con IA'}
+                        </button>
+                    </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                    <button
-                        onClick={handleAnalyze}
-                        className="btn btn-primary"
-                        disabled={analyzing}
-                        style={{ marginBottom: '0.5rem' }}
-                    >
-                        {analyzing ? 'Analyzing...' : 'Trigger Analysis'}
-                    </button>
-                    {analysisStatus && (
-                        <p style={{ fontSize: '0.875rem', color: analysisStatus.includes('success') ? 'var(--primary)' : '#ef4444' }}>
-                            {analysisStatus}
-                        </p>
-                    )}
-                </div>
+                {analysisStatus && (
+                    <div className={`alert ${analysisStatus.includes('exitosamente') ? 'alert-success' : 'alert-error'}`} style={{ marginTop: '1rem' }}>
+                        {analysisStatus}
+                    </div>
+                )}
             </header>
 
-            {error && !event.questions && (
-                <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--glass-border)', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', color: 'var(--text-muted)' }}>
-                    {error} (Showing demo data)
+            {/* Share Link Card */}
+            <div className="card" style={{ padding: '1.25rem', marginBottom: '2rem', background: 'var(--primary-50)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>Enlace para compartir:</span>
+                    <code style={{
+                        flex: 1,
+                        padding: '0.5rem 1rem',
+                        background: 'var(--bg-card)',
+                        borderRadius: 'var(--border-radius)',
+                        fontSize: '0.875rem',
+                        color: 'var(--text-secondary)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                    }}>
+                        {shareUrl}
+                    </code>
+                </div>
+            </div>
+
+            {error && event.questions && (
+                <div className="alert" style={{ background: 'var(--primary-50)', color: 'var(--text-secondary)', border: '1px solid var(--border)', marginBottom: '2rem' }}>
+                    {error} (Mostrando datos de demostración)
                 </div>
             )}
 
-            <section style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
-                    <h2 style={{ fontSize: '1.75rem' }}>Questions & Responses</h2>
-                </div>
+            <section>
+                <h2 className="section-title" style={{ marginBottom: '1.5rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border)' }}>
+                    Preguntas y Respuestas
+                </h2>
 
-                {event.questions?.map(question => (
-                    <div key={question.id} className="glass-card" style={{ overflow: 'hidden' }}>
-                        <div style={{ padding: '1.5rem 2rem', background: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid var(--glass-border)' }}>
-                            <h3 style={{ fontSize: '1.25rem' }}>{question.text}</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    {event.questions?.map((question, index) => (
+                        <div key={question.id} className="card" style={{ overflow: 'hidden' }}>
+                            <div style={{
+                                padding: '1.25rem 1.5rem',
+                                background: 'var(--bg-secondary)',
+                                borderBottom: '1px solid var(--border)'
+                            }}>
+                                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>
+                                    <span style={{ color: 'var(--primary)', marginRight: '0.5rem' }}>{index + 1}.</span>
+                                    {question.text}
+                                </h3>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                                    {question.responses?.length || 0} respuestas
+                                </span>
+                            </div>
+                            <div style={{ padding: '1.25rem 1.5rem' }}>
+                                {question.responses?.length === 0 ? (
+                                    <p style={{ color: 'var(--text-tertiary)', fontStyle: 'italic', fontSize: '0.9375rem' }}>
+                                        Sin respuestas aún.
+                                    </p>
+                                ) : (
+                                    <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        {question.responses?.map(response => (
+                                            <li key={response.id} style={{
+                                                padding: '0.875rem 1rem',
+                                                background: 'var(--bg-secondary)',
+                                                borderRadius: 'var(--border-radius)',
+                                                borderLeft: '3px solid var(--primary)',
+                                                fontSize: '0.9375rem',
+                                                color: 'var(--text-primary)'
+                                            }}>
+                                                {response.text}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
                         </div>
-                        <div style={{ padding: '1.5rem 2rem' }}>
-                            {question.responses?.length === 0 ? (
-                                <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No responses yet.</p>
-                            ) : (
-                                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    {question.responses?.map(response => (
-                                        <li key={response.id} style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '8px', borderLeft: '3px solid var(--primary)' }}>
-                                            {response.text}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </section>
         </div>
     );

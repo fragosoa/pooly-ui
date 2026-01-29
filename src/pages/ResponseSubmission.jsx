@@ -6,7 +6,7 @@ const ResponseSubmission = () => {
     const { eventId } = useParams();
     const navigate = useNavigate();
     const [event, setEvent] = useState(null);
-    const [responses, setResponses] = useState({}); // { questionId: text }
+    const [responses, setResponses] = useState({});
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -19,16 +19,15 @@ const ResponseSubmission = () => {
                 setEvent(response.data);
             } catch (err) {
                 console.error('Failed to fetch event details:', err);
-                setError('Failed to load event questions.');
-                // Mock fallback
+                setError('No se pudieron cargar las preguntas.');
                 setEvent({
                     id: eventId,
-                    name: 'Urban Mobility 2026',
-                    description: 'Help us improve the city transportation.',
+                    name: 'Movilidad Urbana 2026',
+                    description: 'Ayúdanos a mejorar el transporte de la ciudad.',
                     questions: [
-                        { id: 101, text: 'What is your main mode of transport?' },
-                        { id: 102, text: 'Are you satisfied with the current bike lanes?' },
-                        { id: 103, text: 'What improvement would you prioritize first?' }
+                        { id: 101, text: '¿Cuál es tu principal medio de transporte?' },
+                        { id: 102, text: '¿Estás satisfecho con las ciclovías actuales?' },
+                        { id: 103, text: '¿Qué mejora priorizarías primero?' }
                     ]
                 });
             } finally {
@@ -48,7 +47,6 @@ const ResponseSubmission = () => {
         setError('');
 
         try {
-            // Requirements: POST /register_response (text, question_id, event_id)
             const submissionPromises = Object.entries(responses)
                 .filter(([_, text]) => text.trim() !== '')
                 .map(([questionId, text]) =>
@@ -60,71 +58,116 @@ const ResponseSubmission = () => {
                 );
 
             if (submissionPromises.length === 0) {
-                throw new Error('Please answer at least one question.');
+                throw new Error('Por favor responde al menos una pregunta.');
             }
 
             await Promise.all(submissionPromises);
             setSuccess(true);
             setTimeout(() => navigate('/'), 3000);
         } catch (err) {
-            setError(err.response?.data?.message || err.message || 'Failed to submit responses.');
+            setError(err.response?.data?.message || err.message || 'Error al enviar las respuestas.');
         } finally {
             setSubmitting(false);
         }
     };
 
-    if (loading) return <div className="container"><p>Loading questions...</p></div>;
+    const answeredCount = Object.values(responses).filter(r => r.trim() !== '').length;
+    const totalQuestions = event?.questions?.length || 0;
+    const progress = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
+
+    if (loading) {
+        return (
+            <div className="submission-container" style={{ paddingTop: '8rem', textAlign: 'center' }}>
+                <p style={{ color: 'var(--text-secondary)' }}>Cargando preguntas...</p>
+            </div>
+        );
+    }
 
     if (success) {
         return (
-            <div className="container" style={{ display: 'flex', justifyContent: 'center', padding: '4rem 1rem' }}>
-                <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', maxWidth: '500px' }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
-                    <h2 className="page-title" style={{ fontSize: '2rem' }}>Thank You!</h2>
-                    <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Your responses have been recorded successfully. Your voice matters!</p>
-                    <Link to="/" className="btn btn-primary">Back to Gallery</Link>
+            <div className="submission-container" style={{ paddingTop: '6rem' }}>
+                <div className="card-elevated success-state">
+                    <div className="success-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                    </div>
+                    <h2>¡Gracias por participar!</h2>
+                    <p>Tus respuestas han sido registradas exitosamente. Tu voz importa.</p>
+                    <Link to="/" className="btn btn-primary">Volver al inicio</Link>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="container" style={{ paddingBottom: '4rem' }}>
-            <header style={{ margin: '3rem 0' }}>
-                <Link to="/" style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'inline-block' }}>← Back to Gallery</Link>
-                <h1 className="page-title">{event.name}</h1>
-                <p style={{ color: 'var(--text-muted)' }}>{event.description}</p>
-            </header>
+        <div className="submission-container" style={{ paddingTop: '6rem' }}>
+            <div className="submission-header">
+                <Link to="/" style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'inline-block', fontSize: '0.875rem' }}>
+                    ← Salir de la encuesta
+                </Link>
+                <h1>{event.name}</h1>
+                <p>{event.description}</p>
+            </div>
+
+            {/* Progress Bar */}
+            <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                <span>Progreso</span>
+                <span>{answeredCount} de {totalQuestions} preguntas</span>
+            </div>
+            <div className="progress-bar">
+                <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+            </div>
 
             {error && (
-                <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '1rem', borderRadius: '8px', marginBottom: '2rem' }}>
+                <div className="alert alert-error">
                     {error}
                 </div>
             )}
 
             <form onSubmit={handleSubmit}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                    {event.questions.map(question => (
-                        <div key={question.id} className="glass-card" style={{ padding: '2rem' }}>
-                            <label className="input-label" style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    {event.questions.map((question, index) => (
+                        <div key={question.id} className="question-card">
+                            <h3>
+                                <span style={{ color: 'var(--primary)', marginRight: '0.5rem' }}>{index + 1}.</span>
                                 {question.text}
-                            </label>
+                            </h3>
                             <textarea
                                 className="input-field"
-                                rows="4"
-                                placeholder="Share your thoughts..."
+                                rows="3"
+                                placeholder="Escribe tu respuesta aquí..."
                                 value={responses[question.id] || ''}
                                 onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                                style={{ resize: 'vertical' }}
                             />
                         </div>
                     ))}
                 </div>
 
-                <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center' }}>
-                    <button type="submit" className="btn btn-primary" style={{ padding: '1rem 3rem', fontSize: '1.1rem' }} disabled={submitting}>
-                        {submitting ? 'Submitting...' : 'Submit All Responses'}
+                <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
+                    <button
+                        type="submit"
+                        className="btn btn-primary btn-large"
+                        disabled={submitting}
+                        style={{ minWidth: '200px' }}
+                    >
+                        {submitting ? 'Enviando...' : 'Enviar respuestas'}
                     </button>
+                </div>
+
+                <div className="trust-badges">
+                    <span className="trust-badge">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                        Respuestas anónimas
+                    </span>
+                    <span className="trust-badge">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                        Datos seguros
+                    </span>
                 </div>
             </form>
         </div>
