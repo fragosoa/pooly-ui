@@ -10,43 +10,39 @@ import ResponseSubmission from './pages/ResponseSubmission';
 import CreateEvent from './pages/CreateEvent';
 import EventDetails from './pages/EventDetails';
 
-// Shared layout wrapper
-const AppLayout = ({ children }) => (
-  <>
-    <Navbar />
-    <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-      {children}
-    </main>
-  </>
-);
-
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <AppLayout>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<PublicGallery />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/submit/:eventId" element={<ResponseSubmission />} />
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <Navbar />
+          <main style={{ flex: 1 }}>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<PublicGallery />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/submit/:eventId" element={<ResponseSubmission />} />
 
-            {/* Protected Admin Routes */}
-            <Route
-              path="/admin/*"
-              element={
+              {/* Protected Admin Routes */}
+              <Route path="/admin" element={
                 <ProtectedRoute>
-                  <Routes>
-                    <Route index element={<AdminDashboard />} />
-                    <Route path="create" element={<CreateEvent />} />
-                    <Route path="events/:eventId" element={<EventDetails />} />
-                  </Routes>
+                  <AdminDashboard />
                 </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </AppLayout>
+              } />
+              <Route path="/admin/create" element={
+                <ProtectedRoute>
+                  <CreateEvent />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/events/:eventId" element={
+                <ProtectedRoute>
+                  <EventDetails />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </main>
+        </div>
       </Router>
     </AuthProvider>
   );

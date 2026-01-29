@@ -650,11 +650,12 @@ textarea.input-field {
    ======================================== */
 
 .auth-container {
-    min-height: 100vh;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    padding-top: 6rem;
     background: var(--bg-secondary);
 }
 
