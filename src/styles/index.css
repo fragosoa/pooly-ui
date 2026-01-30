@@ -136,6 +136,15 @@ body {
   color: white;
 }
 
+.btn-danger:hover {
+  background: #B91C1C;
+}
+
+.btn-danger:disabled {
+  background: #F87171;
+  cursor: not-allowed;
+}
+
 /* Cards */
 .card {
   background: var(--bg-white);
@@ -185,6 +194,21 @@ textarea.input-field {
   border-radius: var(--radius);
   margin-bottom: 1rem;
   font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.alert-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .alert-error {
@@ -192,9 +216,19 @@ textarea.input-field {
   color: var(--error);
 }
 
+.alert-error .alert-icon {
+  background: var(--error);
+  color: white;
+}
+
 .alert-success {
   background: var(--secondary-light);
   color: var(--secondary);
+}
+
+.alert-success .alert-icon {
+  background: var(--secondary);
+  color: white;
 }
 
 /* Hero Section */
@@ -1465,6 +1499,57 @@ textarea.input-field {
   font-weight: 600;
 }
 
+/* Modal Danger Icon */
+.modal-icon-danger {
+  width: 64px;
+  height: 64px;
+  background: var(--error-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  color: var(--error);
+}
+
+/* Modal Warning Box */
+.modal-warning-box {
+  background: var(--error-light);
+  border: 1px solid #FECACA;
+  border-radius: var(--radius);
+  padding: 1rem;
+  text-align: left;
+  margin-top: 1rem;
+}
+
+.modal-warning-box p {
+  font-size: 0.875rem;
+  color: var(--error);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.modal-warning-box ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.modal-warning-box li {
+  font-size: 0.8125rem;
+  color: #991B1B;
+  padding: 0.25rem 0;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.modal-warning-box li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--error);
+}
+
 /* ========================================
    JOBS TABLE - Status Tab
    ======================================== */
@@ -2105,5 +2190,227 @@ textarea.input-field {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+}
+
+/* ========================================
+   SURVEY CARDS - Touch-Friendly Design
+   ======================================== */
+
+/* Events Grid */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+/* Survey Card */
+.survey-card {
+  position: relative;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
+}
+
+.survey-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.survey-card:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.survey-card:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow);
+}
+
+/* Delete Button */
+.survey-card-delete {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0;
+  z-index: 10;
+}
+
+.survey-card:hover .survey-card-delete,
+.survey-card:focus .survey-card-delete {
+  opacity: 1;
+}
+
+.survey-card-delete:hover {
+  background: var(--error-light);
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.survey-card-delete:focus {
+  outline: none;
+  opacity: 1;
+  background: var(--error-light);
+  border-color: var(--error);
+  color: var(--error);
+}
+
+/* Status Badge */
+.survey-card-status {
+  display: inline-flex;
+  align-self: flex-start;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-bottom: 1rem;
+}
+
+.survey-card-status-active {
+  background: var(--secondary-light);
+  color: var(--secondary);
+}
+
+.survey-card-status-warning {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.survey-card-status-urgent {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.survey-card-status-ended {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+/* Card Content */
+.survey-card-content {
+  flex: 1;
+}
+
+.survey-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.survey-card-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Card Footer */
+.survey-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding-top: 1rem;
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+}
+
+.survey-card-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.survey-card-stat svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+/* Tap Hint for Mobile */
+.survey-card-tap-hint {
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--primary);
+  margin-top: 0.75rem;
+}
+
+.survey-card-tap-hint svg {
+  transition: transform 0.2s;
+}
+
+.survey-card:hover .survey-card-tap-hint svg {
+  transform: translateX(2px);
+}
+
+/* Responsive - Survey Cards */
+@media (max-width: 768px) {
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .survey-card {
+    min-height: 160px;
+    padding: 1.25rem;
+  }
+
+  .survey-card-delete {
+    opacity: 1;
+    width: 40px;
+    height: 40px;
+  }
+
+  .survey-card-tap-hint {
+    display: flex;
+  }
+
+  .survey-card-title {
+    font-size: 1rem;
+    padding-right: 2.5rem;
+  }
+}
+
+@media (hover: none) {
+  .survey-card-delete {
+    opacity: 1;
+  }
+
+  .survey-card-tap-hint {
+    display: flex;
   }
 }
