@@ -1321,6 +1321,258 @@ textarea.input-field {
   border-top: 1px solid var(--border);
 }
 
+/* ========================================
+   MODAL
+   ======================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-container {
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow: auto;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Modal Confirm Content */
+.modal-confirm-content {
+  text-align: center;
+}
+
+.modal-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.modal-message {
+  font-size: 1rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.modal-info-box {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  padding: 1rem;
+  text-align: left;
+}
+
+.modal-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.modal-info-item:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-info-icon {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.modal-info-item strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ========================================
+   JOBS TABLE - Status Tab
+   ======================================== */
+
+.jobs-table-container {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-white);
+}
+
+.jobs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.jobs-table th,
+.jobs-table td {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.jobs-table th {
+  background: var(--bg-secondary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.jobs-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.jobs-table tbody tr:hover {
+  background: var(--bg-primary);
+}
+
+.jobs-table-id {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.jobs-table-message {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.jobs-table-date {
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Job Status Badges */
+.job-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.job-status-icon {
+  font-size: 0.875rem;
+}
+
+.job-status-completed {
+  background: var(--secondary-light);
+  color: var(--secondary);
+}
+
+.job-status-running {
+  background: var(--primary-light);
+  color: var(--primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.job-status-error {
+  background: var(--error-light);
+  color: var(--error);
+}
+
+.job-status-unknown {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+}
+
+/* Tab Badge Running */
+.tab-badge.running {
+  background: var(--primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .hero-title {
@@ -1385,5 +1637,27 @@ textarea.input-field {
   .reports-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .modal-container {
+    max-width: 100%;
+    margin: 0.5rem;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
+  }
+
+  .jobs-table th,
+  .jobs-table td {
+    padding: 0.75rem 1rem;
+  }
+
+  .jobs-table-message {
+    max-width: 150px;
   }
 }

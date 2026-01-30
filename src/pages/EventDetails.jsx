@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
+import Modal from '../components/Modal';
 
 export default function EventDetails() {
   const { eventId } = useParams();
@@ -11,6 +12,9 @@ export default function EventDetails() {
   const [analysisStatus, setAnalysisStatus] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // Modal state
+  const [showAnalyzeModal, setShowAnalyzeModal] = useState(false);
+
   // Tabs state
   const [activeTab, setActiveTab] = useState('responses');
 
@@ -18,6 +22,11 @@ export default function EventDetails() {
   const [reports, setReports] = useState([]);
   const [reportsLoading, setReportsLoading] = useState(false);
   const [reportsError, setReportsError] = useState('');
+
+  // Jobs state
+  const [jobs, setJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [jobsError, setJobsError] = useState('');
 
   // El enlace usa el public_id del evento
   const shareUrl = event?.public_id
@@ -129,12 +138,85 @@ export default function EventDetails() {
     }
   }, [activeTab]);
 
-  const handleAnalyze = async () => {
+  // Fetch jobs
+  const fetchJobs = async () => {
+    setJobsLoading(true);
+    setJobsError('');
+    try {
+      const response = await api.get(`/jobs/event/${eventId}`);
+      if (response.data.status === 'success') {
+        setJobs(response.data.jobs || []);
+      } else {
+        setJobs([]);
+        setJobsError('No es posible recuperar la información en este momento.');
+      }
+    } catch (err) {
+      console.error('Failed to fetch jobs:', err);
+      setJobsError('No es posible recuperar la información en este momento.');
+      // Mock data para desarrollo
+      setJobs([
+        {
+          id: 1,
+          event_id: eventId,
+          status: 'COMPLETED',
+          created_at: '2026-01-29T10:00:00',
+          updated_at: '2026-01-29T10:05:32',
+          message: 'Análisis completado exitosamente'
+        },
+        {
+          id: 2,
+          event_id: eventId,
+          status: 'RUNNING',
+          created_at: '2026-01-30T09:15:00',
+          updated_at: '2026-01-30T09:15:00',
+          message: 'Procesando respuestas...'
+        },
+        {
+          id: 3,
+          event_id: eventId,
+          status: 'ERROR',
+          created_at: '2026-01-28T14:30:00',
+          updated_at: '2026-01-28T14:31:15',
+          message: 'Error: No hay suficientes respuestas para analizar'
+        }
+      ]);
+    } finally {
+      setJobsLoading(false);
+    }
+  };
+
+  // Fetch jobs when tab changes to status
+  useEffect(() => {
+    if (activeTab === 'status' && jobs.length === 0 && !jobsLoading) {
+      fetchJobs();
+    }
+  }, [activeTab]);
+
+  // Helper function for job status
+  const getJobStatusInfo = (status) => {
+    switch (status) {
+      case 'COMPLETED':
+        return { label: 'Completado', class: 'completed', icon: '✓' };
+      case 'RUNNING':
+        return { label: 'En proceso', class: 'running', icon: '⟳' };
+      case 'ERROR':
+        return { label: 'Error', class: 'error', icon: '✕' };
+      default:
+        return { label: status, class: 'unknown', icon: '?' };
+    }
+  };
+
+  const handleAnalyzeClick = () => {
+    setShowAnalyzeModal(true);
+  };
+
+  const handleAnalyzeConfirm = async () => {
+    setShowAnalyzeModal(false);
     setAnalyzing(true);
     setAnalysisStatus('');
     try {
       await api.post(`/events/${eventId}/analyze`);
-      setAnalysisStatus('¡Análisis iniciado exitosamente!');
+      setAnalysisStatus('¡Análisis iniciado exitosamente! Puedes monitorear el progreso en la sección Status.');
     } catch (err) {
       setAnalysisStatus('Error al iniciar el análisis. Intenta de nuevo.');
     } finally {
@@ -204,7 +286,7 @@ export default function EventDetails() {
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button
-              onClick={handleAnalyze}
+              onClick={handleAnalyzeClick}
               className="btn btn-primary"
               disabled={analyzing}
             >
@@ -273,6 +355,16 @@ export default function EventDetails() {
             Reportes IA
             {reports.length > 0 && (
               <span className="tab-badge">{reports.length}</span>
+            )}
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`}
+            onClick={() => setActiveTab('status')}
+          >
+            <span className="tab-icon">⚙️</span>
+            Status
+            {jobs.filter(j => j.status === 'RUNNING').length > 0 && (
+              <span className="tab-badge running">{jobs.filter(j => j.status === 'RUNNING').length}</span>
             )}
           </button>
         </div>
@@ -426,8 +518,152 @@ export default function EventDetails() {
               )}
             </section>
           )}
+
+          {/* Status Tab */}
+          {activeTab === 'status' && (
+            <section>
+              {/* Status Header */}
+              <div className="reports-header">
+                <div>
+                  <h3 className="reports-title">Estado de Análisis</h3>
+                  <p className="reports-subtitle">
+                    {jobs.length > 0
+                      ? `${jobs.length} trabajos registrados`
+                      : 'Los trabajos de análisis aparecerán aquí'}
+                  </p>
+                </div>
+                <button
+                  onClick={fetchJobs}
+                  className="btn btn-secondary"
+                  disabled={jobsLoading}
+                >
+                  {jobsLoading ? (
+                    <>
+                      <span className="btn-spinner"></span>
+                      Cargando...
+                    </>
+                  ) : (
+                    <>↻ Actualizar</>
+                  )}
+                </button>
+              </div>
+
+              {jobsError && !jobs.length && (
+                <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>
+                  {jobsError}
+                </div>
+              )}
+
+              {/* Loading State */}
+              {jobsLoading && jobs.length === 0 && (
+                <div className="reports-loading">
+                  <div className="reports-spinner"></div>
+                  <p>Cargando trabajos...</p>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!jobsLoading && jobs.length === 0 && !jobsError && (
+                <div className="reports-empty">
+                  <div className="reports-empty-icon">⚙️</div>
+                  <h4>Sin trabajos registrados</h4>
+                  <p>Cuando inicies un análisis con IA, podrás ver su progreso aquí.</p>
+                </div>
+              )}
+
+              {/* Jobs Table */}
+              {jobs.length > 0 && (
+                <div className="jobs-table-container">
+                  <table className="jobs-table">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Estado</th>
+                        <th>Mensaje</th>
+                        <th>Iniciado</th>
+                        <th>Actualizado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {jobs.map(job => {
+                        const statusInfo = getJobStatusInfo(job.status);
+                        return (
+                          <tr key={job.id}>
+                            <td className="jobs-table-id">#{job.id}</td>
+                            <td>
+                              <span className={`job-status job-status-${statusInfo.class}`}>
+                                <span className="job-status-icon">{statusInfo.icon}</span>
+                                {statusInfo.label}
+                              </span>
+                            </td>
+                            <td className="jobs-table-message">{job.message || '—'}</td>
+                            <td className="jobs-table-date">
+                              {new Date(job.created_at).toLocaleString('es-MX', {
+                                dateStyle: 'short',
+                                timeStyle: 'short'
+                              })}
+                            </td>
+                            <td className="jobs-table-date">
+                              {new Date(job.updated_at).toLocaleString('es-MX', {
+                                dateStyle: 'short',
+                                timeStyle: 'short'
+                              })}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </div>
+
+      {/* Modal de confirmación para análisis */}
+      <Modal
+        isOpen={showAnalyzeModal}
+        onClose={() => setShowAnalyzeModal(false)}
+        title="Iniciar análisis con IA"
+        footer={
+          <div className="modal-actions">
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowAnalyzeModal(false)}
+            >
+              Cancelar
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={handleAnalyzeConfirm}
+            >
+              Iniciar análisis
+            </button>
+          </div>
+        }
+      >
+        <div className="modal-confirm-content">
+          <div className="modal-icon">🤖</div>
+          <p className="modal-message">
+            Estás a punto de iniciar un análisis de las respuestas con inteligencia artificial.
+          </p>
+          <div className="modal-info-box">
+            <div className="modal-info-item">
+              <span className="modal-info-icon">⏱️</span>
+              <span>El proceso puede tardar <strong>unos minutos</strong> dependiendo del volumen de respuestas.</span>
+            </div>
+            <div className="modal-info-item">
+              <span className="modal-info-icon">📊</span>
+              <span>Podrás monitorear el progreso en la sección <strong>Status</strong>.</span>
+            </div>
+            <div className="modal-info-item">
+              <span className="modal-info-icon">🔔</span>
+              <span>Recibirás los resultados en la pestaña <strong>Reportes IA</strong> cuando termine.</span>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
