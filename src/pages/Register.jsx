@@ -22,7 +22,11 @@ const Register = () => {
         try {
             await register(username, password);
         } catch (err) {
-            setError(err.response?.data?.message || 'Error en el registro. Intenta con otro nombre de usuario.');
+            if (err.response?.status === 409) {
+                setError('Este usuario ya existe. Intenta con otro nombre de usuario.');
+            } else {
+                setError(err.response?.data?.message || 'Error en el registro. Inténtalo de nuevo.');
+            }
             setIsLoading(false);
             return;
         }
