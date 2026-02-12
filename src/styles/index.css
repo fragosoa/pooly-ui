@@ -1807,6 +1807,25 @@ textarea.input-field {
     font-size: 1.75rem;
   }
 
+  .section-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .section-header p {
+    font-size: 0.9375rem;
+  }
+
+  .steps-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    max-width: 400px;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
@@ -1983,8 +2002,8 @@ textarea.input-field {
   margin-top: 0.125rem;
 }
 
-/* Section Header */
-.section-header {
+/* Section Header - Admin Dashboard */
+.dashboard-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2186,7 +2205,7 @@ textarea.input-field {
     flex: 1;
   }
 
-  .section-header {
+  .dashboard-section-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;

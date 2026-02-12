@@ -218,7 +218,7 @@ const AdminDashboard = () => {
             )}
 
             {/* Section header for events list */}
-            <div className="section-header">
+            <div className="dashboard-section-header">
                 <h2 className="section-title">Mis encuestas</h2>
                 <span className="section-count">{events.length} {events.length === 1 ? 'encuesta' : 'encuestas'}</span>
             </div>

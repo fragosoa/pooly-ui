@@ -79,7 +79,7 @@ const PublicGallery = () => {
                     <div className="section-header">
                         <h2>Potenciado por inteligencia artificial</h2>
                         <p>
-                            Tecnología avanzada de NLP para entender lo que tu comunidad
+                            Tecnología avanzada de Procesamiento de Lenguaje para entender lo que tu comunidad
                             realmente necesita.
                         </p>
                     </div>
