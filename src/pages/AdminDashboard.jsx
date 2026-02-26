@@ -145,9 +145,6 @@ const AdminDashboard = () => {
                         Gestiona tus encuestas y analiza las respuestas de tu comunidad.
                     </p>
                 </div>
-                <Link to="/admin/create" className="btn btn-primary">
-                    + Nueva encuesta
-                </Link>
             </header>
 
             {/* Stats Cards */}
@@ -219,9 +216,24 @@ const AdminDashboard = () => {
 
             {/* Section header for events list */}
             <div className="dashboard-section-header">
-                <h2 className="section-title">Mis encuestas</h2>
-                <span className="section-count">{events.length} {events.length === 1 ? 'encuesta' : 'encuestas'}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <h2 className="section-title">Mis encuestas</h2>
+                    <span className="section-count">{events.length} {events.length === 1 ? 'encuesta' : 'encuestas'}</span>
+                </div>
+                <Link to="/admin/create" className="btn btn-primary create-survey-inline">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Nueva encuesta
+                </Link>
             </div>
+
+            {/* Mobile FAB */}
+            <Link to="/admin/create" className="fab" aria-label="Crear nueva encuesta">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+            </Link>
 
             {events.length === 0 ? (
                 <div className="empty-state-card">
