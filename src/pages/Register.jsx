@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
     const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
@@ -20,7 +21,7 @@ const Register = () => {
         setIsLoading(true);
         setError('');
         try {
-            await register(username, password);
+            await register(username, password, email);
         } catch (err) {
             if (err.response?.status === 409) {
                 setError('Este usuario ya existe. Intenta con otro nombre de usuario.');
@@ -64,6 +65,17 @@ const Register = () => {
                             onChange={(e) => setUsername(e.target.value)}
                             required
                             placeholder="Elige un nombre de usuario"
+                        />
+                    </div>
+                    <div className="input-group">
+                        <label className="input-label">Correo electrónico</label>
+                        <input
+                            type="email"
+                            className="input-field"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            placeholder="tu@correo.com"
                         />
                     </div>
                     <div className="input-group">

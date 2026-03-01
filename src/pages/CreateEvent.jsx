@@ -36,6 +36,22 @@ const CreateEvent = () => {
         setFormData(prev => ({ ...prev, questions: newQuestions }));
     };
 
+    const handleStep1Submit = (e) => {
+        e.preventDefault();
+        if (!formData.end_date) {
+            setError('Por favor selecciona una fecha de cierre para la encuesta.');
+            return;
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (new Date(formData.end_date) < today) {
+            setError('La fecha de cierre debe ser una fecha futura.');
+            return;
+        }
+        setError('');
+        setStep(2);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -165,7 +181,7 @@ const CreateEvent = () => {
                 <div className="create-event-form">
                     <div className="card" style={{ padding: '2rem' }}>
                         {step === 1 && (
-                            <form onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
+                            <form onSubmit={handleStep1Submit}>
                                 <div className="input-group">
                                     <label className="input-label">Nombre de la encuesta</label>
                                     <input
@@ -199,6 +215,7 @@ const CreateEvent = () => {
                                         value={formData.end_date}
                                         onChange={handleInputChange}
                                         required
+                                        min={new Date().toISOString().split('T')[0]}
                                     />
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
