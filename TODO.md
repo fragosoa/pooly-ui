@@ -23,7 +23,6 @@ Tabla de Top urgencias con columnas: menciones, % del total, sentimiento, urgenc
 - Exportar encuestas en CSV
 - Autenticacion google. 
 - registrar email en backend
-- migrar a postgres
 - agregar simbolo de AI a analizar AI
 
 

@@ -284,13 +284,34 @@ export default function EventDetails() {
               <span>{totalResponses} respuestas totales</span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <button
               onClick={handleAnalyzeClick}
               className="btn btn-primary"
               disabled={analyzing}
+              title="Analizar con IA"
+              style={{
+                width: '2.75rem',
+                height: '2.75rem',
+                borderRadius: '50%',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: analyzing ? 0.6 : 1,
+              }}
             >
-              {analyzing ? 'Analizando...' : 'Analizar con IA'}
+              {analyzing ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2.5l1.5 4.5H18l-3.5 2.5 1.5 4.5L12 11.5 8 14l1.5-4.5L6 7h4.5z" opacity="0.9"/>
+                  <path d="M19 15.5l.75 2.25H22l-1.75 1.25.75 2.25L19 19.75l-2 1.5.75-2.25L16 17.75h2.25z" opacity="0.7"/>
+                  <path d="M5 13.5l.6 1.8H7.4l-1.4 1 .6 1.8L5 16.9l-1.6 1.2.6-1.8L2.6 15.3H4.4z" opacity="0.7"/>
+                </svg>
+              )}
             </button>
           </div>
         </div>
