@@ -284,13 +284,39 @@ export default function EventDetails() {
               <span>{totalResponses} respuestas totales</span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <button
               onClick={handleAnalyzeClick}
-              className="btn btn-primary"
               disabled={analyzing}
+              title="Analizar con IA"
+              style={{
+                width: '3rem',
+                height: '3rem',
+                borderRadius: '50%',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: 'none',
+                cursor: analyzing ? 'not-allowed' : 'pointer',
+                background: analyzing
+                  ? 'linear-gradient(135deg, #a78bfa, #818cf8)'
+                  : 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                boxShadow: analyzing ? 'none' : '0 0 0 3px rgba(124,58,237,0.2), 0 4px 12px rgba(124,58,237,0.4)',
+                transition: 'box-shadow 0.2s, transform 0.15s',
+                transform: analyzing ? 'scale(0.95)' : 'scale(1)',
+              }}
             >
-              {analyzing ? 'Analizando...' : 'Analizar con IA'}
+              {analyzing ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}>
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                  <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
+                  <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
+                </svg>
+              )}
             </button>
           </div>
         </div>
@@ -457,9 +483,49 @@ export default function EventDetails() {
               {/* Empty State */}
               {!reportsLoading && reports.length === 0 && (
                 <div className="reports-empty">
-                  <div className="reports-empty-icon">📊</div>
+                  <div style={{
+                    width: '4rem',
+                    height: '4rem',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1.25rem',
+                    boxShadow: '0 0 0 6px rgba(124,58,237,0.12), 0 4px 16px rgba(124,58,237,0.3)',
+                  }}>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
+                      <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
+                      <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
+                    </svg>
+                  </div>
                   <h4>Sin reportes disponibles</h4>
-                  <p>Presiona "Analizar con IA" para generar un análisis de las respuestas.</p>
+                  <p>Genera un análisis con IA para obtener insights de las respuestas.</p>
+                  <button
+                    onClick={handleAnalyzeClick}
+                    disabled={analyzing}
+                    style={{
+                      marginTop: '1rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.6rem 1.25rem',
+                      borderRadius: '999px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                      color: 'white',
+                      fontWeight: '600',
+                      fontSize: '0.9rem',
+                      boxShadow: '0 4px 12px rgba(124,58,237,0.35)',
+                    }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="white">
+                      <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
+                      <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
+                    </svg>
+                    Analizar con IA
+                  </button>
                 </div>
               )}
 

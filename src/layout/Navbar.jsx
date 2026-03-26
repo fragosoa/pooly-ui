@@ -37,14 +37,10 @@ const Navbar = () => {
             <div className="navbar-links">
                 {user ? (
                     <>
-                        <span style={{
-                            color: 'var(--text-secondary)',
-                            fontSize: '0.875rem',
-                            marginRight: '0.5rem'
-                        }}>
+                            <Link to="/admin" className="nav-link" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginRight: '0.5rem' }}>
                             {user.username}
-                        </span>
-                        <Link to="/admin" className="nav-link">
+                        </Link>
+                        <Link to="/admin/settings" className="nav-link">
                             Panel de control
                         </Link>
                         <button

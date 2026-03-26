@@ -9,6 +9,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PublicSurvey from './pages/PublicSurvey';
 import CreateEvent from './pages/CreateEvent';
 import EventDetails from './pages/EventDetails';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/admin" element={<><Navbar /><ProtectedRoute><AdminDashboard /></ProtectedRoute></>} />
           <Route path="/admin/create" element={<><Navbar /><ProtectedRoute><CreateEvent /></ProtectedRoute></>} />
           <Route path="/admin/events/:eventId" element={<><Navbar /><ProtectedRoute><EventDetails /></ProtectedRoute></>} />
+          <Route path="/admin/settings" element={<><Navbar /><ProtectedRoute><Settings /></ProtectedRoute></>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
