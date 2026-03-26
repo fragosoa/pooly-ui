@@ -18,3 +18,18 @@ Barras horizontales para Top temas (se leen fácil)
  Donut o barra para distribución de sentimiento (rápido)
 Scatter (Tema vs Urgencia) si quieres un “mapa de prioridad”
 Tabla de Top urgencias con columnas: menciones, % del total, sentimiento, urgencia (y clic abre tarjetas)
+
+
+- Exportar encuestas en CSV
+- Autenticacion google. 
+- registrar email en backend
+- migrar a postgres
+- agregar simbolo de AI a analizar AI
+
+
+Urgentes: 
+
+- password reset
+- Page title
+- Simbolo de analisis IA mas amigable. 
+- Panel de control ****
