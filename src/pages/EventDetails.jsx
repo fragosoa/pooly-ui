@@ -462,6 +462,7 @@ export default function EventDetails() {
                       <button
                         className="btn btn-outline"
                         onClick={handleAddNewQuestion}
+                        disabled={newQuestions[newQuestions.length - 1].trim() === ''}
                         style={{ marginTop: '1rem' }}
                       >
                         {t('editEvent.addQuestion')}
