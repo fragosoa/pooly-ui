@@ -207,6 +207,18 @@ const translations = {
     'tips.examples.item2': '¿Qué cambiarías si pudieras...?',
     'tips.examples.item3': '¿Cómo te afecta actualmente...?',
 
+    // Edit Event / Questions
+    'editEvent.editBtn': 'Editar Evento',
+    'editEvent.saveBtn': 'Guardar',
+    'editEvent.cancelBtn': 'Cancelar',
+    'editEvent.saving': 'Guardando...',
+    'editEvent.addQuestion': '+ Agregar pregunta',
+    'editEvent.saveSuccess': 'Guardado con éxito',
+    'editEvent.saveError': 'Error al guardar la información',
+    'editEvent.newQuestionsLabel': 'Nuevas preguntas',
+    'editEvent.existingQuestionsLabel': 'Preguntas existentes',
+    'editEvent.questionPlaceholder': 'Escribe la nueva pregunta {{num}}',
+
     // Settings
     'settings.back': '← Volver al panel',
     'settings.title': 'Configuración',
@@ -478,6 +490,18 @@ const translations = {
     'tips.examples.item1': 'What is the main problem you face with...?',
     'tips.examples.item2': 'What would you change if you could...?',
     'tips.examples.item3': 'How does it currently affect you...?',
+
+    // Edit Event / Questions
+    'editEvent.editBtn': 'Edit Event',
+    'editEvent.saveBtn': 'Save',
+    'editEvent.cancelBtn': 'Cancel',
+    'editEvent.saving': 'Saving...',
+    'editEvent.addQuestion': '+ Add question',
+    'editEvent.saveSuccess': 'Saved successfully',
+    'editEvent.saveError': 'Error saving information',
+    'editEvent.newQuestionsLabel': 'New questions',
+    'editEvent.existingQuestionsLabel': 'Existing questions',
+    'editEvent.questionPlaceholder': 'Write new question {{num}}',
 
     // Settings
     'settings.back': '← Back to dashboard',
