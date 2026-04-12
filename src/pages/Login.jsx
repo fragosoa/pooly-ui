@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import Modal from '../components/Modal';
 
 const ForgotPasswordModal = ({ onClose }) => {
+    const { t } = useLanguage();
     const [email, setEmail] = useState('');
     const [sent, setSent] = useState(false);
 
@@ -14,31 +16,31 @@ const ForgotPasswordModal = ({ onClose }) => {
     };
 
     return (
-        <Modal isOpen={true} onClose={onClose} title="Recuperar contraseña">
+        <Modal isOpen={true} onClose={onClose} title={t('forgotPwd.title')}>
             {!sent ? (
                 <>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                        Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
+                        {t('forgotPwd.description')}
                     </p>
                     <form onSubmit={handleSubmit}>
                         <div className="input-group">
-                            <label className="input-label">Correo electrónico</label>
+                            <label className="input-label">{t('forgotPwd.email')}</label>
                             <input
                                 type="email"
                                 className="input-field"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                placeholder="tu@correo.com"
+                                placeholder={t('forgotPwd.placeholder')}
                                 autoFocus
                             />
                         </div>
                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
                             <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={onClose}>
-                                Cancelar
+                                {t('forgotPwd.cancel')}
                             </button>
                             <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                                Enviar enlace
+                                {t('forgotPwd.send')}
                             </button>
                         </div>
                     </form>
@@ -46,10 +48,10 @@ const ForgotPasswordModal = ({ onClose }) => {
             ) : (
                 <>
                     <div className="alert alert-success" style={{ marginBottom: '1rem' }}>
-                        Si existe una cuenta con ese correo, recibirás un enlace en breve.
+                        {t('forgotPwd.success')}
                     </div>
                     <button className="btn btn-primary" style={{ width: '100%' }} onClick={onClose}>
-                        Cerrar
+                        {t('forgotPwd.close')}
                     </button>
                 </>
             )}
@@ -64,6 +66,7 @@ const Login = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showForgotPassword, setShowForgotPassword] = useState(false);
     const { login } = useAuth();
+    const { t } = useLanguage();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -74,7 +77,7 @@ const Login = () => {
             await login(username, password);
             navigate('/admin');
         } catch (err) {
-            setError(err.response?.data?.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+            setError(err.response?.data?.message || t('login.error'));
         } finally {
             setIsLoading(false);
         }
@@ -83,8 +86,8 @@ const Login = () => {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <h1>Bienvenido de nuevo</h1>
-                <p className="subtitle">Inicia sesión para gestionar tus encuestas</p>
+                <h1>{t('login.title')}</h1>
+                <p className="subtitle">{t('login.subtitle')}</p>
 
                 {error && (
                     <div className="alert alert-error">
@@ -94,18 +97,18 @@ const Login = () => {
 
                 <form onSubmit={handleSubmit}>
                     <div className="input-group">
-                        <label className="input-label">Usuario</label>
+                        <label className="input-label">{t('login.username')}</label>
                         <input
                             type="text"
                             className="input-field"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
-                            placeholder="Tu nombre de usuario"
+                            placeholder={t('login.usernamePlaceholder')}
                         />
                     </div>
                     <div className="input-group">
-                        <label className="input-label">Contraseña</label>
+                        <label className="input-label">{t('login.password')}</label>
                         <input
                             type="password"
                             className="input-field"
@@ -120,7 +123,7 @@ const Login = () => {
                                 onClick={() => setShowForgotPassword(true)}
                                 style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.85rem', cursor: 'pointer', padding: 0 }}
                             >
-                                ¿Olvidaste tu contraseña?
+                                {t('login.forgotPassword')}
                             </button>
                         </div>
                     </div>
@@ -130,12 +133,12 @@ const Login = () => {
                         style={{ width: '100%', marginTop: '0.5rem' }}
                         disabled={isLoading}
                     >
-                        {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+                        {isLoading ? t('login.submitting') : t('login.submit')}
                     </button>
                 </form>
 
                 <p className="auth-footer">
-                    ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
+                    {t('login.noAccount')} <Link to="/register">{t('login.registerLink')}</Link>
                 </p>
             </div>
 

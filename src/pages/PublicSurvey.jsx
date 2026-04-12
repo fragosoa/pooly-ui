@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PublicSurvey() {
   const { publicId } = useParams();
+  const { t } = useLanguage();
   const [event, setEvent] = useState(null);
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(true);
@@ -14,13 +16,11 @@ export default function PublicSurvey() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        // Usa el endpoint público con public_id
         const response = await api.get(`/events/public/${publicId}`);
         setEvent(response.data.data);
       } catch (err) {
         console.error('Failed to fetch event:', err);
-        setError('No se pudo cargar la encuesta.');
-        // Mock data para desarrollo
+        setError(t('survey.errorLoad'));
         setEvent({
           public_id: publicId,
           name: 'Movilidad Urbana 2026',
@@ -48,14 +48,12 @@ export default function PublicSurvey() {
     setError('');
 
     try {
-      const answeredQuestions = Object.entries(responses)
-        .filter(([_, text]) => text.trim() !== '');
+      const answeredQuestions = Object.entries(responses).filter(([_, text]) => text.trim() !== '');
 
       if (answeredQuestions.length === 0) {
-        throw new Error('Por favor responde al menos una pregunta.');
+        throw new Error(t('survey.errorAtLeastOne'));
       }
 
-      // Construir payload con todas las respuestas
       const payload = {
         public_id: publicId,
         responses: answeredQuestions.map(([questionId, text]) => ({
@@ -64,11 +62,10 @@ export default function PublicSurvey() {
         }))
       };
 
-      // Una sola llamada al backend
       await api.post(`/events/public/${publicId}/respond`, payload);
       setSuccess(true);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Error al enviar las respuestas.');
+      setError(err.response?.data?.message || err.message || t('survey.errorSubmit'));
     } finally {
       setSubmitting(false);
     }
@@ -82,7 +79,7 @@ export default function PublicSurvey() {
       <div className="survey-page">
         <div className="survey-loading">
           <div className="survey-loading-spinner"></div>
-          <p>Cargando encuesta...</p>
+          <p>{t('survey.loading')}</p>
         </div>
       </div>
     );
@@ -93,11 +90,11 @@ export default function PublicSurvey() {
       <div className="survey-page">
         <div className="survey-success">
           <div className="survey-success-icon">✓</div>
-          <h1>¡Gracias por participar!</h1>
-          <p>Tus respuestas han sido registradas exitosamente.</p>
-          <p className="survey-success-note">Tu opinión es valiosa y nos ayuda a tomar mejores decisiones.</p>
+          <h1>{t('survey.successTitle')}</h1>
+          <p>{t('survey.successDesc')}</p>
+          <p className="survey-success-note">{t('survey.successNote')}</p>
           <Link to="/" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
-            Ir a Pooly
+            {t('survey.goToPooly')}
           </Link>
         </div>
       </div>
@@ -108,10 +105,10 @@ export default function PublicSurvey() {
     return (
       <div className="survey-page">
         <div className="survey-error">
-          <h1>Encuesta no encontrada</h1>
-          <p>El enlace que seguiste no es válido o la encuesta ya no está disponible.</p>
+          <h1>{t('survey.notFound')}</h1>
+          <p>{t('survey.notFoundDesc')}</p>
           <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>
-            Ir a Pooly
+            {t('survey.goToPooly')}
           </Link>
         </div>
       </div>
@@ -120,21 +117,18 @@ export default function PublicSurvey() {
 
   return (
     <div className="survey-page">
-      {/* Header minimalista */}
       <header className="survey-header">
         <Link to="/" className="survey-brand">Pooly</Link>
         <div className="survey-progress-badge">
-          {answeredCount} de {totalQuestions}
+          {t('survey.progressBadge', { answered: answeredCount, total: totalQuestions })}
         </div>
       </header>
 
-      {/* Hero del evento */}
       <div className="survey-hero">
         <h1 className="survey-title">{event.name}</h1>
         <p className="survey-description">{event.description}</p>
       </div>
 
-      {/* Contenedor principal tipo chat */}
       <div className="survey-container">
         {error && (
           <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>
@@ -146,23 +140,21 @@ export default function PublicSurvey() {
           <div className="chat-container">
             {event.questions.map((question, index) => (
               <div key={question.id} className="chat-block">
-                {/* Mensaje del "asistente" (pregunta) */}
                 <div className="chat-message chat-assistant">
                   <div className="chat-avatar">
                     <span>P</span>
                   </div>
                   <div className="chat-bubble">
-                    <div className="chat-question-number">Pregunta {index + 1}</div>
+                    <div className="chat-question-number">{t('survey.question', { num: index + 1 })}</div>
                     <div className="chat-question-text">{question.text}</div>
                   </div>
                 </div>
 
-                {/* Área de respuesta del usuario */}
                 <div className="chat-message chat-user">
                   <div className="chat-input-container">
                     <textarea
                       className="chat-textarea"
-                      placeholder="Escribe tu respuesta aquí..."
+                      placeholder={t('survey.placeholder')}
                       value={responses[question.id] || ''}
                       onChange={(e) => handleResponseChange(question.id, e.target.value)}
                       rows={3}
@@ -176,18 +168,19 @@ export default function PublicSurvey() {
             ))}
           </div>
 
-          {/* Footer con botón de envío */}
           <div className="survey-footer">
             <div className="survey-footer-info">
               <span className="survey-footer-icon">🔒</span>
-              <span>Tus respuestas son anónimas y seguras</span>
+              <span>{t('survey.anonymous')}</span>
             </div>
             <button
               type="submit"
               className="btn btn-primary btn-large survey-submit"
               disabled={submitting || answeredCount === 0}
             >
-              {submitting ? 'Enviando...' : `Enviar ${answeredCount > 0 ? `(${answeredCount})` : ''}`}
+              {submitting
+                ? t('survey.submitting')
+                : `${t('survey.submit')}${answeredCount > 0 ? ` (${answeredCount})` : ''}`}
             </button>
           </div>
         </form>
