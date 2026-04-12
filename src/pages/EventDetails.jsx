@@ -228,7 +228,7 @@ export default function EventDetails() {
         ...editedQuestions,
         ...newQuestions.filter(q => q.trim() !== '').map(text => ({ text })),
       ];
-      await api.put(`/events/${eventId}/questions`, { questions });
+      await api.patch(`/events/${eventId}/questions`, { questions });
       setSaveStatus('success');
       setIsEditing(false);
       try {
