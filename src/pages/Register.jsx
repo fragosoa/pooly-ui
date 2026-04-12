@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const Register = () => {
     const [username, setUsername] = useState('');
@@ -10,12 +11,13 @@ const Register = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { register, login } = useAuth();
+    const { t } = useLanguage();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (password !== confirmPassword) {
-            return setError('Las contraseñas no coinciden');
+            return setError(t('register.errorPasswordMatch'));
         }
 
         setIsLoading(true);
@@ -24,9 +26,9 @@ const Register = () => {
             await register(username, password, email);
         } catch (err) {
             if (err.response?.status === 409) {
-                setError('Este usuario ya existe. Intenta con otro nombre de usuario.');
+                setError(t('register.errorUserExists'));
             } else {
-                setError(err.response?.data?.message || 'Error en el registro. Inténtalo de nuevo.');
+                setError(err.response?.data?.message || t('register.errorGeneric'));
             }
             setIsLoading(false);
             return;
@@ -36,7 +38,7 @@ const Register = () => {
             await login(username, password);
             navigate('/admin');
         } catch (err) {
-            setError('Cuenta creada, pero el inicio de sesión automático falló. Por favor inicia sesión manualmente.');
+            setError(t('register.errorAutoLogin'));
             console.error('Auto-login error:', err);
         } finally {
             setIsLoading(false);
@@ -46,8 +48,8 @@ const Register = () => {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <h1>Crear cuenta</h1>
-                <p className="subtitle">Únete a Pooly y comienza a crear encuestas</p>
+                <h1>{t('register.title')}</h1>
+                <p className="subtitle">{t('register.subtitle')}</p>
 
                 {error && (
                     <div className="alert alert-error">
@@ -57,29 +59,29 @@ const Register = () => {
 
                 <form onSubmit={handleSubmit}>
                     <div className="input-group">
-                        <label className="input-label">Usuario</label>
+                        <label className="input-label">{t('register.username')}</label>
                         <input
                             type="text"
                             className="input-field"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
-                            placeholder="Elige un nombre de usuario"
+                            placeholder={t('register.usernamePlaceholder')}
                         />
                     </div>
                     <div className="input-group">
-                        <label className="input-label">Correo electrónico</label>
+                        <label className="input-label">{t('register.email')}</label>
                         <input
                             type="email"
                             className="input-field"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            placeholder="tu@correo.com"
+                            placeholder={t('register.emailPlaceholder')}
                         />
                     </div>
                     <div className="input-group">
-                        <label className="input-label">Contraseña</label>
+                        <label className="input-label">{t('register.password')}</label>
                         <input
                             type="password"
                             className="input-field"
@@ -90,7 +92,7 @@ const Register = () => {
                         />
                     </div>
                     <div className="input-group">
-                        <label className="input-label">Confirmar contraseña</label>
+                        <label className="input-label">{t('register.confirmPassword')}</label>
                         <input
                             type="password"
                             className="input-field"
@@ -106,12 +108,12 @@ const Register = () => {
                         style={{ width: '100%', marginTop: '0.5rem' }}
                         disabled={isLoading}
                     >
-                        {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
+                        {isLoading ? t('register.submitting') : t('register.submit')}
                     </button>
                 </form>
 
                 <p className="auth-footer">
-                    ¿Ya tienes cuenta? <Link to="/login">Inicia sesión aquí</Link>
+                    {t('register.hasAccount')} <Link to="/login">{t('register.loginLink')}</Link>
                 </p>
             </div>
         </div>

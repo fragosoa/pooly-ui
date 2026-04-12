@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './layout/Navbar';
 import PublicGallery from './pages/PublicGallery';
@@ -13,6 +14,7 @@ import Settings from './pages/Settings';
 
 function App() {
   return (
+    <LanguageProvider>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -30,6 +32,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </LanguageProvider>
   );
 }
 

@@ -1,22 +1,24 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const Settings = () => {
     const { user } = useAuth();
+    const { t } = useLanguage();
 
     const fields = [
-        { label: 'Nombre de usuario', value: user?.username },
-        { label: 'Correo electrónico', value: user?.email || '—' },
-        { label: 'Rol', value: user?.role || 'Usuario' },
+        { label: t('settings.username'), value: user?.username },
+        { label: t('settings.email'), value: user?.email || '—' },
+        { label: t('settings.role'), value: user?.role || t('settings.roleDefault') },
     ];
 
     return (
         <div className="container" style={{ paddingTop: '5rem', paddingBottom: '4rem', maxWidth: '640px' }}>
-            <Link to="/admin" className="back-link">← Volver al panel</Link>
+            <Link to="/admin" className="back-link">{t('settings.back')}</Link>
 
-            <h1 className="page-title" style={{ marginTop: '1rem' }}>Configuración</h1>
+            <h1 className="page-title" style={{ marginTop: '1rem' }}>{t('settings.title')}</h1>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-                Detalles de tu cuenta
+                {t('settings.subtitle')}
             </p>
 
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -28,7 +30,7 @@ const Settings = () => {
                     fontSize: '0.9rem',
                     color: 'var(--text-primary)',
                 }}>
-                    Información de usuario
+                    {t('settings.sectionTitle')}
                 </div>
                 <div>
                     {fields.map(({ label, value }, i) => (
