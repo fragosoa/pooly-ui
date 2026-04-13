@@ -54,16 +54,17 @@ export default function PublicSurvey() {
         throw new Error(t('survey.errorAtLeastOne'));
       }
 
-      const tooShort = answeredQuestions.find(([_, text]) => text.trim().length < 5);
-      if (tooShort) {
-        const num = event.questions.findIndex(q => q.id === parseInt(tooShort[0])) + 1;
-        throw new Error(t('survey.errorMinChars', { num }));
+      const toNums = (pairs) =>
+        pairs.map(([id]) => event.questions.findIndex(q => q.id === parseInt(id)) + 1).join(', ');
+
+      const tooShortList = answeredQuestions.filter(([_, text]) => text.trim().length < 5);
+      if (tooShortList.length > 0) {
+        throw new Error(t('survey.errorMinChars', { nums: toNums(tooShortList) }));
       }
 
-      const tooLong = answeredQuestions.find(([_, text]) => text.trim().length > 500);
-      if (tooLong) {
-        const num = event.questions.findIndex(q => q.id === parseInt(tooLong[0])) + 1;
-        throw new Error(t('survey.errorMaxChars', { num }));
+      const tooLongList = answeredQuestions.filter(([_, text]) => text.trim().length > 500);
+      if (tooLongList.length > 0) {
+        throw new Error(t('survey.errorMaxChars', { nums: toNums(tooLongList) }));
       }
 
       const payload = {
