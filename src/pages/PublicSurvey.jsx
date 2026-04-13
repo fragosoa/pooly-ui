@@ -54,9 +54,17 @@ export default function PublicSurvey() {
         throw new Error(t('survey.errorAtLeastOne'));
       }
 
-      const hasTooShort = answeredQuestions.some(([_, text]) => text.trim().length < 5);
-      if (hasTooShort) {
-        throw new Error(t('survey.errorMinChars'));
+      const toNums = (pairs) =>
+        pairs.map(([id]) => event.questions.findIndex(q => q.id === parseInt(id)) + 1).join(', ');
+
+      const tooShortList = answeredQuestions.filter(([_, text]) => text.trim().length < 5);
+      if (tooShortList.length > 0) {
+        throw new Error(t('survey.errorMinChars', { nums: toNums(tooShortList) }));
+      }
+
+      const tooLongList = answeredQuestions.filter(([_, text]) => text.trim().length > 500);
+      if (tooLongList.length > 0) {
+        throw new Error(t('survey.errorMaxChars', { nums: toNums(tooLongList) }));
       }
 
       const payload = {
@@ -70,8 +78,14 @@ export default function PublicSurvey() {
       await api.post(`/events/public/${publicId}/respond`, payload);
       setSuccess(true);
     } catch (err) {
-      const is400 = err.response?.status === 400;
-      setError(is400 ? t('survey.errorMinChars') : err.message || t('survey.errorSubmit'));
+      const status = err.response?.status;
+      if (status === 400) {
+        setError(err.message || t('survey.errorMinChars', { num: '?' }));
+      } else if (status === 422) {
+        setError(err.message || t('survey.errorMaxChars', { num: '?' }));
+      } else {
+        setError(err.message || t('survey.errorSubmit'));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -135,12 +149,32 @@ export default function PublicSurvey() {
         <p className="survey-description">{event.description}</p>
       </div>
 
+      {error && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '1.5rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1000,
+            background: '#fee2e2',
+            color: '#991b1b',
+            border: '1px solid #fca5a5',
+            borderRadius: '0.75rem',
+            padding: '0.875rem 1.25rem',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+            maxWidth: 'min(90vw, 480px)',
+            width: '100%',
+            textAlign: 'center',
+            fontSize: '0.9rem',
+            fontWeight: '500',
+          }}
+        >
+          {error}
+        </div>
+      )}
+
       <div className="survey-container">
-        {error && (
-          <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit}>
           <div className="chat-container">
