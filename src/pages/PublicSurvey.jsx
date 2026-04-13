@@ -146,12 +146,32 @@ export default function PublicSurvey() {
         <p className="survey-description">{event.description}</p>
       </div>
 
+      {error && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '1.5rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1000,
+            background: '#fee2e2',
+            color: '#991b1b',
+            border: '1px solid #fca5a5',
+            borderRadius: '0.75rem',
+            padding: '0.875rem 1.25rem',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+            maxWidth: 'min(90vw, 480px)',
+            width: '100%',
+            textAlign: 'center',
+            fontSize: '0.9rem',
+            fontWeight: '500',
+          }}
+        >
+          {error}
+        </div>
+      )}
+
       <div className="survey-container">
-        {error && (
-          <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit}>
           <div className="chat-container">
