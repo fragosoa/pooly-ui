@@ -72,7 +72,7 @@ const CreateEvent = () => {
 
             await api.post('/events/new', {
                 ...formData,
-                questions: cleanedQuestions.map(q => ({ text: q.text.trim(), optional: q.optional })),
+                questions: cleanedQuestions.map(q => q.text.trim()),
             });
             navigate('/admin');
         } catch (err) {

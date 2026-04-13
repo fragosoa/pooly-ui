@@ -57,14 +57,7 @@ export default function PublicSurvey() {
       const toNums = (pairs) =>
         pairs.map(([id]) => event.questions.findIndex(q => q.id === parseInt(id)) + 1).join(', ');
 
-      const isOptional = (id) => event.questions.find(q => q.id === parseInt(id))?.optional === true;
-
-      const tooShortList = answeredQuestions.filter(([id, text]) => !isOptional(id) && text.trim().length < 5);
-      if (tooShortList.length > 0) {
-        throw new Error(t('survey.errorMinChars', { nums: toNums(tooShortList) }));
-      }
-
-      const tooLongList = answeredQuestions.filter(([id, text]) => !isOptional(id) && text.trim().length > 500);
+      const tooLongList = answeredQuestions.filter(([_, text]) => text.trim().length > 500);
       if (tooLongList.length > 0) {
         throw new Error(t('survey.errorMaxChars', { nums: toNums(tooLongList) }));
       }
@@ -81,10 +74,8 @@ export default function PublicSurvey() {
       setSuccess(true);
     } catch (err) {
       const status = err.response?.status;
-      if (status === 400) {
-        setError(err.message || t('survey.errorMinChars', { num: '?' }));
-      } else if (status === 422) {
-        setError(err.message || t('survey.errorMaxChars', { num: '?' }));
+      if (status === 422) {
+        setError(err.message || t('survey.errorMaxChars', { nums: '?' }));
       } else {
         setError(err.message || t('survey.errorSubmit'));
       }
