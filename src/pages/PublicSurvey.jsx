@@ -54,14 +54,16 @@ export default function PublicSurvey() {
         throw new Error(t('survey.errorAtLeastOne'));
       }
 
-      const hasTooShort = answeredQuestions.some(([_, text]) => text.trim().length < 5);
-      if (hasTooShort) {
-        throw new Error(t('survey.errorMinChars'));
+      const tooShort = answeredQuestions.find(([_, text]) => text.trim().length < 5);
+      if (tooShort) {
+        const num = event.questions.findIndex(q => q.id === parseInt(tooShort[0])) + 1;
+        throw new Error(t('survey.errorMinChars', { num }));
       }
 
-      const hasTooLong = answeredQuestions.some(([_, text]) => text.trim().length > 500);
-      if (hasTooLong) {
-        throw new Error(t('survey.errorMaxChars'));
+      const tooLong = answeredQuestions.find(([_, text]) => text.trim().length > 500);
+      if (tooLong) {
+        const num = event.questions.findIndex(q => q.id === parseInt(tooLong[0])) + 1;
+        throw new Error(t('survey.errorMaxChars', { num }));
       }
 
       const payload = {
@@ -77,9 +79,9 @@ export default function PublicSurvey() {
     } catch (err) {
       const status = err.response?.status;
       if (status === 400) {
-        setError(t('survey.errorMinChars'));
+        setError(err.message || t('survey.errorMinChars', { num: '?' }));
       } else if (status === 422) {
-        setError(t('survey.errorMaxChars'));
+        setError(err.message || t('survey.errorMaxChars', { num: '?' }));
       } else {
         setError(err.message || t('survey.errorSubmit'));
       }
