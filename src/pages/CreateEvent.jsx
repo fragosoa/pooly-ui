@@ -14,7 +14,7 @@ const CreateEvent = () => {
         name: '',
         description: '',
         end_date: '',
-        questions: ['']
+        questions: [{ text: '', optional: false }]
     });
 
     const handleInputChange = (e) => {
@@ -24,12 +24,18 @@ const CreateEvent = () => {
 
     const handleQuestionChange = (index, value) => {
         const newQuestions = [...formData.questions];
-        newQuestions[index] = value;
+        newQuestions[index] = { ...newQuestions[index], text: value };
+        setFormData(prev => ({ ...prev, questions: newQuestions }));
+    };
+
+    const handleQuestionOptionalChange = (index, optional) => {
+        const newQuestions = [...formData.questions];
+        newQuestions[index] = { ...newQuestions[index], optional };
         setFormData(prev => ({ ...prev, questions: newQuestions }));
     };
 
     const addQuestion = () => {
-        setFormData(prev => ({ ...prev, questions: [...prev.questions, ''] }));
+        setFormData(prev => ({ ...prev, questions: [...prev.questions, { text: '', optional: false }] }));
     };
 
     const removeQuestion = (index) => {
@@ -59,14 +65,14 @@ const CreateEvent = () => {
         setIsLoading(true);
         setError('');
         try {
-            const cleanedQuestions = formData.questions.filter(q => q.trim() !== '');
+            const cleanedQuestions = formData.questions.filter(q => q.text.trim() !== '');
             if (cleanedQuestions.length === 0) {
                 throw new Error(t('create.errorNoQuestions'));
             }
 
             await api.post('/events/new', {
                 ...formData,
-                questions: cleanedQuestions
+                questions: cleanedQuestions.map(q => q.text.trim()),
             });
             navigate('/admin');
         } catch (err) {
@@ -203,14 +209,25 @@ const CreateEvent = () => {
                                                 }}>
                                                     {index + 1}
                                                 </span>
-                                                <textarea
-                                                    className="input-field"
-                                                    rows="2"
-                                                    value={question}
-                                                    onChange={(e) => handleQuestionChange(index, e.target.value)}
-                                                    placeholder={t('create.questionPlaceholder', { num: index + 1 })}
-                                                    style={{ flex: 1 }}
-                                                />
+                                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                                    <textarea
+                                                        className="input-field"
+                                                        rows="2"
+                                                        value={question.text}
+                                                        onChange={(e) => handleQuestionChange(index, e.target.value)}
+                                                        placeholder={t('create.questionPlaceholder', { num: index + 1 })}
+                                                        style={{ margin: 0 }}
+                                                    />
+                                                    <select
+                                                        className="input-field"
+                                                        value={question.optional ? 'optional' : 'required'}
+                                                        onChange={(e) => handleQuestionOptionalChange(index, e.target.value === 'optional')}
+                                                        style={{ margin: 0, fontSize: '0.8rem', padding: '0.35rem 0.6rem', cursor: 'pointer' }}
+                                                    >
+                                                        <option value="required">{t('create.questionRequired')}</option>
+                                                        <option value="optional">{t('create.questionOptional')}</option>
+                                                    </select>
+                                                </div>
                                                 {formData.questions.length > 1 && (
                                                     <button
                                                         type="button"
