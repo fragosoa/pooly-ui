@@ -54,6 +54,11 @@ export default function PublicSurvey() {
         throw new Error(t('survey.errorAtLeastOne'));
       }
 
+      const hasTooShort = answeredQuestions.some(([_, text]) => text.trim().length < 5);
+      if (hasTooShort) {
+        throw new Error(t('survey.errorMinChars'));
+      }
+
       const payload = {
         public_id: publicId,
         responses: answeredQuestions.map(([questionId, text]) => ({
@@ -65,7 +70,8 @@ export default function PublicSurvey() {
       await api.post(`/events/public/${publicId}/respond`, payload);
       setSuccess(true);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || t('survey.errorSubmit'));
+      const is400 = err.response?.status === 400;
+      setError(is400 ? t('survey.errorMinChars') : err.message || t('survey.errorSubmit'));
     } finally {
       setSubmitting(false);
     }
