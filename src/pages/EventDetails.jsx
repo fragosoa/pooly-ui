@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import api from '../services/api';
 import Modal from '../components/Modal';
 import { useLanguage } from '../context/LanguageContext';
@@ -14,6 +15,7 @@ export default function EventDetails() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisStatus, setAnalysisStatus] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showQr, setShowQr] = useState(false);
 
   // Modal state
   const [showAnalyzeModal, setShowAnalyzeModal] = useState(false);
@@ -323,9 +325,33 @@ export default function EventDetails() {
           >
             {copied ? t('eventDetails.shareCopied') : t('eventDetails.shareCopy')}
           </button>
+          <button
+            onClick={() => setShowQr(true)}
+            disabled={!shareUrl}
+            className="share-card-btn"
+            title="Ver código QR"
+            style={{ background: 'var(--text-primary)', flexShrink: 0 }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+              <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none" /><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none" /><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none" />
+              <path d="M14 14h3v3" /><path d="M17 21h3v-3" /><path d="M14 21h.01" /><path d="M21 14h.01" />
+            </svg>
+          </button>
         </div>
         <p className="share-card-hint">{t('eventDetails.shareHint')}</p>
       </div>
+
+      {showQr && (
+        <Modal isOpen={true} onClose={() => setShowQr(false)} title="Código QR">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem', padding: '0.5rem 0' }}>
+            <QRCodeSVG value={shareUrl} size={220} bgColor="#ffffff" fgColor="#111827" />
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', textAlign: 'center', maxWidth: '240px' }}>
+              Escanea este código para abrir la encuesta directamente.
+            </p>
+          </div>
+        </Modal>
+      )}
 
       {error && event.questions && (
         <div className="alert" style={{ background: 'var(--primary-light)', color: 'var(--text-secondary)', marginBottom: '2rem' }}>
