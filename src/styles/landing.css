@@ -349,19 +349,16 @@
 .lp-feature-grid.reverse > * { direction: ltr; }
 
 .lp-feature-visual {
-  background: #f5f5f5;
   border: 1px solid var(--lp-border);
   border-radius: 0;
   overflow: hidden;
-  aspect-ratio: 4/3;
   display: flex;
   flex-direction: column;
+  background: #f5f5f5;
 }
 .lp-feature-img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top left;
+  height: auto;
   display: block;
 }
 .lp-feature-visual-dark {
