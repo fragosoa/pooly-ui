@@ -55,7 +55,7 @@ const Navbar = () => {
           {[
             { label: t('landing.nav.product'), href: '/#features' },
             { label: t('landing.nav.how'), href: '/#how' },
-            { label: t('landing.nav.customers'), href: '/#testimonials' },
+            { label: t('landing.nav.demo'), href: '/#demo' },
             { label: t('landing.nav.pricing'), href: '/#pricing' },
           ].map(({ label, href }) => (
             <li key={label}>

@@ -67,7 +67,7 @@ const PublicGallery = () => {
               <div className="lp-hero-ui">
                 <img
                   src="/hero-preview.png"
-                  alt="Pooly AI survey insight"
+                  alt="Pooly dashboard"
                   onError={(e) => {
                     e.target.style.display = 'none';
                     e.target.parentNode.style.minHeight = '320px';
@@ -75,26 +75,20 @@ const PublicGallery = () => {
                 />
               </div>
               <div className="lp-float-card lp-float-card-1">
-                <div className="lp-fc-avatars">
-                  <div className="lp-fc-avatar" style={{ background: 'oklch(55% 0.16 195)' }}>A</div>
-                  <div className="lp-fc-avatar" style={{ background: 'oklch(55% 0.18 265)' }}>M</div>
-                  <div className="lp-fc-avatar" style={{ background: 'oklch(60% 0.14 30)' }}>J</div>
-                </div>
-                <div className="lp-fc-value">{t('landing.hero.stat1.value')}</div>
+                <div className="lp-fc-value" style={{ fontSize: '20px' }}>{t('landing.hero.stat1.value')}</div>
                 <div className="lp-fc-label">{t('landing.hero.stat1.label')}</div>
                 <div className="lp-fc-trend">{t('landing.hero.stat1.trend')}</div>
               </div>
               <div className="lp-float-card lp-float-card-2">
-                <div className="lp-fc-value">94<span style={{ fontSize: '18px', color: 'var(--lp-muted)' }}>%</span></div>
-                <div className="lp-fc-label">{t('landing.hero.stat2.label')}</div>
-                <div className="lp-fc-trend">{t('landing.hero.stat2.trend')}</div>
+                <div className="lp-fc-value" style={{ fontSize: '16px', fontWeight: 700 }}>{t('landing.hero.stat2.label')}</div>
+                <div className="lp-fc-trend" style={{ marginTop: '6px' }}>{t('landing.hero.stat2.trend')}</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── FEATURE 1 — AI Builder (light) ───────────────── */}
+      {/* ─── FEATURE 1 — Feedback Collection (light) ─────── */}
       <section id="features" className="lp-section lp-section-light">
         <div className="lp-container">
           <div className="lp-feature-grid lp-fade-up">
@@ -114,14 +108,14 @@ const PublicGallery = () => {
             </div>
             <div className="lp-feature-visual">
               <div className="lp-img-placeholder">
-                <div className="lp-img-placeholder-label"><span>UI screenshot · AI survey builder</span></div>
+                <div className="lp-img-placeholder-label"><span>Survey creation interface</span></div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── MID CTA BAND ─────────────────────────────────── */}
+      {/* ─── MID CTA — Demo request ───────────────────────── */}
       <div className="lp-mid-cta">
         <div className="lp-container">
           <div className="lp-mid-cta-inner">
@@ -129,14 +123,14 @@ const PublicGallery = () => {
               <h3>{t('landing.midcta.h3')}</h3>
               <p>{t('landing.midcta.p')}</p>
             </div>
-            <Link to="/register" className="lp-btn-primary" style={{ padding: '16px 32px', fontSize: '16px', flexShrink: 0 }}>
+            <a href="mailto:hello@pooly.app" className="lp-btn-primary" style={{ padding: '16px 32px', fontSize: '16px', flexShrink: 0 }}>
               {t('landing.midcta.btn')}
-            </Link>
+            </a>
           </div>
         </div>
       </div>
 
-      {/* ─── FEATURE 2 — Analytics (dark) ─────────────────── */}
+      {/* ─── FEATURE 2 — AI Analysis (dark) ──────────────── */}
       <section className="lp-section lp-section-dark">
         <div className="lp-container">
           <div className="lp-feature-grid reverse lp-fade-up">
@@ -150,93 +144,41 @@ const PublicGallery = () => {
                 <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f2.li3')}</li>
               </ul>
               <div className="lp-section-cta">
-                <Link to="/register" className="lp-btn-primary">{t('landing.f2.cta')}</Link>
+                <a href="mailto:hello@pooly.app" className="lp-btn-primary">{t('landing.f2.cta')}</a>
               </div>
             </div>
             <div className="lp-feature-visual lp-feature-visual-dark">
               <div className="lp-img-placeholder lp-img-placeholder-dark">
-                <div className="lp-img-placeholder-label"><span>Analytics dashboard screenshot</span></div>
+                <div className="lp-img-placeholder-label"><span>AI analysis report</span></div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── STATS BAND ───────────────────────────────────── */}
+      {/* ─── STATS BAND — product value, not vanity metrics ─ */}
       <div className="lp-stats-band lp-fade-up">
         <div className="lp-container">
           <div className="lp-stats-grid">
             <div className="lp-stat-item">
-              <div className="lp-stat-value">50<span>K+</span></div>
+              <div className="lp-stat-value" style={{ fontSize: '36px' }}>{t('landing.stats.v1')}</div>
               <div className="lp-stat-label">{t('landing.stats.l1')}</div>
             </div>
             <div className="lp-stat-item">
-              <div className="lp-stat-value">12<span>M</span></div>
+              <div className="lp-stat-value" style={{ fontSize: '36px' }}>{t('landing.stats.v2')}</div>
               <div className="lp-stat-label">{t('landing.stats.l2')}</div>
             </div>
             <div className="lp-stat-item">
-              <div className="lp-stat-value">94<span>%</span></div>
+              <div className="lp-stat-value">100<span>%</span></div>
               <div className="lp-stat-label">{t('landing.stats.l3')}</div>
             </div>
             <div className="lp-stat-item">
-              <div className="lp-stat-value">3<span>×</span></div>
+              <div className="lp-stat-value" style={{ fontSize: '28px', lineHeight: 1.2 }}>{t('landing.stats.v4')}</div>
               <div className="lp-stat-label">{t('landing.stats.l4')}</div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* ─── FEATURE 3 — Templates (tint) ─────────────────── */}
-      <section className="lp-section lp-section-tint">
-        <div className="lp-container">
-          <div className="lp-feature-grid lp-fade-up">
-            <div>
-              <span className="lp-eyebrow">{t('landing.f3.eyebrow')}</span>
-              <h2 className="lp-section-title">{t('landing.f3.title')}</h2>
-              <p className="lp-section-body">{t('landing.f3.body')}</p>
-              <ul className="lp-feature-list">
-                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f3.li1')}</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f3.li2')}</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f3.li3')}</li>
-              </ul>
-              <div className="lp-section-cta">
-                <Link to="/register" className="lp-btn-primary">{t('landing.f3.cta')}</Link>
-              </div>
-            </div>
-            <div className="lp-feature-visual">
-              <div className="lp-img-placeholder">
-                <div className="lp-img-placeholder-label"><span>Template gallery screenshot</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── FEATURE 4 — Teams (dark) ─────────────────────── */}
-      <section className="lp-section lp-section-dark">
-        <div className="lp-container">
-          <div className="lp-feature-grid reverse lp-fade-up">
-            <div>
-              <span className="lp-eyebrow">{t('landing.f4.eyebrow')}</span>
-              <h2 className="lp-section-title lp-section-title-dark">{t('landing.f4.title')}</h2>
-              <p className="lp-section-body lp-section-body-dark">{t('landing.f4.body')}</p>
-              <ul className="lp-feature-list lp-feature-list-dark">
-                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f4.li1')}</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f4.li2')}</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f4.li3')}</li>
-              </ul>
-              <div className="lp-section-cta">
-                <a href="#pricing" className="lp-btn-ghost lp-btn-ghost-dark">{t('landing.f4.cta')}</a>
-              </div>
-            </div>
-            <div className="lp-feature-visual lp-feature-visual-dark">
-              <div className="lp-img-placeholder lp-img-placeholder-dark">
-                <div className="lp-img-placeholder-label"><span>Team collaboration screenshot</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ─── HOW IT WORKS ────────────────────────────────── */}
       <section className="lp-section lp-section-tint" id="how">
@@ -275,52 +217,57 @@ const PublicGallery = () => {
         </div>
       </section>
 
-      {/* ─── TESTIMONIALS ────────────────────────────────── */}
-      <section className="lp-section lp-section-light" id="testimonials">
+      {/* ─── FEATURE 3 — Teams / Dashboard (dark) ────────── */}
+      <section className="lp-section lp-section-dark">
         <div className="lp-container">
-          <div className="lp-section-header center lp-fade-up">
-            <span className="lp-eyebrow">{t('landing.t.eyebrow')}</span>
-            <h2 className="lp-section-title">{t('landing.t.title')}</h2>
-          </div>
-          <div className="lp-testimonials-grid lp-fade-up">
-            <div className="lp-testimonial-card">
-              <div className="lp-stars">★★★★★</div>
-              <p className="lp-testimonial-quote">{t('landing.t.q1')}</p>
-              <div className="lp-testimonial-author">
-                <div className="lp-author-avatar" style={{ background: 'oklch(55% 0.16 195)' }}>S</div>
-                <div>
-                  <div className="lp-author-name">{t('landing.t.n1')}</div>
-                  <div className="lp-author-role">{t('landing.t.r1')}</div>
-                </div>
+          <div className="lp-feature-grid reverse lp-fade-up">
+            <div>
+              <span className="lp-eyebrow">{t('landing.f4.eyebrow')}</span>
+              <h2 className="lp-section-title lp-section-title-dark">{t('landing.f4.title')}</h2>
+              <p className="lp-section-body lp-section-body-dark">{t('landing.f4.body')}</p>
+              <ul className="lp-feature-list lp-feature-list-dark">
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f4.li1')}</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f4.li2')}</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f4.li3')}</li>
+              </ul>
+              <div className="lp-section-cta">
+                <a href="mailto:hello@pooly.app" className="lp-btn-ghost lp-btn-ghost-dark">{t('landing.f4.cta')}</a>
               </div>
             </div>
-            <div className="lp-testimonial-card">
-              <div className="lp-stars">★★★★★</div>
-              <p className="lp-testimonial-quote">{t('landing.t.q2')}</p>
-              <div className="lp-testimonial-author">
-                <div className="lp-author-avatar" style={{ background: 'oklch(50% 0.18 265)' }}>M</div>
-                <div>
-                  <div className="lp-author-name">{t('landing.t.n2')}</div>
-                  <div className="lp-author-role">{t('landing.t.r2')}</div>
-                </div>
-              </div>
-            </div>
-            <div className="lp-testimonial-card">
-              <div className="lp-stars">★★★★★</div>
-              <p className="lp-testimonial-quote">{t('landing.t.q3')}</p>
-              <div className="lp-testimonial-author">
-                <div className="lp-author-avatar" style={{ background: 'oklch(58% 0.15 30)' }}>A</div>
-                <div>
-                  <div className="lp-author-name">{t('landing.t.n3')}</div>
-                  <div className="lp-author-role">{t('landing.t.r3')}</div>
-                </div>
+            <div className="lp-feature-visual lp-feature-visual-dark">
+              <div className="lp-img-placeholder lp-img-placeholder-dark">
+                <div className="lp-img-placeholder-label"><span>Dashboard screenshot</span></div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── PRICING ─────────────────────────────────────── */}
+      {/* ─── DEMO / PILOT BAND ───────────────────────────── */}
+      <section className="lp-section lp-section-tint" id="demo">
+        <div className="lp-container">
+          <div className="lp-section-header center lp-fade-up" style={{ marginBottom: 0 }}>
+            <span className="lp-eyebrow">{t('landing.demo.eyebrow')}</span>
+            <h2 className="lp-section-title">{t('landing.demo.title')}</h2>
+            <p className="lp-section-body" style={{ margin: '0 auto 36px', textAlign: 'center' }}>
+              {t('landing.demo.body')}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a href="mailto:hello@pooly.app" className="lp-btn-primary" style={{ padding: '16px 36px', fontSize: '16px' }}>
+                {t('landing.demo.btn')}
+              </a>
+              <Link to="/register" className="lp-btn-ghost">
+                {t('landing.demo.register')}
+              </Link>
+            </div>
+            <p style={{ marginTop: '18px', fontSize: '13px', color: 'var(--lp-muted)' }}>
+              {t('landing.demo.note')}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── PRICING — 2 options only ────────────────────── */}
       <section className="lp-section lp-section-dark" id="pricing">
         <div className="lp-container">
           <div className="lp-section-header center lp-fade-up">
@@ -330,7 +277,7 @@ const PublicGallery = () => {
               {t('landing.p.body')}
             </p>
           </div>
-          <div className="lp-pricing-grid lp-fade-up">
+          <div className="lp-pricing-grid lp-fade-up" style={{ gridTemplateColumns: 'repeat(2, 1fr)', maxWidth: '760px', margin: '48px auto 0' }}>
             {/* Free */}
             <div className="lp-pricing-card">
               <div className="lp-pricing-plan">{t('landing.p.free.plan')}</div>
@@ -350,46 +297,23 @@ const PublicGallery = () => {
                 </Link>
               </div>
             </div>
-            {/* Pro */}
+            {/* Demo */}
             <div className="lp-pricing-card featured">
-              <div className="lp-pricing-badge">{t('landing.p.pro.badge')}</div>
-              <div className="lp-pricing-plan">{t('landing.p.pro.plan')}</div>
-              <div className="lp-pricing-price"><sup>$</sup>29</div>
-              <div className="lp-pricing-period">{t('landing.p.pro.period')}</div>
-              <p className="lp-pricing-desc">{t('landing.p.pro.desc')}</p>
+              <div className="lp-pricing-badge">{t('landing.p.demo.badge')}</div>
+              <div className="lp-pricing-plan">{t('landing.p.demo.plan')}</div>
+              <div className="lp-pricing-price" style={{ fontSize: '32px' }}>{t('landing.p.demo.price')}</div>
+              <div className="lp-pricing-period">{t('landing.p.demo.period')}</div>
+              <p className="lp-pricing-desc">{t('landing.p.demo.desc')}</p>
               <hr className="lp-pricing-divider" />
               <ul className="lp-pricing-features">
-                <li><PricingCheck />{t('landing.p.pro.li1')}</li>
-                <li><PricingCheck />{t('landing.p.pro.li2')}</li>
-                <li><PricingCheck />{t('landing.p.pro.li3')}</li>
-                <li><PricingCheck />{t('landing.p.pro.li4')}</li>
-                <li><PricingCheck />{t('landing.p.pro.li5')}</li>
-                <li><PricingCheck />{t('landing.p.pro.li6')}</li>
+                <li><PricingCheck />{t('landing.p.demo.li1')}</li>
+                <li><PricingCheck />{t('landing.p.demo.li2')}</li>
+                <li><PricingCheck />{t('landing.p.demo.li3')}</li>
+                <li><PricingCheck />{t('landing.p.demo.li4')}</li>
               </ul>
               <div className="lp-pricing-btn">
-                <Link to="/register" className="lp-btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                  {t('landing.p.pro.btn')}
-                </Link>
-              </div>
-            </div>
-            {/* Enterprise */}
-            <div className="lp-pricing-card">
-              <div className="lp-pricing-plan">{t('landing.p.ent.plan')}</div>
-              <div className="lp-pricing-price" style={{ fontSize: '32px' }}>{t('landing.p.ent.price')}</div>
-              <div className="lp-pricing-period">{t('landing.p.ent.period')}</div>
-              <p className="lp-pricing-desc">{t('landing.p.ent.desc')}</p>
-              <hr className="lp-pricing-divider" />
-              <ul className="lp-pricing-features">
-                <li><PricingCheck />{t('landing.p.ent.li1')}</li>
-                <li><PricingCheck />{t('landing.p.ent.li2')}</li>
-                <li><PricingCheck />{t('landing.p.ent.li3')}</li>
-                <li><PricingCheck />{t('landing.p.ent.li4')}</li>
-                <li><PricingCheck />{t('landing.p.ent.li5')}</li>
-                <li><PricingCheck />{t('landing.p.ent.li6')}</li>
-              </ul>
-              <div className="lp-pricing-btn">
-                <a href="mailto:hello@pooly.app" className="lp-btn-ghost lp-btn-ghost-dark" style={{ width: '100%', justifyContent: 'center' }}>
-                  {t('landing.p.ent.btn')}
+                <a href="mailto:hello@pooly.app" className="lp-btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                  {t('landing.p.demo.btn')}
                 </a>
               </div>
             </div>
@@ -407,9 +331,9 @@ const PublicGallery = () => {
               <Link to="/register" className="lp-btn-primary" style={{ padding: '16px 36px', fontSize: '16px' }}>
                 {t('landing.cta.btn1')}
               </Link>
-              <Link to="/login" className="lp-btn-ghost lp-btn-ghost-dark">
+              <a href="mailto:hello@pooly.app" className="lp-btn-ghost lp-btn-ghost-dark">
                 {t('landing.cta.btn2')}
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -433,14 +357,14 @@ const PublicGallery = () => {
               <ul className="lp-footer-links">
                 <li><Link to="/register">{t('landing.footer.p1')}</Link></li>
                 <li><a href="#features">{t('landing.footer.p2')}</a></li>
-                <li><a href="#features">{t('landing.footer.p3')}</a></li>
+                <li><Link to="/admin">{t('landing.footer.p3')}</Link></li>
                 <li><a href="#pricing">{t('landing.footer.p4')}</a></li>
               </ul>
             </div>
             <div>
               <div className="lp-footer-col-title">{t('landing.footer.col2')}</div>
               <ul className="lp-footer-links">
-                <li><a href="#">{t('landing.footer.r1')}</a></li>
+                <li><a href="#how">{t('landing.footer.r1')}</a></li>
                 <li><a href="#">{t('landing.footer.r2')}</a></li>
                 <li><a href="#">{t('landing.footer.r3')}</a></li>
                 <li><a href="#">{t('landing.footer.r4')}</a></li>
@@ -458,10 +382,10 @@ const PublicGallery = () => {
             <div>
               <div className="lp-footer-col-title">{t('landing.footer.col4')}</div>
               <ul className="lp-footer-links">
-                <li><a href="#">{t('landing.footer.a1')}</a></li>
-                <li><a href="#">{t('landing.footer.a2')}</a></li>
+                <li><a href="mailto:hello@pooly.app">{t('landing.footer.a1')}</a></li>
+                <li><a href="mailto:hello@pooly.app">{t('landing.footer.a2')}</a></li>
                 <li><a href="#">{t('landing.footer.a3')}</a></li>
-                <li><a href="mailto:hello@pooly.app">{t('landing.footer.a4')}</a></li>
+                <li><a href="#">{t('landing.footer.a4')}</a></li>
               </ul>
             </div>
           </div>
