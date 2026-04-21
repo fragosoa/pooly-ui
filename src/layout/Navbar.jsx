@@ -1,113 +1,38 @@
-import { useRef, useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
-const LANGUAGES = [
-  { code: 'es', flag: '🇲🇽', label: 'Español' },
-  { code: 'en', flag: '🇺🇸', label: 'English' },
+const NAV_LINKS = (t) => [
+  { label: t('landing.nav.product'), href: '/#features' },
+  { label: t('landing.nav.how'), href: '/#how' },
+  { label: t('landing.nav.demo'), href: '/#demo' },
+  { label: t('landing.nav.pricing'), href: '/#pricing' },
 ];
-
-const LanguageSwitcher = () => {
-  const { language, changeLanguage } = useLanguage();
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const current = LANGUAGES.find(l => l.code === language);
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.35rem',
-          background: 'none',
-          border: '1px solid var(--border)',
-          borderRadius: '6px',
-          padding: '0.35rem 0.55rem',
-          cursor: 'pointer',
-          fontSize: '0.875rem',
-          color: 'var(--text-secondary)',
-          lineHeight: 1,
-        }}
-        aria-label="Select language"
-      >
-        <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{current.flag}</span>
-        <span style={{ fontWeight: 500 }}>{current.code.toUpperCase()}</span>
-        <svg width="10" height="10" viewBox="0 0 10 6" fill="none" style={{ opacity: 0.6 }}>
-          <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
-
-      {open && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 6px)',
-          right: 0,
-          background: 'var(--bg-primary)',
-          border: '1px solid var(--border)',
-          borderRadius: '8px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-          overflow: 'hidden',
-          minWidth: '140px',
-          zIndex: 200,
-        }}>
-          {LANGUAGES.map(lang => (
-            <button
-              key={lang.code}
-              onClick={() => { changeLanguage(lang.code); setOpen(false); }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.65rem',
-                width: '100%',
-                padding: '0.6rem 1rem',
-                background: language === lang.code ? 'var(--bg-secondary)' : 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                color: 'var(--text-primary)',
-                textAlign: 'left',
-              }}
-            >
-              <span style={{ fontSize: '1.1rem' }}>{lang.flag}</span>
-              <span>{lang.label}</span>
-              {language === lang.code && (
-                <span style={{ marginLeft: 'auto', color: 'var(--primary)', fontWeight: 700 }}>✓</span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/');
+    setMenuOpen(false);
   };
 
   return (
-    <nav className="navbar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <Link to="/" className="navbar-brand">
-          Pooly
+    <nav className="navbar" style={{ position: 'relative' }}>
+      {/* Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+        <Link
+          to="/"
+          className="navbar-brand"
+          style={{ color: 'var(--text-primary)', fontFamily: "'Nunito Sans', sans-serif", fontWeight: 800 }}
+        >
+          Pool<span style={{ color: '#2563eb' }}>y</span>
         </Link>
         <span style={{
           background: '#059669',
@@ -115,10 +40,9 @@ const Navbar = () => {
           fontSize: '0.8125rem',
           fontWeight: 700,
           padding: '0.25rem 0.875rem',
-          borderRadius: '4px 0 0 4px',
+          borderRadius: '0',
           letterSpacing: '0.05em',
           lineHeight: '1.4',
-          position: 'relative',
           userSelect: 'none',
           clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%)',
           paddingRight: '1.25rem',
@@ -127,7 +51,25 @@ const Navbar = () => {
         </span>
       </div>
 
-      <div className="navbar-links">
+      {/* Center nav links — desktop only, logged-out */}
+      {!user && (
+        <ul className="navbar-center-links">
+          {NAV_LINKS(t).map(({ label, href }) => (
+            <li key={label}>
+              <a
+                href={href}
+                className="navbar-center-link"
+                onClick={() => setMenuOpen(false)}
+              >
+                {label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Right actions — desktop */}
+      <div className="navbar-links navbar-desktop-actions">
         {user ? (
           <>
             <LanguageSwitcher />
@@ -140,27 +82,121 @@ const Navbar = () => {
             <button
               onClick={handleLogout}
               className="btn btn-outline"
-              style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+              style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', borderRadius: '0' }}
             >
               {t('navbar.logout')}
             </button>
           </>
         ) : (
           <>
-            <LanguageSwitcher />
-            <Link to="/login" className="nav-link">
+            <Link
+              to="/login"
+              className="nav-link"
+              style={{ borderRadius: '0', fontSize: '14.5px', fontWeight: 500 }}
+            >
               {t('navbar.login')}
             </Link>
             <Link
               to="/register"
               className="btn btn-primary"
-              style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}
+              style={{
+                padding: '0.5rem 1.25rem',
+                fontSize: '0.875rem',
+                borderRadius: '0',
+                background: '#F59E0B',
+                color: '#1a1a1a',
+                fontWeight: 700,
+              }}
             >
               {t('navbar.register')}
             </Link>
           </>
         )}
       </div>
+
+      {/* Hamburger button — mobile only */}
+      <button
+        className="navbar-hamburger"
+        onClick={() => setMenuOpen(o => !o)}
+        aria-label="Abrir menú"
+      >
+        {menuOpen ? (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        ) : (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M3 12h18M3 6h18M3 18h18" />
+          </svg>
+        )}
+      </button>
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="navbar-mobile-menu">
+          {!user && (
+            <ul className="navbar-mobile-links">
+              {NAV_LINKS(t).map(({ label, href }) => (
+                <li key={label}>
+                  <a href={href} className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="navbar-mobile-actions">
+            {user ? (
+              <>
+                <Link to="/admin" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>
+                  {user.username}
+                </Link>
+                <Link to="/admin/settings" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>
+                  {t('navbar.controlPanel')}
+                </Link>
+                <div style={{ padding: '0.5rem 1rem' }}>
+                  <LanguageSwitcher />
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="navbar-mobile-link"
+                  style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', fontWeight: 600 }}
+                >
+                  {t('navbar.logout')}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="navbar-mobile-link"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {t('navbar.login')}
+                </Link>
+                <div style={{ padding: '0.75rem 1rem' }}>
+                  <Link
+                    to="/register"
+                    className="btn btn-primary"
+                    onClick={() => setMenuOpen(false)}
+                    style={{
+                      display: 'block',
+                      textAlign: 'center',
+                      borderRadius: '0',
+                      background: '#F59E0B',
+                      color: '#1a1a1a',
+                      fontWeight: 700,
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    {t('navbar.register')}
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

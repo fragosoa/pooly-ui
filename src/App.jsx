@@ -11,6 +11,8 @@ import PublicSurvey from './pages/PublicSurvey';
 import CreateEvent from './pages/CreateEvent';
 import EventDetails from './pages/EventDetails';
 import Settings from './pages/Settings';
+import TermsOfUse from './pages/TermsOfUse';
+import PrivacyNotice from './pages/PrivacyNotice';
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
           <Route path="/admin/create" element={<><Navbar /><ProtectedRoute><CreateEvent /></ProtectedRoute></>} />
           <Route path="/admin/events/:eventId" element={<><Navbar /><ProtectedRoute><EventDetails /></ProtectedRoute></>} />
           <Route path="/admin/settings" element={<><Navbar /><ProtectedRoute><Settings /></ProtectedRoute></>} />
+          <Route path="/terms_of_use" element={<><Navbar /><TermsOfUse /></>} />
+          <Route path="/privacy_notice" element={<><Navbar /><PrivacyNotice /></>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
