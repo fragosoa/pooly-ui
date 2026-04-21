@@ -12,6 +12,17 @@ const translations = {
     'lang.es': 'Español',
     'lang.en': 'English',
 
+    // Auth - social & legal
+    'auth.socialDivider': 'o continúa con',
+    'auth.google': 'Continuar con Google',
+    'auth.facebook': 'Continuar con Facebook',
+    'auth.linkedin': 'Continuar con LinkedIn',
+    'register.legalPrefix': 'Al registrarte, aceptas los',
+    'register.termsLink': 'Términos de uso',
+    'register.legalAnd': 'y el',
+    'register.privacyLink': 'Aviso de privacidad',
+    'register.legalSuffix': '. También aceptas recibir novedades del producto y promociones especiales por correo electrónico. Puedes cancelar estos correos en cualquier momento desde tu página de Preferencias de cuenta.',
+
     // Login
     'login.title': 'Bienvenido de nuevo',
     'login.subtitle': 'Inicia sesión para gestionar tus encuestas',
@@ -415,6 +426,17 @@ const translations = {
     'navbar.logout': 'Log out',
     'lang.es': 'Español',
     'lang.en': 'English',
+
+    // Auth - social & legal
+    'auth.socialDivider': 'or continue with',
+    'auth.google': 'Continue with Google',
+    'auth.facebook': 'Continue with Facebook',
+    'auth.linkedin': 'Continue with LinkedIn',
+    'register.legalPrefix': 'By signing up, you agree to the',
+    'register.termsLink': 'Terms of Use',
+    'register.legalAnd': 'and',
+    'register.privacyLink': 'Privacy Notice',
+    'register.legalSuffix': '. You also agree to receive product news and special promotions via email. You can opt-out of these emails in your My Account Preferences page anytime.',
 
     // Login
     'login.title': 'Welcome back',
