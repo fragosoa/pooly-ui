@@ -7,9 +7,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,300;1,6..12,400&display=swap');
 
 .landing-page {
-  --lp-accent:        oklch(62% 0.19 195);
-  --lp-accent-hover:  oklch(56% 0.19 195);
-  --lp-accent-light:  oklch(94% 0.06 195);
+  --lp-accent:        #2563eb;
+  --lp-accent-hover:  #1d4ed8;
+  --lp-accent-light:  #dbeafe;
   --lp-ink:           oklch(12% 0.04 265);
   --lp-ink-mid:       oklch(25% 0.04 265);
   --lp-muted:         oklch(52% 0.03 265);
@@ -447,9 +447,9 @@
 
 /* ─── MID CTA BAND ──────────────────────────────────────── */
 .lp-mid-cta {
-  background: var(--lp-accent-light);
-  border-top: 1px solid oklch(88% 0.09 195);
-  border-bottom: 1px solid oklch(88% 0.09 195);
+  background: #f0f2f5;
+  border-top: 1px solid #e2e6ea;
+  border-bottom: 1px solid #e2e6ea;
   padding: 60px 0;
 }
 .lp-mid-cta-inner {
@@ -470,6 +470,12 @@
   font-size: 15px;
   color: var(--lp-muted);
   margin-top: 6px;
+}
+.lp-mid-cta .lp-btn-primary {
+  background: var(--lp-ink);
+}
+.lp-mid-cta .lp-btn-primary:hover {
+  background: var(--lp-accent);
 }
 
 /* ─── STATS BAND ────────────────────────────────────────── */

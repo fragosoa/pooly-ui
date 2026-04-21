@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/landing.css';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const CheckIcon = () => (
   <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" width="11" height="11">
@@ -100,22 +101,6 @@ const PublicGallery = () => {
           </div>
         </div>
       </section>
-
-      {/* ─── TRUST BAR ────────────────────────────────────── */}
-      <div className="lp-trust-bar">
-        <div className="lp-container">
-          <div className="lp-trust-inner">
-            <span className="lp-trust-label">Trusted by teams at</span>
-            <div className="lp-trust-logos">
-              <span className="lp-trust-logo">Meridian</span>
-              <span className="lp-trust-logo">Northvale</span>
-              <span className="lp-trust-logo">Crestline</span>
-              <span className="lp-trust-logo">Vellum Co</span>
-              <span className="lp-trust-logo">Arkon Labs</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* ─── FEATURE 1 — AI Builder (light) ───────────────── */}
       <section id="features" className="lp-section lp-section-light">
@@ -529,10 +514,13 @@ const PublicGallery = () => {
 
           <div className="lp-footer-bottom">
             <p className="lp-footer-copy">© 2025 Pooly. All rights reserved.</p>
-            <div className="lp-footer-legal">
-              <a href="#">Privacy Policy</a>
-              <a href="#">Terms of Service</a>
-              <a href="#">Cookie Settings</a>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+              <div className="lp-footer-legal">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Cookie Settings</a>
+              </div>
+              <LanguageSwitcher dark />
             </div>
           </div>
         </div>
