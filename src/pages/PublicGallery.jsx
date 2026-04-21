@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import '../styles/landing.css';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
@@ -16,13 +17,13 @@ const PricingCheck = () => (
 );
 
 const PublicGallery = () => {
+  const { t } = useLanguage();
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
+          if (entry.isIntersecting) entry.target.classList.add('visible');
         });
       },
       { threshold: 0.1 }
@@ -39,29 +40,26 @@ const PublicGallery = () => {
         <div className="lp-container">
           <div className="lp-hero-inner">
             <div className="lp-hero-content lp-fade-up">
-              <div className="lp-hero-kicker">AI-Powered Survey Platform</div>
+              <div className="lp-hero-kicker">{t('landing.hero.kicker')}</div>
               <h1>
-                Surveys that think.<br />
-                <em>Answers that matter.</em>
+                {t('landing.hero.title1')}<br />
+                <em>{t('landing.hero.title2')}</em>
               </h1>
-              <p className="lp-hero-sub">
-                Pooly uses AI to help you build smarter surveys, reach the right audience,
-                and turn responses into decisions — faster than ever.
-              </p>
+              <p className="lp-hero-sub">{t('landing.hero.sub')}</p>
               <div className="lp-hero-actions">
                 <Link to="/register" className="lp-btn-primary">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
-                  Start for free
+                  {t('landing.hero.cta1')}
                 </Link>
-                <a href="#how" className="lp-btn-ghost">See how it works</a>
+                <a href="#how" className="lp-btn-ghost">{t('landing.hero.cta2')}</a>
               </div>
               <p className="lp-hero-note">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
-                No credit card required · Free plan forever
+                {t('landing.hero.note')}
               </p>
             </div>
 
@@ -69,33 +67,27 @@ const PublicGallery = () => {
               <div className="lp-hero-ui">
                 <img
                   src="/hero-preview.png"
-                  alt="Pooly AI survey insight example"
+                  alt="Pooly AI survey insight"
                   onError={(e) => {
                     e.target.style.display = 'none';
                     e.target.parentNode.style.minHeight = '320px';
-                    e.target.parentNode.style.background = '#f5f5f5';
-                    e.target.parentNode.style.display = 'flex';
-                    e.target.parentNode.style.alignItems = 'center';
-                    e.target.parentNode.style.justifyContent = 'center';
                   }}
                 />
               </div>
-
               <div className="lp-float-card lp-float-card-1">
                 <div className="lp-fc-avatars">
                   <div className="lp-fc-avatar" style={{ background: 'oklch(55% 0.16 195)' }}>A</div>
                   <div className="lp-fc-avatar" style={{ background: 'oklch(55% 0.18 265)' }}>M</div>
                   <div className="lp-fc-avatar" style={{ background: 'oklch(60% 0.14 30)' }}>J</div>
                 </div>
-                <div className="lp-fc-value">2,847</div>
-                <div className="lp-fc-label">Responses today</div>
-                <div className="lp-fc-trend">↑ 18% this week</div>
+                <div className="lp-fc-value">{t('landing.hero.stat1.value')}</div>
+                <div className="lp-fc-label">{t('landing.hero.stat1.label')}</div>
+                <div className="lp-fc-trend">{t('landing.hero.stat1.trend')}</div>
               </div>
-
               <div className="lp-float-card lp-float-card-2">
                 <div className="lp-fc-value">94<span style={{ fontSize: '18px', color: 'var(--lp-muted)' }}>%</span></div>
-                <div className="lp-fc-label">Completion rate</div>
-                <div className="lp-fc-trend">↑ vs. industry avg</div>
+                <div className="lp-fc-label">{t('landing.hero.stat2.label')}</div>
+                <div className="lp-fc-trend">{t('landing.hero.stat2.trend')}</div>
               </div>
             </div>
           </div>
@@ -107,20 +99,17 @@ const PublicGallery = () => {
         <div className="lp-container">
           <div className="lp-feature-grid lp-fade-up">
             <div>
-              <span className="lp-eyebrow">AI Survey Builder</span>
-              <h2 className="lp-section-title">Go from idea to live survey in seconds</h2>
-              <p className="lp-section-body">
-                Describe what you want to learn and Pooly's AI engine drafts a complete,
-                optimized survey — with smart question logic, branching, and bias detection built in.
-              </p>
+              <span className="lp-eyebrow">{t('landing.f1.eyebrow')}</span>
+              <h2 className="lp-section-title">{t('landing.f1.title')}</h2>
+              <p className="lp-section-body">{t('landing.f1.body')}</p>
               <ul className="lp-feature-list">
-                <li><span className="lp-feature-check"><CheckIcon /></span>Generate full surveys from a single prompt</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>Auto-detect and fix leading questions</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>Smart skip logic and conditional branching</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>Multilingual support out of the box</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f1.li1')}</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f1.li2')}</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f1.li3')}</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f1.li4')}</li>
               </ul>
               <div className="lp-section-cta">
-                <Link to="/register" className="lp-btn-primary">Build your first survey →</Link>
+                <Link to="/register" className="lp-btn-primary">{t('landing.f1.cta')}</Link>
               </div>
             </div>
             <div className="lp-feature-visual">
@@ -137,11 +126,11 @@ const PublicGallery = () => {
         <div className="lp-container">
           <div className="lp-mid-cta-inner">
             <div>
-              <h3>Ready to hear what your customers really think?</h3>
-              <p>Join over 50,000 teams already using Pooly to make smarter decisions.</p>
+              <h3>{t('landing.midcta.h3')}</h3>
+              <p>{t('landing.midcta.p')}</p>
             </div>
             <Link to="/register" className="lp-btn-primary" style={{ padding: '16px 32px', fontSize: '16px', flexShrink: 0 }}>
-              Get started free →
+              {t('landing.midcta.btn')}
             </Link>
           </div>
         </div>
@@ -152,19 +141,16 @@ const PublicGallery = () => {
         <div className="lp-container">
           <div className="lp-feature-grid reverse lp-fade-up">
             <div>
-              <span className="lp-eyebrow">Real-time Analytics</span>
-              <h2 className="lp-section-title lp-section-title-dark">Responses turn into insights automatically</h2>
-              <p className="lp-section-body lp-section-body-dark">
-                Watch answers come in live. Pooly's AI surfaces trends, sentiment shifts,
-                and key themes as responses roll in — no manual analysis required.
-              </p>
+              <span className="lp-eyebrow">{t('landing.f2.eyebrow')}</span>
+              <h2 className="lp-section-title lp-section-title-dark">{t('landing.f2.title')}</h2>
+              <p className="lp-section-body lp-section-body-dark">{t('landing.f2.body')}</p>
               <ul className="lp-feature-list lp-feature-list-dark">
-                <li><span className="lp-feature-check"><CheckIcon /></span>Live response dashboard with filters</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>AI-generated summary of open-text responses</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>Exportable reports (CSV, PDF, Notion)</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f2.li1')}</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f2.li2')}</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f2.li3')}</li>
               </ul>
               <div className="lp-section-cta">
-                <Link to="/register" className="lp-btn-primary">See analytics demo →</Link>
+                <Link to="/register" className="lp-btn-primary">{t('landing.f2.cta')}</Link>
               </div>
             </div>
             <div className="lp-feature-visual lp-feature-visual-dark">
@@ -182,19 +168,19 @@ const PublicGallery = () => {
           <div className="lp-stats-grid">
             <div className="lp-stat-item">
               <div className="lp-stat-value">50<span>K+</span></div>
-              <div className="lp-stat-label">Teams using Pooly</div>
+              <div className="lp-stat-label">{t('landing.stats.l1')}</div>
             </div>
             <div className="lp-stat-item">
               <div className="lp-stat-value">12<span>M</span></div>
-              <div className="lp-stat-label">Survey responses collected</div>
+              <div className="lp-stat-label">{t('landing.stats.l2')}</div>
             </div>
             <div className="lp-stat-item">
               <div className="lp-stat-value">94<span>%</span></div>
-              <div className="lp-stat-label">Average completion rate</div>
+              <div className="lp-stat-label">{t('landing.stats.l3')}</div>
             </div>
             <div className="lp-stat-item">
               <div className="lp-stat-value">3<span>×</span></div>
-              <div className="lp-stat-label">Faster than building manually</div>
+              <div className="lp-stat-label">{t('landing.stats.l4')}</div>
             </div>
           </div>
         </div>
@@ -205,19 +191,16 @@ const PublicGallery = () => {
         <div className="lp-container">
           <div className="lp-feature-grid lp-fade-up">
             <div>
-              <span className="lp-eyebrow">Template Library</span>
-              <h2 className="lp-section-title">100+ expert-built templates to get you started</h2>
-              <p className="lp-section-body">
-                From NPS and CSAT to employee engagement and market research — every template
-                is research-backed and ready to customize.
-              </p>
+              <span className="lp-eyebrow">{t('landing.f3.eyebrow')}</span>
+              <h2 className="lp-section-title">{t('landing.f3.title')}</h2>
+              <p className="lp-section-body">{t('landing.f3.body')}</p>
               <ul className="lp-feature-list">
-                <li><span className="lp-feature-check"><CheckIcon /></span>Categorized by industry and use case</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>Fully customizable branding</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>One-click deploy via link, email, or embed</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f3.li1')}</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f3.li2')}</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f3.li3')}</li>
               </ul>
               <div className="lp-section-cta">
-                <Link to="/register" className="lp-btn-primary">Browse templates →</Link>
+                <Link to="/register" className="lp-btn-primary">{t('landing.f3.cta')}</Link>
               </div>
             </div>
             <div className="lp-feature-visual">
@@ -234,19 +217,16 @@ const PublicGallery = () => {
         <div className="lp-container">
           <div className="lp-feature-grid reverse lp-fade-up">
             <div>
-              <span className="lp-eyebrow">Built for teams</span>
-              <h2 className="lp-section-title lp-section-title-dark">The whole team, on the same page</h2>
-              <p className="lp-section-body lp-section-body-dark">
-                Collaborate on surveys, share results with stakeholders, and manage permissions
-                — all in one place. Real people, real workflows.
-              </p>
+              <span className="lp-eyebrow">{t('landing.f4.eyebrow')}</span>
+              <h2 className="lp-section-title lp-section-title-dark">{t('landing.f4.title')}</h2>
+              <p className="lp-section-body lp-section-body-dark">{t('landing.f4.body')}</p>
               <ul className="lp-feature-list lp-feature-list-dark">
-                <li><span className="lp-feature-check"><CheckIcon /></span>Multi-user workspaces with role-based access</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>Shared results and collaborative annotations</li>
-                <li><span className="lp-feature-check"><CheckIcon /></span>SSO, audit logs, and enterprise compliance</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f4.li1')}</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f4.li2')}</li>
+                <li><span className="lp-feature-check"><CheckIcon /></span>{t('landing.f4.li3')}</li>
               </ul>
               <div className="lp-section-cta">
-                <a href="#pricing" className="lp-btn-ghost lp-btn-ghost-dark">Explore team features</a>
+                <a href="#pricing" className="lp-btn-ghost lp-btn-ghost-dark">{t('landing.f4.cta')}</a>
               </div>
             </div>
             <div className="lp-feature-visual lp-feature-visual-dark">
@@ -262,44 +242,34 @@ const PublicGallery = () => {
       <section className="lp-section lp-section-tint" id="how">
         <div className="lp-container">
           <div className="lp-section-header center lp-fade-up">
-            <span className="lp-eyebrow">How it works</span>
-            <h2 className="lp-section-title">Three steps to better answers</h2>
+            <span className="lp-eyebrow">{t('landing.hiw.eyebrow')}</span>
+            <h2 className="lp-section-title">{t('landing.hiw.title')}</h2>
             <p className="lp-section-body" style={{ margin: '0 auto', textAlign: 'center' }}>
-              From prompt to published in under two minutes. Pooly handles the hard parts
-              so you can focus on the insights.
+              {t('landing.hiw.body')}
             </p>
           </div>
           <div className="lp-steps-grid lp-fade-up">
             <div className="lp-step-card">
               <div className="lp-step-number">01</div>
-              <div className="lp-step-title">Describe your goal</div>
-              <p className="lp-step-body">
-                Tell Pooly what you want to learn — in plain English.
-                No survey design experience needed.
-              </p>
+              <div className="lp-step-title">{t('landing.hiw.s1.title')}</div>
+              <p className="lp-step-body">{t('landing.hiw.s1.body')}</p>
               <div className="lp-step-connector" />
             </div>
             <div className="lp-step-card">
               <div className="lp-step-number">02</div>
-              <div className="lp-step-title">Review &amp; customize</div>
-              <p className="lp-step-body">
-                AI drafts your survey instantly. Edit questions, add your branding,
-                and set up distribution logic.
-              </p>
+              <div className="lp-step-title">{t('landing.hiw.s2.title')}</div>
+              <p className="lp-step-body">{t('landing.hiw.s2.body')}</p>
               <div className="lp-step-connector" />
             </div>
             <div className="lp-step-card">
               <div className="lp-step-number">03</div>
-              <div className="lp-step-title">Share &amp; analyze</div>
-              <p className="lp-step-body">
-                Send via link, email, or embed. Watch insights surface automatically
-                as responses come in.
-              </p>
+              <div className="lp-step-title">{t('landing.hiw.s3.title')}</div>
+              <p className="lp-step-body">{t('landing.hiw.s3.body')}</p>
             </div>
           </div>
           <div className="lp-steps-cta">
             <Link to="/register" className="lp-btn-primary" style={{ padding: '16px 40px', fontSize: '16px' }}>
-              Try it free →
+              {t('landing.hiw.cta')}
             </Link>
           </div>
         </div>
@@ -309,49 +279,40 @@ const PublicGallery = () => {
       <section className="lp-section lp-section-light" id="testimonials">
         <div className="lp-container">
           <div className="lp-section-header center lp-fade-up">
-            <span className="lp-eyebrow">Customer stories</span>
-            <h2 className="lp-section-title">Trusted by people who need real answers</h2>
+            <span className="lp-eyebrow">{t('landing.t.eyebrow')}</span>
+            <h2 className="lp-section-title">{t('landing.t.title')}</h2>
           </div>
           <div className="lp-testimonials-grid lp-fade-up">
             <div className="lp-testimonial-card">
               <div className="lp-stars">★★★★★</div>
-              <p className="lp-testimonial-quote">
-                Pooly cut our survey setup time in half. The AI suggestions are genuinely
-                good — it caught leading questions we didn't even notice.
-              </p>
+              <p className="lp-testimonial-quote">{t('landing.t.q1')}</p>
               <div className="lp-testimonial-author">
                 <div className="lp-author-avatar" style={{ background: 'oklch(55% 0.16 195)' }}>S</div>
                 <div>
-                  <div className="lp-author-name">Sara Velázquez</div>
-                  <div className="lp-author-role">Head of Research, Meridian</div>
+                  <div className="lp-author-name">{t('landing.t.n1')}</div>
+                  <div className="lp-author-role">{t('landing.t.r1')}</div>
                 </div>
               </div>
             </div>
             <div className="lp-testimonial-card">
               <div className="lp-stars">★★★★★</div>
-              <p className="lp-testimonial-quote">
-                We ran our first NPS survey within 10 minutes of signing up. The response
-                rate was 40% higher than our previous tool — the design really matters.
-              </p>
+              <p className="lp-testimonial-quote">{t('landing.t.q2')}</p>
               <div className="lp-testimonial-author">
                 <div className="lp-author-avatar" style={{ background: 'oklch(50% 0.18 265)' }}>M</div>
                 <div>
-                  <div className="lp-author-name">Marcus Chen</div>
-                  <div className="lp-author-role">Product Manager, Northvale</div>
+                  <div className="lp-author-name">{t('landing.t.n2')}</div>
+                  <div className="lp-author-role">{t('landing.t.r2')}</div>
                 </div>
               </div>
             </div>
             <div className="lp-testimonial-card">
               <div className="lp-stars">★★★★★</div>
-              <p className="lp-testimonial-quote">
-                The real-time analytics are incredible. I shared a live dashboard with our
-                board while the survey was still running — they were blown away.
-              </p>
+              <p className="lp-testimonial-quote">{t('landing.t.q3')}</p>
               <div className="lp-testimonial-author">
                 <div className="lp-author-avatar" style={{ background: 'oklch(58% 0.15 30)' }}>A</div>
                 <div>
-                  <div className="lp-author-name">Aisha Okonkwo</div>
-                  <div className="lp-author-role">Director of Strategy, Arkon Labs</div>
+                  <div className="lp-author-name">{t('landing.t.n3')}</div>
+                  <div className="lp-author-role">{t('landing.t.r3')}</div>
                 </div>
               </div>
             </div>
@@ -363,72 +324,72 @@ const PublicGallery = () => {
       <section className="lp-section lp-section-dark" id="pricing">
         <div className="lp-container">
           <div className="lp-section-header center lp-fade-up">
-            <span className="lp-eyebrow">Pricing</span>
-            <h2 className="lp-section-title lp-section-title-dark">Simple, honest pricing</h2>
+            <span className="lp-eyebrow">{t('landing.p.eyebrow')}</span>
+            <h2 className="lp-section-title lp-section-title-dark">{t('landing.p.title')}</h2>
             <p className="lp-section-body lp-section-body-dark" style={{ margin: '0 auto', textAlign: 'center' }}>
-              Start free. Upgrade when you need more power. No hidden fees.
+              {t('landing.p.body')}
             </p>
           </div>
           <div className="lp-pricing-grid lp-fade-up">
             {/* Free */}
             <div className="lp-pricing-card">
-              <div className="lp-pricing-plan">Free</div>
+              <div className="lp-pricing-plan">{t('landing.p.free.plan')}</div>
               <div className="lp-pricing-price">$0</div>
-              <div className="lp-pricing-period">forever</div>
-              <p className="lp-pricing-desc">Perfect for individuals exploring AI-assisted surveys.</p>
+              <div className="lp-pricing-period">{t('landing.p.free.period')}</div>
+              <p className="lp-pricing-desc">{t('landing.p.free.desc')}</p>
               <hr className="lp-pricing-divider" />
               <ul className="lp-pricing-features">
-                <li><PricingCheck />3 active surveys</li>
-                <li><PricingCheck />100 responses / month</li>
-                <li><PricingCheck />AI survey builder</li>
-                <li><PricingCheck />Basic analytics</li>
+                <li><PricingCheck />{t('landing.p.free.li1')}</li>
+                <li><PricingCheck />{t('landing.p.free.li2')}</li>
+                <li><PricingCheck />{t('landing.p.free.li3')}</li>
+                <li><PricingCheck />{t('landing.p.free.li4')}</li>
               </ul>
               <div className="lp-pricing-btn">
                 <Link to="/register" className="lp-btn-ghost lp-btn-ghost-dark" style={{ width: '100%', justifyContent: 'center' }}>
-                  Get started
+                  {t('landing.p.free.btn')}
                 </Link>
               </div>
             </div>
             {/* Pro */}
             <div className="lp-pricing-card featured">
-              <div className="lp-pricing-badge">Most popular</div>
-              <div className="lp-pricing-plan">Pro</div>
+              <div className="lp-pricing-badge">{t('landing.p.pro.badge')}</div>
+              <div className="lp-pricing-plan">{t('landing.p.pro.plan')}</div>
               <div className="lp-pricing-price"><sup>$</sup>29</div>
-              <div className="lp-pricing-period">per month</div>
-              <p className="lp-pricing-desc">For teams that need unlimited surveys and advanced AI.</p>
+              <div className="lp-pricing-period">{t('landing.p.pro.period')}</div>
+              <p className="lp-pricing-desc">{t('landing.p.pro.desc')}</p>
               <hr className="lp-pricing-divider" />
               <ul className="lp-pricing-features">
-                <li><PricingCheck />Unlimited surveys</li>
-                <li><PricingCheck />10,000 responses / month</li>
-                <li><PricingCheck />Advanced AI analytics</li>
-                <li><PricingCheck />Custom branding</li>
-                <li><PricingCheck />CSV & PDF exports</li>
-                <li><PricingCheck />Priority support</li>
+                <li><PricingCheck />{t('landing.p.pro.li1')}</li>
+                <li><PricingCheck />{t('landing.p.pro.li2')}</li>
+                <li><PricingCheck />{t('landing.p.pro.li3')}</li>
+                <li><PricingCheck />{t('landing.p.pro.li4')}</li>
+                <li><PricingCheck />{t('landing.p.pro.li5')}</li>
+                <li><PricingCheck />{t('landing.p.pro.li6')}</li>
               </ul>
               <div className="lp-pricing-btn">
                 <Link to="/register" className="lp-btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                  Start free trial
+                  {t('landing.p.pro.btn')}
                 </Link>
               </div>
             </div>
             {/* Enterprise */}
             <div className="lp-pricing-card">
-              <div className="lp-pricing-plan">Enterprise</div>
-              <div className="lp-pricing-price" style={{ fontSize: '32px' }}>Custom</div>
-              <div className="lp-pricing-period">contact us</div>
-              <p className="lp-pricing-desc">For large organizations with security and compliance requirements.</p>
+              <div className="lp-pricing-plan">{t('landing.p.ent.plan')}</div>
+              <div className="lp-pricing-price" style={{ fontSize: '32px' }}>{t('landing.p.ent.price')}</div>
+              <div className="lp-pricing-period">{t('landing.p.ent.period')}</div>
+              <p className="lp-pricing-desc">{t('landing.p.ent.desc')}</p>
               <hr className="lp-pricing-divider" />
               <ul className="lp-pricing-features">
-                <li><PricingCheck />Unlimited everything</li>
-                <li><PricingCheck />SSO & audit logs</li>
-                <li><PricingCheck />Enterprise compliance</li>
-                <li><PricingCheck />Dedicated onboarding</li>
-                <li><PricingCheck />SLA guarantee</li>
-                <li><PricingCheck />Custom integrations</li>
+                <li><PricingCheck />{t('landing.p.ent.li1')}</li>
+                <li><PricingCheck />{t('landing.p.ent.li2')}</li>
+                <li><PricingCheck />{t('landing.p.ent.li3')}</li>
+                <li><PricingCheck />{t('landing.p.ent.li4')}</li>
+                <li><PricingCheck />{t('landing.p.ent.li5')}</li>
+                <li><PricingCheck />{t('landing.p.ent.li6')}</li>
               </ul>
               <div className="lp-pricing-btn">
                 <a href="mailto:hello@pooly.app" className="lp-btn-ghost lp-btn-ghost-dark" style={{ width: '100%', justifyContent: 'center' }}>
-                  Contact sales
+                  {t('landing.p.ent.btn')}
                 </a>
               </div>
             </div>
@@ -440,14 +401,14 @@ const PublicGallery = () => {
       <div className="lp-cta-band">
         <div className="lp-container">
           <div className="lp-cta-band-inner lp-fade-up">
-            <h2>Start making decisions with confidence.</h2>
-            <p>Join 50,000+ teams who run smarter surveys with Pooly.</p>
+            <h2>{t('landing.cta.title')}</h2>
+            <p>{t('landing.cta.body')}</p>
             <div className="lp-cta-band-actions">
               <Link to="/register" className="lp-btn-primary" style={{ padding: '16px 36px', fontSize: '16px' }}>
-                Get started free →
+                {t('landing.cta.btn1')}
               </Link>
               <Link to="/login" className="lp-btn-ghost lp-btn-ghost-dark">
-                Sign in
+                {t('landing.cta.btn2')}
               </Link>
             </div>
           </div>
@@ -458,67 +419,60 @@ const PublicGallery = () => {
       <footer className="lp-footer">
         <div className="lp-container">
           <div className="lp-footer-top">
-            {/* Brand */}
             <div>
               <Link to="/" className="lp-footer-logo">Pool<span>y</span></Link>
-              <p className="lp-footer-tagline">
-                AI-powered surveys that help teams make better decisions, faster.
-              </p>
+              <p className="lp-footer-tagline">{t('landing.footer.tagline')}</p>
               <div className="lp-footer-social">
                 <a href="#" className="lp-social-btn" aria-label="Twitter">𝕏</a>
                 <a href="#" className="lp-social-btn" aria-label="LinkedIn">in</a>
                 <a href="#" className="lp-social-btn" aria-label="GitHub">⌥</a>
               </div>
             </div>
-            {/* Product */}
             <div>
-              <div className="lp-footer-col-title">Product</div>
+              <div className="lp-footer-col-title">{t('landing.footer.col1')}</div>
               <ul className="lp-footer-links">
-                <li><Link to="/register">Survey Builder</Link></li>
-                <li><a href="#features">Analytics</a></li>
-                <li><a href="#features">Templates</a></li>
-                <li><a href="#pricing">Pricing</a></li>
+                <li><Link to="/register">{t('landing.footer.p1')}</Link></li>
+                <li><a href="#features">{t('landing.footer.p2')}</a></li>
+                <li><a href="#features">{t('landing.footer.p3')}</a></li>
+                <li><a href="#pricing">{t('landing.footer.p4')}</a></li>
               </ul>
             </div>
-            {/* Resources */}
             <div>
-              <div className="lp-footer-col-title">Resources</div>
+              <div className="lp-footer-col-title">{t('landing.footer.col2')}</div>
               <ul className="lp-footer-links">
-                <li><a href="#">Documentation</a></li>
-                <li><a href="#">API Reference</a></li>
-                <li><a href="#">Integrations</a></li>
-                <li><a href="#">Status</a></li>
+                <li><a href="#">{t('landing.footer.r1')}</a></li>
+                <li><a href="#">{t('landing.footer.r2')}</a></li>
+                <li><a href="#">{t('landing.footer.r3')}</a></li>
+                <li><a href="#">{t('landing.footer.r4')}</a></li>
               </ul>
             </div>
-            {/* Learn */}
             <div>
-              <div className="lp-footer-col-title">Learn</div>
+              <div className="lp-footer-col-title">{t('landing.footer.col3')}</div>
               <ul className="lp-footer-links">
-                <li><a href="#">Blog</a></li>
-                <li><a href="#">Survey Guides</a></li>
-                <li><a href="#">Case Studies</a></li>
-                <li><a href="#">Webinars</a></li>
+                <li><a href="#">{t('landing.footer.l1')}</a></li>
+                <li><a href="#">{t('landing.footer.l2')}</a></li>
+                <li><a href="#">{t('landing.footer.l3')}</a></li>
+                <li><a href="#">{t('landing.footer.l4')}</a></li>
               </ul>
             </div>
-            {/* About */}
             <div>
-              <div className="lp-footer-col-title">About</div>
+              <div className="lp-footer-col-title">{t('landing.footer.col4')}</div>
               <ul className="lp-footer-links">
-                <li><a href="#">Company</a></li>
-                <li><a href="#">Careers</a></li>
-                <li><a href="#">Press</a></li>
-                <li><a href="mailto:hello@pooly.app">Contact</a></li>
+                <li><a href="#">{t('landing.footer.a1')}</a></li>
+                <li><a href="#">{t('landing.footer.a2')}</a></li>
+                <li><a href="#">{t('landing.footer.a3')}</a></li>
+                <li><a href="mailto:hello@pooly.app">{t('landing.footer.a4')}</a></li>
               </ul>
             </div>
           </div>
 
           <div className="lp-footer-bottom">
-            <p className="lp-footer-copy">© 2025 Pooly. All rights reserved.</p>
+            <p className="lp-footer-copy">{t('landing.footer.copy')}</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
               <div className="lp-footer-legal">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="#">Cookie Settings</a>
+                <a href="#">{t('landing.footer.privacy')}</a>
+                <a href="#">{t('landing.footer.terms')}</a>
+                <a href="#">{t('landing.footer.cookies')}</a>
               </div>
               <LanguageSwitcher dark />
             </div>

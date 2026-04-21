@@ -53,10 +53,10 @@ const Navbar = () => {
           padding: 0,
         }}>
           {[
-            { label: 'Product', href: '/#features' },
-            { label: 'How it works', href: '/#how' },
-            { label: 'Customers', href: '/#testimonials' },
-            { label: 'Pricing', href: '/#pricing' },
+            { label: t('landing.nav.product'), href: '/#features' },
+            { label: t('landing.nav.how'), href: '/#how' },
+            { label: t('landing.nav.customers'), href: '/#testimonials' },
+            { label: t('landing.nav.pricing'), href: '/#pricing' },
           ].map(({ label, href }) => (
             <li key={label}>
               <a
