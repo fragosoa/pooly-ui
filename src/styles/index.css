@@ -51,10 +51,11 @@ body {
   padding: 1rem 2rem;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 200;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: nowrap;
 }
 
 .navbar-brand {
@@ -80,6 +81,104 @@ body {
 .nav-link:hover {
   background: var(--bg-secondary);
   color: var(--text-primary);
+}
+
+/* Center nav links */
+.navbar-center-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.navbar-center-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14.5px;
+  font-weight: 500;
+  padding: 7px 13px;
+  display: block;
+  transition: color 0.2s, background 0.2s;
+}
+
+.navbar-center-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+/* Hamburger button */
+.navbar-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  padding: 0.25rem;
+  flex-shrink: 0;
+}
+
+/* Mobile menu */
+.navbar-mobile-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-white);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  z-index: 199;
+}
+
+.navbar-mobile-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar-mobile-link {
+  display: block;
+  padding: 0.875rem 1.25rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.navbar-mobile-link:last-child {
+  border-bottom: none;
+}
+
+.navbar-mobile-link:hover {
+  background: var(--bg-secondary);
+}
+
+.navbar-mobile-actions {
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0.875rem 1.25rem;
+  }
+
+  .navbar-center-links {
+    display: none;
+  }
+
+  .navbar-desktop-actions {
+    display: none;
+  }
+
+  .navbar-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 /* Buttons */
