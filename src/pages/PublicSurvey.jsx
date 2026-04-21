@@ -153,7 +153,7 @@ export default function PublicSurvey() {
             background: '#fee2e2',
             color: '#991b1b',
             border: '1px solid #fca5a5',
-            borderRadius: '0.75rem',
+            borderRadius: 0,
             padding: '0.875rem 1.25rem',
             boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
             maxWidth: 'min(90vw, 480px)',

@@ -128,8 +128,8 @@ const CreateEvent = () => {
 
             {/* Progress indicator */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', maxWidth: '900px' }}>
-                <div style={{ flex: 1, height: '4px', borderRadius: '2px', background: 'var(--primary)' }}></div>
-                <div style={{ flex: 1, height: '4px', borderRadius: '2px', background: step === 2 ? 'var(--primary)' : 'var(--border)' }}></div>
+                <div style={{ flex: 1, height: '4px', borderRadius: 0, background: 'var(--primary)' }}></div>
+                <div style={{ flex: 1, height: '4px', borderRadius: 0, background: step === 2 ? 'var(--primary)' : 'var(--border)' }}></div>
             </div>
 
             {error && (

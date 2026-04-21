@@ -296,15 +296,11 @@ export default function EventDetails() {
               disabled={analyzing}
               title={t('eventDetails.analyzeTitle')}
               style={{
-                width: '3rem', height: '3rem', borderRadius: '50%', padding: 0,
+                width: '2.5rem', height: '2.5rem', borderRadius: 0, padding: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 border: 'none', cursor: analyzing ? 'not-allowed' : 'pointer',
-                background: analyzing
-                  ? 'linear-gradient(135deg, #a78bfa, #818cf8)'
-                  : 'linear-gradient(135deg, #7c3aed, #4f46e5)',
-                boxShadow: analyzing ? 'none' : '0 0 0 3px rgba(124,58,237,0.2), 0 4px 12px rgba(124,58,237,0.4)',
-                transition: 'box-shadow 0.2s, transform 0.15s',
-                transform: analyzing ? 'scale(0.95)' : 'scale(1)',
+                background: analyzing ? '#818cf8' : 'var(--primary)',
+                transition: 'background 0.2s',
               }}
             >
               {analyzing ? (
@@ -542,11 +538,10 @@ export default function EventDetails() {
               {!reportsLoading && reports.length === 0 && (
                 <div className="reports-empty">
                   <div style={{
-                    width: '4rem', height: '4rem', borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                    width: '4rem', height: '4rem', borderRadius: 0,
+                    background: 'var(--primary)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 1.25rem',
-                    boxShadow: '0 0 0 6px rgba(124,58,237,0.12), 0 4px 16px rgba(124,58,237,0.3)',
                   }}>
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
                       <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
@@ -560,10 +555,9 @@ export default function EventDetails() {
                     disabled={analyzing}
                     style={{
                       marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                      padding: '0.6rem 1.25rem', borderRadius: '999px', border: 'none',
-                      cursor: 'pointer', background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                      padding: '0.6rem 1.25rem', borderRadius: 0, border: 'none',
+                      cursor: 'pointer', background: 'var(--primary)',
                       color: 'white', fontWeight: '600', fontSize: '0.9rem',
-                      boxShadow: '0 4px 12px rgba(124,58,237,0.35)',
                     }}
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="white">
