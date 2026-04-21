@@ -66,7 +66,7 @@ const PublicGallery = () => {
             <div className="lp-hero-visual lp-fade-up" style={{ transitionDelay: '0.15s' }}>
               <div className="lp-hero-ui">
                 <img
-                  src="/hero-preview.png"
+                  src="/hero.png"
                   alt="Pooly dashboard"
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -107,9 +107,7 @@ const PublicGallery = () => {
               </div>
             </div>
             <div className="lp-feature-visual">
-              <div className="lp-img-placeholder">
-                <div className="lp-img-placeholder-label"><span>Survey creation interface</span></div>
-              </div>
+              <img src="/create_survey.png" alt="Survey creation interface" className="lp-feature-img" />
             </div>
           </div>
         </div>
@@ -148,9 +146,7 @@ const PublicGallery = () => {
               </div>
             </div>
             <div className="lp-feature-visual lp-feature-visual-dark">
-              <div className="lp-img-placeholder lp-img-placeholder-dark">
-                <div className="lp-img-placeholder-label"><span>AI analysis report</span></div>
-              </div>
+              <img src="/analysis_report.png" alt="AI analysis report" className="lp-feature-img" />
             </div>
           </div>
         </div>
@@ -235,9 +231,7 @@ const PublicGallery = () => {
               </div>
             </div>
             <div className="lp-feature-visual lp-feature-visual-dark">
-              <div className="lp-img-placeholder lp-img-placeholder-dark">
-                <div className="lp-img-placeholder-label"><span>Dashboard screenshot</span></div>
-              </div>
+              <img src="/dashboard.png" alt="Dashboard screenshot" className="lp-feature-img" />
             </div>
           </div>
         </div>
