@@ -290,31 +290,7 @@ export default function EventDetails() {
               <span>{t('eventDetails.totalResponses', { count: totalResponses })}</span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <button
-              onClick={handleAnalyzeClick}
-              disabled={analyzing}
-              title={t('eventDetails.analyzeTitle')}
-              style={{
-                width: '2.5rem', height: '2.5rem', borderRadius: 0, padding: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: 'none', cursor: analyzing ? 'not-allowed' : 'pointer',
-                background: analyzing ? '#818cf8' : 'var(--primary)',
-                transition: 'background 0.2s',
-              }}
-            >
-              {analyzing ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}>
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                </svg>
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                  <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
-                  <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
-                </svg>
-              )}
-            </button>
-          </div>
+          <div />
         </div>
 
         {analysisStatus && (
@@ -386,9 +362,35 @@ export default function EventDetails() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <span />
                 {!isEditing ? (
-                  <button className="btn btn-secondary" onClick={handleEditClick}>
-                    ✏️ {t('editEvent.editBtn')}
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <button
+                      onClick={handleAnalyzeClick}
+                      disabled={analyzing}
+                      title={t('eventDetails.analyzeTitle')}
+                      style={{
+                        width: '2.25rem', height: '2.25rem', borderRadius: '50%', padding: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        border: 'none', cursor: analyzing ? 'not-allowed' : 'pointer',
+                        background: analyzing ? '#818cf8' : 'var(--primary)',
+                        transition: 'background 0.2s',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {analyzing ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}>
+                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                          <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
+                          <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
+                        </svg>
+                      )}
+                    </button>
+                    <button className="btn btn-secondary" onClick={handleEditClick}>
+                      ✏️ {t('editEvent.editBtn')}
+                    </button>
+                  </div>
                 ) : (
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button className="btn btn-secondary" onClick={handleCancelEdit} disabled={saving}>
