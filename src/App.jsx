@@ -5,8 +5,7 @@ import { LanguageProvider } from './context/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './layout/Navbar';
 import PublicGallery from './pages/PublicGallery';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Auth from './pages/Auth';
 import AdminDashboard from './pages/AdminDashboard';
 import PublicSurvey from './pages/PublicSurvey';
 import CreateEvent from './pages/CreateEvent';
@@ -27,8 +26,8 @@ function App() {
 
           {/* Rutas con navbar */}
           <Route path="/" element={<><Navbar /><PublicGallery /></>} />
-          <Route path="/login" element={<><Navbar /><Login /></>} />
-          <Route path="/register" element={<><Navbar /><Register /></>} />
+          <Route path="/login" element={<><Navbar /><Auth /></>} />
+          <Route path="/register" element={<><Navbar /><Auth /></>} />
           <Route path="/admin" element={<><Navbar /><ProtectedRoute><AdminDashboard /></ProtectedRoute></>} />
           <Route path="/admin/create" element={<><Navbar /><ProtectedRoute><CreateEvent /></ProtectedRoute></>} />
           <Route path="/admin/events/:eventId" element={<><Navbar /><ProtectedRoute><EventDetails /></ProtectedRoute></>} />
