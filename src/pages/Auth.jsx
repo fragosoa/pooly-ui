@@ -309,12 +309,13 @@ const Auth = () => {
         {/* Shared social section */}
         <div className="auth-divider">{t('auth.socialDivider')}</div>
 
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => setError(t('auth.googleError'))}
-          text={isRegister ? 'signup_with' : 'signin_with'}
-          width="100%"
-        />
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError(t('auth.googleError'))}
+            text={isRegister ? 'signup_with' : 'signin_with'}
+          />
+        </div>
       </div>
 
       {showForgotPassword && (
