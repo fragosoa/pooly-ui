@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -31,7 +32,7 @@ const Register = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { register, login } = useAuth();
+    const { register, login, loginWithGoogle } = useAuth();
     const { t } = useLanguage();
     const navigate = useNavigate();
 
@@ -61,6 +62,19 @@ const Register = () => {
         } catch (err) {
             setError(t('register.errorAutoLogin'));
             console.error('Auto-login error:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setIsLoading(true);
+        setError('');
+        try {
+            await loginWithGoogle(credentialResponse.credential);
+            navigate('/admin');
+        } catch (err) {
+            setError(err.response?.data?.msg || err.response?.data?.message || t('auth.googleError'));
         } finally {
             setIsLoading(false);
         }
@@ -143,11 +157,13 @@ const Register = () => {
 
                 <div className="auth-divider">{t('auth.socialDivider')}</div>
 
-                <div>
-                    <button type="button" className="auth-social-btn" onClick={() => {}}>
-                        <GoogleIcon />
-                        {t('auth.google')}
-                    </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => setError(t('auth.googleError'))}
+                        text="signup_with"
+                        width="100%"
+                    />
                     <button type="button" className="auth-social-btn" onClick={() => {}}>
                         <FacebookIcon />
                         {t('auth.facebook')}

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -16,6 +17,7 @@ import PrivacyNotice from './pages/PrivacyNotice';
 
 function App() {
   return (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
     <LanguageProvider>
     <AuthProvider>
       <BrowserRouter>
@@ -37,6 +39,7 @@ function App() {
       </BrowserRouter>
     </AuthProvider>
     </LanguageProvider>
+    </GoogleOAuthProvider>
   );
 }
 
