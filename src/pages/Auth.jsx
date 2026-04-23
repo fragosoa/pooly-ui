@@ -144,6 +144,17 @@ const Auth = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
+        {/* Google access — independent of tabs */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError(t('auth.googleError'))}
+            text="continue_with"
+          />
+        </div>
+
+        <div className="auth-divider">{t('auth.emailDivider')}</div>
+
         {/* Tabs */}
         <div style={{
           display: 'flex',
@@ -306,16 +317,6 @@ const Auth = () => {
           </form>
         )}
 
-        {/* Shared social section */}
-        <div className="auth-divider">{t('auth.socialDivider')}</div>
-
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => setError(t('auth.googleError'))}
-            text={isRegister ? 'signup_with' : 'signin_with'}
-          />
-        </div>
       </div>
 
       {showForgotPassword && (

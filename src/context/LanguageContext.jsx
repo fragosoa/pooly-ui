@@ -14,6 +14,7 @@ const translations = {
 
     // Auth - social & legal
     'auth.socialDivider': 'o continúa con',
+    'auth.emailDivider': 'o continúa con email',
     'auth.google': 'Continuar con Google',
     'auth.googleError': 'Error al iniciar sesión con Google. Inténtalo de nuevo.',
     'register.legalPrefix': 'Al registrarte, aceptas los',
@@ -428,6 +429,7 @@ const translations = {
 
     // Auth - social & legal
     'auth.socialDivider': 'or continue with',
+    'auth.emailDivider': 'or continue with email',
     'auth.google': 'Continue with Google',
     'auth.googleError': 'Failed to sign in with Google. Please try again.',
     'register.legalPrefix': 'By signing up, you agree to the',
