@@ -148,6 +148,8 @@ const translations = {
     'charts.pieTitle': 'Distribución del sentimiento',
     'charts.percentage': 'Porcentaje',
     'charts.noData': 'Sin datos para graficar. Genera un análisis con IA primero.',
+    'charts.exportBtn': 'Exportar PDF',
+    'charts.exportingBtn': 'Generando...',
 
     // Sentiment / Urgency
     'sentiment.positive': 'Positivo',
@@ -571,6 +573,8 @@ const translations = {
     'charts.pieTitle': 'Sentiment distribution',
     'charts.percentage': 'Percentage',
     'charts.noData': 'No data to display. Run an AI analysis first.',
+    'charts.exportBtn': 'Export PDF',
+    'charts.exportingBtn': 'Generating...',
 
     // Sentiment / Urgency
     'sentiment.positive': 'Positive',
