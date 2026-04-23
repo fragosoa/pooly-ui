@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './layout/Navbar';
 import PublicGallery from './pages/PublicGallery';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Auth from './pages/Auth';
 import AdminDashboard from './pages/AdminDashboard';
 import PublicSurvey from './pages/PublicSurvey';
 import CreateEvent from './pages/CreateEvent';
@@ -16,6 +16,7 @@ import PrivacyNotice from './pages/PrivacyNotice';
 
 function App() {
   return (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
     <LanguageProvider>
     <AuthProvider>
       <BrowserRouter>
@@ -25,8 +26,8 @@ function App() {
 
           {/* Rutas con navbar */}
           <Route path="/" element={<><Navbar /><PublicGallery /></>} />
-          <Route path="/login" element={<><Navbar /><Login /></>} />
-          <Route path="/register" element={<><Navbar /><Register /></>} />
+          <Route path="/login" element={<><Navbar /><Auth /></>} />
+          <Route path="/register" element={<><Navbar /><Auth /></>} />
           <Route path="/admin" element={<><Navbar /><ProtectedRoute><AdminDashboard /></ProtectedRoute></>} />
           <Route path="/admin/create" element={<><Navbar /><ProtectedRoute><CreateEvent /></ProtectedRoute></>} />
           <Route path="/admin/events/:eventId" element={<><Navbar /><ProtectedRoute><EventDetails /></ProtectedRoute></>} />
@@ -37,6 +38,7 @@ function App() {
       </BrowserRouter>
     </AuthProvider>
     </LanguageProvider>
+    </GoogleOAuthProvider>
   );
 }
 

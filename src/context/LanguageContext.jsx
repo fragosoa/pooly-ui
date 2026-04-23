@@ -14,9 +14,9 @@ const translations = {
 
     // Auth - social & legal
     'auth.socialDivider': 'o continúa con',
+    'auth.emailDivider': 'o continúa con email',
     'auth.google': 'Continuar con Google',
-    'auth.facebook': 'Continuar con Facebook',
-    'auth.linkedin': 'Continuar con LinkedIn',
+    'auth.googleError': 'Error al iniciar sesión con Google. Inténtalo de nuevo.',
     'register.legalPrefix': 'Al registrarte, aceptas los',
     'register.termsLink': 'Términos de uso',
     'register.legalAnd': 'y el',
@@ -429,9 +429,9 @@ const translations = {
 
     // Auth - social & legal
     'auth.socialDivider': 'or continue with',
+    'auth.emailDivider': 'or continue with email',
     'auth.google': 'Continue with Google',
-    'auth.facebook': 'Continue with Facebook',
-    'auth.linkedin': 'Continue with LinkedIn',
+    'auth.googleError': 'Failed to sign in with Google. Please try again.',
     'register.legalPrefix': 'By signing up, you agree to the',
     'register.termsLink': 'Terms of Use',
     'register.legalAnd': 'and',
