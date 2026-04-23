@@ -10,6 +10,37 @@ import api from '../services/api';
 import Modal from '../components/Modal';
 import { useLanguage } from '../context/LanguageContext';
 
+const MultiLineTick = ({ x, y, payload }) => {
+  const maxChars = 22;
+  const words = payload.value.split(' ');
+  const lines = [];
+  let current = '';
+  words.forEach(word => {
+    const test = current ? `${current} ${word}` : word;
+    if (test.length > maxChars && current) { lines.push(current); current = word; }
+    else current = test;
+  });
+  if (current) lines.push(current);
+  const lineH = 14;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      {lines.map((line, i) => (
+        <text
+          key={i}
+          x={-4}
+          y={(i - (lines.length - 1) / 2) * lineH}
+          textAnchor="end"
+          dominantBaseline="central"
+          fontSize={11}
+          fill="#374151"
+        >
+          {line}
+        </text>
+      ))}
+    </g>
+  );
+};
+
 export default function EventDetails() {
   const { eventId } = useParams();
   const { t, locale } = useLanguage();
@@ -379,35 +410,39 @@ export default function EventDetails() {
       const barH      = 5;
 
       reports.forEach((r, i) => {
-        checkPage(10);
-        const barW = (r.percentage / 100) * barAreaW;
-
-        // category label
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
+        const catLines = doc.splitTextToSize(r.category, labelColW - 2);
+        const lineH = 4.2;
+        const rowH = Math.max(barH + 4, catLines.length * lineH + 2);
+        checkPage(rowH + 4);
+
+        const barW = (r.percentage / 100) * barAreaW;
+        const barY = y + (rowH - barH) / 2;
+
+        // category label (multi-line)
         txt(C.textMain);
-        const label = r.category.length > 30 ? r.category.slice(0, 28) + '…' : r.category;
-        doc.text(label, mg, y + 3.5);
+        doc.text(catLines, mg, y + lineH);
 
         // bar background
         fill(C.border);
-        doc.rect(mg + labelColW, y, barAreaW, barH, 'F');
+        doc.rect(mg + labelColW, barY, barAreaW, barH, 'F');
 
         // bar fill
         fill(C.barShades[i % C.barShades.length]);
-        if (barW > 0) doc.rect(mg + labelColW, y, barW, barH, 'F');
+        if (barW > 0) doc.rect(mg + labelColW, barY, barW, barH, 'F');
 
         // percentage + volume
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(8);
         txt(C.textMain);
-        doc.text(`${r.percentage.toFixed(1)}%`, mg + labelColW + barAreaW + 2, y + 3.5);
+        doc.text(`${r.percentage.toFixed(1)}%`, mg + labelColW + barAreaW + 2, barY + 3.5);
         doc.setFont('helvetica', 'normal');
         txt(C.textGrey);
         doc.setFontSize(7);
-        doc.text(`(${r.volume} ${labels.mentionsLabel})`, mg + labelColW + barAreaW + 2, y + 7.5);
+        doc.text(`(${r.volume} ${labels.mentionsLabel})`, mg + labelColW + barAreaW + 2, barY + 7.5);
 
-        y += barH + 6;
+        y += rowH + 4;
       });
 
       y += 4;
@@ -473,12 +508,15 @@ export default function EventDetails() {
 
         // Category header
         fill(C.light);
-        doc.rect(mg, y - 3.5, cW, 8, 'F');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(9.5);
+        const hLines = doc.splitTextToSize(`${i + 1}. ${r.category}`, cW - 4);
+        const hBoxH = hLines.length * 5 + 3;
+        fill(C.light);
+        doc.rect(mg, y - 2, cW, hBoxH, 'F');
         txt(C.primary);
-        doc.text(`${i + 1}. ${r.category}`, mg + 2, y + 1.5);
-        y += 10;
+        doc.text(hLines, mg + 2, y + 2);
+        y += hBoxH + 2;
 
         // Metrics
         doc.setFont('helvetica', 'normal');
@@ -1069,7 +1107,7 @@ export default function EventDetails() {
                       <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
                         {t('charts.barTitle')}
                       </h4>
-                      <ResponsiveContainer width="100%" height={barData.length * 52 + 40}>
+                      <ResponsiveContainer width="100%" height={barData.length * 64 + 40}>
                         <BarChart
                           data={barData}
                           layout="vertical"
@@ -1086,11 +1124,10 @@ export default function EventDetails() {
                           <YAxis
                             type="category"
                             dataKey="name"
-                            width={180}
-                            tick={{ fontSize: 12, fill: 'var(--text-primary, #111827)' }}
+                            width={190}
+                            tick={<MultiLineTick />}
                             axisLine={false}
                             tickLine={false}
-                            tickFormatter={v => v.length > 26 ? v.slice(0, 24) + '…' : v}
                           />
                           <Tooltip
                             formatter={(value, _name, props) => [
