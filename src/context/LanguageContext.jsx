@@ -119,6 +119,7 @@ const translations = {
     'eventDetails.shareHint': 'Las respuestas son completamente anónimas. Los participantes no necesitan crear cuenta.',
     'eventDetails.tabResponses': 'Respuestas',
     'eventDetails.tabReports': 'Reportes IA',
+    'eventDetails.tabCharts': 'Gráficos',
     'eventDetails.tabStatus': 'Status',
     'eventDetails.noResponses': 'Sin respuestas aún.',
     'eventDetails.responses': 'respuestas',
@@ -140,6 +141,15 @@ const translations = {
     'reports.examples': 'Ejemplos:',
     'reports.mentions': 'menciones',
     'reports.ofTotal': 'del total',
+
+    // Charts tab
+    'charts.title': 'Gráficos de Tendencias',
+    'charts.barTitle': 'Top problemas detectados',
+    'charts.pieTitle': 'Distribución del sentimiento',
+    'charts.percentage': 'Porcentaje',
+    'charts.noData': 'Sin datos para graficar. Genera un análisis con IA primero.',
+    'charts.exportBtn': 'Exportar PDF',
+    'charts.exportingBtn': 'Generando...',
 
     // Sentiment / Urgency
     'sentiment.positive': 'Positivo',
@@ -534,6 +544,7 @@ const translations = {
     'eventDetails.shareHint': 'Responses are completely anonymous. Participants do not need to create an account.',
     'eventDetails.tabResponses': 'Responses',
     'eventDetails.tabReports': 'AI Reports',
+    'eventDetails.tabCharts': 'Charts',
     'eventDetails.tabStatus': 'Status',
     'eventDetails.noResponses': 'No responses yet.',
     'eventDetails.responses': 'responses',
@@ -555,6 +566,15 @@ const translations = {
     'reports.examples': 'Examples:',
     'reports.mentions': 'mentions',
     'reports.ofTotal': 'of total',
+
+    // Charts tab
+    'charts.title': 'Trend Charts',
+    'charts.barTitle': 'Top detected issues',
+    'charts.pieTitle': 'Sentiment distribution',
+    'charts.percentage': 'Percentage',
+    'charts.noData': 'No data to display. Run an AI analysis first.',
+    'charts.exportBtn': 'Export PDF',
+    'charts.exportingBtn': 'Generating...',
 
     // Sentiment / Urgency
     'sentiment.positive': 'Positive',
