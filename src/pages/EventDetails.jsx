@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+  PieChart, Pie, Legend,
+} from 'recharts';
 import api from '../services/api';
 import Modal from '../components/Modal';
 import { useLanguage } from '../context/LanguageContext';
@@ -126,7 +130,7 @@ export default function EventDetails() {
   };
 
   useEffect(() => {
-    if (activeTab === 'reports' && reports.length === 0 && !reportsLoading) {
+    if ((activeTab === 'reports' || activeTab === 'charts') && reports.length === 0 && !reportsLoading) {
       fetchReports();
     }
   }, [activeTab]);
@@ -370,6 +374,10 @@ export default function EventDetails() {
             <span className="tab-icon">📊</span>
             {t('eventDetails.tabReports')}
             {reports.length > 0 && <span className="tab-badge">{reports.length}</span>}
+          </button>
+          <button className={`tab-btn ${activeTab === 'charts' ? 'active' : ''}`} onClick={() => setActiveTab('charts')}>
+            <span className="tab-icon">📈</span>
+            {t('eventDetails.tabCharts')}
           </button>
           <button className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`} onClick={() => setActiveTab('status')}>
             <span className="tab-icon">⚙️</span>
@@ -642,6 +650,168 @@ export default function EventDetails() {
                   })}
                 </div>
               )}
+            </section>
+          )}
+
+          {/* Charts Tab */}
+          {activeTab === 'charts' && (
+            <section>
+              <div className="reports-header">
+                <div>
+                  <h3 className="reports-title">{t('charts.title')}</h3>
+                  <p className="reports-subtitle">
+                    {reports.length > 0
+                      ? t('reports.subtitle', { count: reports.length })
+                      : t('reports.subtitleEmpty')}
+                  </p>
+                </div>
+                <button onClick={fetchReports} className="btn btn-secondary" disabled={reportsLoading}>
+                  {reportsLoading
+                    ? <><span className="btn-spinner"></span>{t('reports.loading')}</>
+                    : t('reports.refresh')}
+                </button>
+              </div>
+
+              {reportsLoading && reports.length === 0 && (
+                <div className="reports-loading">
+                  <div className="reports-spinner"></div>
+                  <p>{t('reports.loadingState')}</p>
+                </div>
+              )}
+
+              {!reportsLoading && reports.length === 0 && (
+                <div className="reports-empty">
+                  <div style={{
+                    width: '4rem', height: '4rem',
+                    background: 'var(--primary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 1.25rem',
+                  }}>
+                    <span style={{ fontSize: '1.75rem' }}>📈</span>
+                  </div>
+                  <h4>{t('reports.emptyTitle')}</h4>
+                  <p>{t('charts.noData')}</p>
+                  <button
+                    onClick={handleAnalyzeClick}
+                    disabled={analyzing}
+                    style={{
+                      marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.6rem 1.25rem', borderRadius: 0, border: 'none',
+                      cursor: 'pointer', background: 'var(--primary)',
+                      color: 'white', fontWeight: '600', fontSize: '0.9rem',
+                    }}
+                  >
+                    {t('reports.analyzeBtn')}
+                  </button>
+                </div>
+              )}
+
+              {reports.length > 0 && (() => {
+                // Bar chart data
+                const barData = reports.map(r => ({
+                  name: r.category,
+                  value: parseFloat(r.percentage.toFixed(1)),
+                  volume: r.volume,
+                }));
+
+                // Pie chart data — volume weighted by sentiment bucket (±0.3 threshold)
+                let pos = 0, neg = 0, neu = 0;
+                reports.forEach(r => {
+                  if (r.sentiment >= 0.3)       pos += r.volume;
+                  else if (r.sentiment <= -0.3) neg += r.volume;
+                  else                          neu += r.volume;
+                });
+                const pieData = [
+                  { name: t('sentiment.positive'), value: pos, fill: '#10B981' },
+                  { name: t('sentiment.negative'), value: neg, fill: '#EF4444' },
+                  { name: t('sentiment.neutral'),  value: neu, fill: '#6366F1' },
+                ].filter(d => d.value > 0);
+
+                const barColors = ['#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'];
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+
+                    {/* Bar chart */}
+                    <div className="card" style={{ padding: '1.5rem' }}>
+                      <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
+                        {t('charts.barTitle')}
+                      </h4>
+                      <ResponsiveContainer width="100%" height={barData.length * 52 + 40}>
+                        <BarChart
+                          data={barData}
+                          layout="vertical"
+                          margin={{ top: 0, right: 40, left: 8, bottom: 0 }}
+                        >
+                          <XAxis
+                            type="number"
+                            domain={[0, 100]}
+                            tickFormatter={v => `${v}%`}
+                            tick={{ fontSize: 12, fill: 'var(--text-secondary, #6B7280)' }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <YAxis
+                            type="category"
+                            dataKey="name"
+                            width={180}
+                            tick={{ fontSize: 12, fill: 'var(--text-primary, #111827)' }}
+                            axisLine={false}
+                            tickLine={false}
+                            tickFormatter={v => v.length > 26 ? v.slice(0, 24) + '…' : v}
+                          />
+                          <Tooltip
+                            formatter={(value, _name, props) => [
+                              `${value}% (${props.payload.volume} ${t('reports.mentions')})`,
+                              t('charts.percentage'),
+                            ]}
+                            contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }}
+                          />
+                          <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={28}>
+                            {barData.map((_, i) => (
+                              <Cell key={i} fill={barColors[i % barColors.length]} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Pie chart */}
+                    <div className="card" style={{ padding: '1.5rem' }}>
+                      <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
+                        {t('charts.pieTitle')}
+                      </h4>
+                      <ResponsiveContainer width="100%" height={280}>
+                        <PieChart>
+                          <Pie
+                            data={pieData}
+                            cx="50%"
+                            cy="45%"
+                            outerRadius={100}
+                            dataKey="value"
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                            labelLine={true}
+                          >
+                            {pieData.map((entry, i) => (
+                              <Cell key={i} fill={entry.fill} />
+                            ))}
+                          </Pie>
+                          <Legend
+                            formatter={(value) => (
+                              <span style={{ fontSize: '0.85rem', color: 'var(--text-primary, #111827)' }}>{value}</span>
+                            )}
+                          />
+                          <Tooltip
+                            formatter={(value, name) => [`${value} ${t('reports.mentions')}`, name]}
+                            contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                  </div>
+                );
+              })()}
             </section>
           )}
 
