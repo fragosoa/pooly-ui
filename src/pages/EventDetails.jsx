@@ -70,6 +70,7 @@ export default function EventDetails() {
   const [reports, setReports] = useState([]);
   const [reportsLoading, setReportsLoading] = useState(false);
   const [reportsError, setReportsError] = useState('');
+  const [selectedTimestamp, setSelectedTimestamp] = useState(null);
 
   const [isExporting, setIsExporting] = useState(false);
 
@@ -128,36 +129,43 @@ export default function EventDetails() {
     try {
       const response = await api.get(`/events/${eventId}/reports`);
       if (response.data.status === 'success') {
-        setReports(response.data.reports || []);
+        const data = response.data.reports || [];
+        setReports(data);
+        if (data.length > 0) {
+          const tsList = [...new Set(data.map(r => r.timestamp))].sort((a, b) => new Date(b) - new Date(a));
+          setSelectedTimestamp(tsList[0]);
+        }
       } else {
         setReports([]);
       }
     } catch (err) {
       console.error('Failed to fetch reports:', err);
       setReportsError(t('reports.error'));
+      const demoTs = '2026-01-29T10:30:00';
       setReports([
         {
           id: 1, event_id: eventId, category: 'Transporte público',
           volume: 45, percentage: 35.5, urgency: 0.8, sentiment: -0.2,
           summary: 'Los ciudadanos expresan preocupación por la frecuencia del transporte público y la saturación en horas pico.',
           examples: ['Necesitamos más autobuses', 'El metro siempre está lleno'],
-          timestamp: '2026-01-29T10:30:00'
+          timestamp: demoTs
         },
         {
           id: 2, event_id: eventId, category: 'Ciclovías',
           volume: 30, percentage: 23.6, urgency: 0.6, sentiment: 0.4,
           summary: 'Solicitudes de expansión de la red de ciclovías con enfoque en seguridad y conectividad.',
           examples: ['Más carriles para bicicletas', 'Conectar el centro con los barrios'],
-          timestamp: '2026-01-29T10:30:00'
+          timestamp: demoTs
         },
         {
           id: 3, event_id: eventId, category: 'Estacionamiento',
           volume: 20, percentage: 15.7, urgency: 0.4, sentiment: -0.5,
           summary: 'Quejas sobre la falta de estacionamiento en zonas comerciales y costos elevados.',
           examples: ['No hay donde estacionarse', 'Los parquímetros son muy caros'],
-          timestamp: '2026-01-29T10:30:00'
+          timestamp: demoTs
         }
       ]);
+      setSelectedTimestamp(demoTs);
     } finally {
       setReportsLoading(false);
     }
@@ -185,9 +193,9 @@ export default function EventDetails() {
       console.error('Failed to fetch jobs:', err);
       setJobsError(t('jobs.error'));
       setJobs([
-        { id: 1, event_id: eventId, status: 'COMPLETED', created_at: '2026-01-29T10:00:00', updated_at: '2026-01-29T10:05:32', message: 'Análisis completado exitosamente' },
-        { id: 2, event_id: eventId, status: 'RUNNING', created_at: '2026-01-30T09:15:00', updated_at: '2026-01-30T09:15:00', message: 'Procesando respuestas...' },
-        { id: 3, event_id: eventId, status: 'ERROR', created_at: '2026-01-28T14:30:00', updated_at: '2026-01-28T14:31:15', message: 'Error: No hay suficientes respuestas para analizar' }
+        { status: 'COMPLETED', started_at: 'Thu, 29 Jan 2026 10:00:00 GMT', finished_at: 'Thu, 29 Jan 2026 10:05:32 GMT', error_message: null },
+        { status: 'RUNNING',   started_at: 'Fri, 30 Jan 2026 09:15:00 GMT', finished_at: null, error_message: null },
+        { status: 'ERROR',     started_at: 'Tue, 28 Jan 2026 14:30:00 GMT', finished_at: 'Tue, 28 Jan 2026 14:31:15 GMT', error_message: 'No hay suficientes respuestas para analizar' }
       ]);
     } finally {
       setJobsLoading(false);
@@ -294,8 +302,13 @@ export default function EventDetails() {
     return             { text: t('urgency.low'),    class: 'low' };
   };
 
+  const runTimestamps = [...new Set(reports.map(r => r.timestamp))].sort((a, b) => new Date(b) - new Date(a));
+  const selectedReports = selectedTimestamp
+    ? reports.filter(r => r.timestamp === selectedTimestamp)
+    : (runTimestamps.length > 0 ? reports.filter(r => r.timestamp === runTimestamps[0]) : []);
+
   const exportToPDF = async () => {
-    if (!reports.length || isExporting) return;
+    if (!selectedReports.length || isExporting) return;
     setIsExporting(true);
 
     try {
@@ -390,11 +403,11 @@ export default function EventDetails() {
       y += 7;
 
       // ── Summary chips ─────────────────────────────────────────────
-      const totalVol = reports.reduce((s, r) => s + r.volume, 0);
+      const totalVol = selectedReports.reduce((s, r) => s + r.volume, 0);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5);
       txt(C.textGrey);
-      doc.text(`${reports.length}  ${labels.categories}   ·   ${totalVol}  ${labels.mentions}`, mg, y);
+      doc.text(`${selectedReports.length}  ${labels.categories}   ·   ${totalVol}  ${labels.mentions}`, mg, y);
       y += 10;
 
       // ── Bar chart section ─────────────────────────────────────────
@@ -409,7 +422,7 @@ export default function EventDetails() {
       const barAreaW  = cW - labelColW - pctColW;
       const barH      = 5;
 
-      reports.forEach((r, i) => {
+      selectedReports.forEach((r, i) => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         const catLines = doc.splitTextToSize(r.category, labelColW - 2);
@@ -456,7 +469,7 @@ export default function EventDetails() {
       y += 6;
 
       let pos = 0, neg = 0, neu = 0;
-      reports.forEach(r => {
+      selectedReports.forEach(r => {
         if (r.sentiment >= 0.3)       pos += r.volume;
         else if (r.sentiment <= -0.3) neg += r.volume;
         else                          neu += r.volume;
@@ -503,7 +516,7 @@ export default function EventDetails() {
       doc.text(labels.detailSection, mg, y);
       y += 8;
 
-      reports.forEach((r, i) => {
+      selectedReports.forEach((r, i) => {
         checkPage(25);
 
         // Category header
@@ -914,8 +927,8 @@ export default function EventDetails() {
                 <div>
                   <h3 className="reports-title">{t('reports.title')}</h3>
                   <p className="reports-subtitle">
-                    {reports.length > 0
-                      ? t('reports.subtitle', { count: reports.length })
+                    {selectedReports.length > 0
+                      ? t('reports.subtitle', { count: selectedReports.length })
                       : t('reports.subtitleEmpty')}
                   </p>
                 </div>
@@ -976,8 +989,43 @@ export default function EventDetails() {
               )}
 
               {reports.length > 0 && (
-                <div className="reports-grid">
-                  {reports.map(report => {
+                <>
+                  {runTimestamps.length > 0 && (
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
+                      marginBottom: '1.5rem', padding: '0.75rem 1rem',
+                      background: 'var(--bg-secondary, #F9FAFB)', border: '1px solid var(--border, #E5E7EB)',
+                    }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                        {locale === 'es-MX' ? 'Análisis:' : 'Analysis:'}
+                      </span>
+                      {runTimestamps.length === 1 ? (
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                          {new Date(runTimestamps[0]).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
+                        </span>
+                      ) : (
+                        <select
+                          value={selectedTimestamp || ''}
+                          onChange={e => setSelectedTimestamp(e.target.value)}
+                          className="input-field"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem', width: 'auto', margin: 0 }}
+                        >
+                          {runTimestamps.map(ts => (
+                            <option key={ts} value={ts}>
+                              {new Date(ts).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginLeft: 'auto' }}>
+                        {runTimestamps.length} {locale === 'es-MX'
+                          ? (runTimestamps.length === 1 ? 'análisis disponible' : 'análisis disponibles')
+                          : (runTimestamps.length === 1 ? 'analysis available' : 'analyses available')}
+                      </span>
+                    </div>
+                  )}
+                  <div className="reports-grid">
+                  {selectedReports.map(report => {
                     const sentiment = getSentimentLabel(report.sentiment);
                     const urgency = getUrgencyLabel(report.urgency);
                     return (
@@ -1018,7 +1066,8 @@ export default function EventDetails() {
                       </div>
                     );
                   })}
-                </div>
+                  </div>
+                </>
               )}
             </section>
           )}
@@ -1030,8 +1079,8 @@ export default function EventDetails() {
                 <div>
                   <h3 className="reports-title">{t('charts.title')}</h3>
                   <p className="reports-subtitle">
-                    {reports.length > 0
-                      ? t('reports.subtitle', { count: reports.length })
+                    {selectedReports.length > 0
+                      ? t('reports.subtitle', { count: selectedReports.length })
                       : t('reports.subtitleEmpty')}
                   </p>
                 </div>
@@ -1078,7 +1127,7 @@ export default function EventDetails() {
 
               {reports.length > 0 && (() => {
                 // Bar chart data
-                const barData = reports.map(r => ({
+                const barData = selectedReports.map(r => ({
                   name: r.category,
                   value: parseFloat(r.percentage.toFixed(1)),
                   volume: r.volume,
@@ -1086,7 +1135,7 @@ export default function EventDetails() {
 
                 // Pie chart data — volume weighted by sentiment bucket (±0.3 threshold)
                 let pos = 0, neg = 0, neu = 0;
-                reports.forEach(r => {
+                selectedReports.forEach(r => {
                   if (r.sentiment >= 0.3)       pos += r.volume;
                   else if (r.sentiment <= -0.3) neg += r.volume;
                   else                          neu += r.volume;
@@ -1101,6 +1150,42 @@ export default function EventDetails() {
 
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+
+                    {/* Run selector for charts */}
+                    {runTimestamps.length > 0 && (
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
+                        padding: '0.75rem 1rem',
+                        background: 'var(--bg-secondary, #F9FAFB)', border: '1px solid var(--border, #E5E7EB)',
+                      }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                          {locale === 'es-MX' ? 'Análisis:' : 'Analysis:'}
+                        </span>
+                        {runTimestamps.length === 1 ? (
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                            {new Date(runTimestamps[0]).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
+                          </span>
+                        ) : (
+                          <select
+                            value={selectedTimestamp || ''}
+                            onChange={e => setSelectedTimestamp(e.target.value)}
+                            className="input-field"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem', width: 'auto', margin: 0 }}
+                          >
+                            {runTimestamps.map(ts => (
+                              <option key={ts} value={ts}>
+                                {new Date(ts).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginLeft: 'auto' }}>
+                          {runTimestamps.length} {locale === 'es-MX'
+                            ? (runTimestamps.length === 1 ? 'análisis disponible' : 'análisis disponibles')
+                            : (runTimestamps.length === 1 ? 'analysis available' : 'analyses available')}
+                        </span>
+                      </div>
+                    )}
 
                     {/* Bar chart */}
                     <div className="card" style={{ padding: '1.5rem' }}>
@@ -1235,23 +1320,23 @@ export default function EventDetails() {
                       </tr>
                     </thead>
                     <tbody>
-                      {jobs.map(job => {
+                      {jobs.map((job, idx) => {
                         const statusInfo = getJobStatusInfo(job.status);
                         return (
-                          <tr key={job.id}>
-                            <td className="jobs-table-id">#{job.id}</td>
+                          <tr key={idx}>
+                            <td className="jobs-table-id">#{idx + 1}</td>
                             <td>
                               <span className={`job-status job-status-${statusInfo.class}`}>
                                 <span className="job-status-icon">{statusInfo.icon}</span>
                                 {statusInfo.label}
                               </span>
                             </td>
-                            <td className="jobs-table-message">{job.message || '—'}</td>
+                            <td className="jobs-table-message">{job.error_message || '—'}</td>
                             <td className="jobs-table-date">
-                              {new Date(job.created_at).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' })}
+                              {job.started_at ? new Date(job.started_at).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' }) : '—'}
                             </td>
                             <td className="jobs-table-date">
-                              {new Date(job.updated_at).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' })}
+                              {job.finished_at ? new Date(job.finished_at).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' }) : '—'}
                             </td>
                           </tr>
                         );
