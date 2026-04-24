@@ -320,7 +320,8 @@ export default function EventDetails() {
 
       const isES = locale === 'es-MX';
       const labels = {
-        generatedOn: isES ? 'Generado:' : 'Generated:',
+        generatedOn: isES ? 'Descarga:' : 'Downloaded:',
+        analyzedOn:  isES ? 'Análisis:' : 'Analysis:',
         aiSubtitle: isES
           ? 'Análisis de Insights generado con Inteligencia Artificial · Pooly'
           : 'AI-Generated Insights Report · Pooly',
@@ -378,9 +379,13 @@ export default function EventDetails() {
       doc.setFontSize(13);
       doc.text('POOLY', mg, 9.5);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      const dateStr = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
-      doc.text(`${labels.generatedOn} ${dateStr}`, pageW - mg, 9.5, { align: 'right' });
+      doc.setFontSize(7.5);
+      const analysisDateStr = selectedTimestamp
+        ? new Date(selectedTimestamp).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })
+        : '—';
+      const downloadDateStr = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
+      doc.text(`${labels.analyzedOn} ${analysisDateStr}`, pageW - mg, 7, { align: 'right' });
+      doc.text(`${labels.generatedOn} ${downloadDateStr}`, pageW - mg, 12, { align: 'right' });
 
       y = 22;
 
