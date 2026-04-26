@@ -19,6 +19,12 @@ const AdminDashboard = () => {
     const [deleting, setDeleting] = useState(false);
     const [deleteMessage, setDeleteMessage] = useState({ type: '', text: '' });
 
+    const getEventSource = (event) => {
+        const rawSource = event?.source_type || event?.source || event?.origin;
+        if (rawSource === 'imported' || rawSource === 'import') return 'imported';
+        return 'online';
+    };
+
     useEffect(() => {
         const fetchUserEvents = async () => {
             try {
@@ -28,8 +34,8 @@ const AdminDashboard = () => {
                 console.error('Failed to fetch user events:', err);
                 setError(t('admin.errorLoad'));
                 setEvents([
-                    { id: 1, name: 'Movilidad Urbana 2026', description: '¿Qué opinas sobre las nuevas ciclovías...', end: '2026-12-31', response_count: 45 },
-                    { id: 4, name: 'Encuesta del Jardín Comunitario', description: '¿Deberíamos expandir el jardín público?', end: '2026-05-30', response_count: 12 },
+                    { id: 1, name: 'Movilidad Urbana 2026', description: '¿Qué opinas sobre las nuevas ciclovías...', end: '2026-12-31', response_count: 45, source_type: 'online' },
+                    { id: 4, name: 'Feedback asistentes Summit Norte', description: 'Resultados importados desde SurveyMonkey para análisis cualitativo.', end: '2026-05-30', response_count: 128, source_type: 'imported', source_name: 'SurveyMonkey' },
                 ]);
             } finally {
                 setLoading(false);
@@ -131,6 +137,33 @@ const AdminDashboard = () => {
                 </div>
             </header>
 
+            <section className="dashboard-entry-grid">
+                <Link to="/admin/create" className="dashboard-entry-card">
+                    <div className="dashboard-entry-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 10.5v6m3-3H9" />
+                        </svg>
+                    </div>
+                    <div className="dashboard-entry-content">
+                        <h2>{t('admin.entryCreateTitle')}</h2>
+                        <p>{t('admin.entryCreateDesc')}</p>
+                    </div>
+                </Link>
+
+                <Link to="/admin/import" className="dashboard-entry-card dashboard-entry-card-accent">
+                    <div className="dashboard-entry-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l4.5-4.5M12 15l-4.5-4.5M4.5 16.5v.75A2.25 2.25 0 006.75 19.5h10.5a2.25 2.25 0 002.25-2.25v-.75" />
+                        </svg>
+                    </div>
+                    <div className="dashboard-entry-content">
+                        <h2>{t('admin.entryImportTitle')}</h2>
+                        <p>{t('admin.entryImportDesc')}</p>
+                    </div>
+                </Link>
+            </section>
+
             {/* Stats Cards */}
             <div className="stats-grid">
                 <div className="stat-card">
@@ -198,18 +231,26 @@ const AdminDashboard = () => {
             )}
 
             <div className="dashboard-section-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <h2 className="section-title">{t('admin.sectionTitle')}</h2>
-                    <span className="section-count">
-                        {events.length} {events.length === 1 ? t('admin.survey') : t('admin.surveys')}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <h2 className="section-title">{t('admin.sectionTitle')}</h2>
+                        <span className="section-count">
+                        {events.length} {events.length === 1 ? t('admin.project') : t('admin.projects')}
+                        </span>
+                    </div>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <Link to="/admin/import" className="btn btn-outline create-survey-inline">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l4.5-4.5M12 15l-4.5-4.5M4.5 16.5v.75A2.25 2.25 0 006.75 19.5h10.5a2.25 2.25 0 002.25-2.25v-.75" />
+                        </svg>
+                        {t('admin.importResults')}
+                    </Link>
+                    <Link to="/admin/create" className="btn btn-primary create-survey-inline">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        {t('admin.newSurvey')}
+                    </Link>
                 </div>
-                <Link to="/admin/create" className="btn btn-primary create-survey-inline">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    {t('admin.newSurvey')}
-                </Link>
             </div>
 
             {/* Mobile FAB */}
@@ -228,14 +269,20 @@ const AdminDashboard = () => {
                     </div>
                     <h3 className="empty-state-title">{t('admin.emptyTitle')}</h3>
                     <p className="empty-state-description">{t('admin.emptyDesc')}</p>
-                    <Link to="/admin/create" className="btn btn-primary">
-                        {t('admin.createFirst')}
-                    </Link>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                        <Link to="/admin/create" className="btn btn-primary">
+                            {t('admin.createFirst')}
+                        </Link>
+                        <Link to="/admin/import" className="btn btn-outline">
+                            {t('admin.importResults')}
+                        </Link>
+                    </div>
                 </div>
             ) : (
                 <div className="events-grid">
                     {events.map(event => {
                         const status = getEventStatus(event.end);
+                        const source = getEventSource(event);
                         return (
                             <article
                                 key={event.id}
@@ -259,10 +306,17 @@ const AdminDashboard = () => {
                                     {status.label}
                                 </span>
 
+                                <span className={`survey-card-source-badge survey-card-source-${source}`}>
+                                    {source === 'imported' ? t('source.imported') : t('source.online')}
+                                </span>
+
                                 <div className="survey-card-content">
                                     <h3 className="survey-card-title">{event.name}</h3>
                                     {event.description && (
                                         <p className="survey-card-description">{event.description}</p>
+                                    )}
+                                    {source === 'imported' && event.source_name && (
+                                        <p className="survey-card-meta">{t('admin.importedFrom', { source: event.source_name })}</p>
                                     )}
                                 </div>
 
