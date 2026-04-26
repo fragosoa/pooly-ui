@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
@@ -11,16 +11,16 @@ const ACCEPTED_TYPES = [
 export default function ImportResults() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    source_name: '',
-    collected_at: '',
   });
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDragActive, setIsDragActive] = useState(false);
 
   const selectedFileLabel = useMemo(() => {
     if (!file) return t('import.fileEmpty');
@@ -33,13 +33,12 @@ export default function ImportResults() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (event) => {
-    const nextFile = event.target.files?.[0] || null;
+  const validateAndSetFile = (nextFile) => {
     setError('');
 
     if (!nextFile) {
       setFile(null);
-      return;
+      return false;
     }
 
     const extension = nextFile.name.toLowerCase();
@@ -50,11 +49,34 @@ export default function ImportResults() {
 
     if (!isExcelFile) {
       setError(t('import.errorInvalidFile'));
-      event.target.value = '';
-      return;
+      return false;
     }
 
     setFile(nextFile);
+    return true;
+  };
+
+  const handleFileChange = (event) => {
+    const nextFile = event.target.files?.[0] || null;
+    const isValid = validateAndSetFile(nextFile);
+    if (!isValid && event.target) {
+      event.target.value = '';
+    }
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    setIsDragActive(false);
+
+    const nextFile = event.dataTransfer.files?.[0] || null;
+    const isValid = validateAndSetFile(nextFile);
+    if (!isValid && fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleSubmit = async (e) => {
@@ -73,8 +95,6 @@ export default function ImportResults() {
       payload.append('file', file);
       payload.append('name', formData.name);
       payload.append('description', formData.description);
-      payload.append('source_name', formData.source_name);
-      payload.append('collected_at', formData.collected_at);
 
       const response = await api.post('/imports', payload, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -147,35 +167,22 @@ export default function ImportResults() {
                 />
               </div>
 
-              <div className="import-form-grid">
-                <div className="input-group" style={{ marginBottom: 0 }}>
-                  <label className="input-label">{t('import.sourceName')}</label>
-                  <input
-                    type="text"
-                    name="source_name"
-                    className="input-field"
-                    value={formData.source_name}
-                    onChange={handleInputChange}
-                    placeholder={t('import.sourceNamePlaceholder')}
-                  />
-                </div>
-
-                <div className="input-group" style={{ marginBottom: 0 }}>
-                  <label className="input-label">{t('import.collectedAt')}</label>
-                  <input
-                    type="date"
-                    name="collected_at"
-                    className="input-field"
-                    value={formData.collected_at}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
               <div className="input-group" style={{ marginTop: '1.5rem' }}>
                 <label className="input-label">{t('import.fileLabel')}</label>
-                <label className="import-dropzone" htmlFor="import-file">
+                <div
+                  className={`import-dropzone ${isDragActive ? 'is-drag-active' : ''}`}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setIsDragActive(true);
+                  }}
+                  onDragLeave={(event) => {
+                    event.preventDefault();
+                    setIsDragActive(false);
+                  }}
+                  onDrop={handleDrop}
+                >
                   <input
+                    ref={fileInputRef}
                     id="import-file"
                     type="file"
                     accept=".xlsx,.xls"
@@ -191,8 +198,17 @@ export default function ImportResults() {
                     <div className="import-dropzone-title">{t('import.fileTitle')}</div>
                     <div className="import-dropzone-subtitle">{t('import.fileHelp')}</div>
                   </div>
+                  <div>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleBrowseClick}
+                    >
+                      {t('import.fileBrowse')}
+                    </button>
+                  </div>
                   <div className="import-dropzone-file">{selectedFileLabel}</div>
-                </label>
+                </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>

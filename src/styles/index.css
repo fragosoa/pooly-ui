@@ -1934,12 +1934,6 @@ textarea.input-field {
   align-items: flex-start;
 }
 
-.import-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
 .import-dropzone {
   display: grid;
   gap: 0.9rem;
@@ -1953,6 +1947,12 @@ textarea.input-field {
 .import-dropzone:hover {
   border-color: var(--primary);
   background: #f8fbff;
+}
+
+.import-dropzone.is-drag-active {
+  border-color: var(--primary);
+  background: #eff6ff;
+  box-shadow: inset 0 0 0 1px var(--primary-light);
 }
 
 .import-dropzone-icon {
@@ -2114,7 +2114,6 @@ textarea.input-field {
 @media (max-width: 768px) {
   .dashboard-entry-grid,
   .import-layout,
-  .import-form-grid,
   .import-summary-grid {
     grid-template-columns: 1fr;
   }
