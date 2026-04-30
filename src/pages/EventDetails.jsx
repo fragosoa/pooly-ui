@@ -79,6 +79,12 @@ export default function EventDetails() {
   const [jobsLoading, setJobsLoading] = useState(false);
   const [jobsError, setJobsError] = useState('');
 
+  const getEventSource = (currentEvent) => {
+    const rawSource = currentEvent?.source_type || currentEvent?.source || currentEvent?.origin;
+    if (rawSource === 'imported' || rawSource === 'import') return 'imported';
+    return 'online';
+  };
+
   const shareUrl = event?.public_id
     ? `${window.location.origin}/encuesta/${event.public_id}`
     : '';
@@ -598,7 +604,13 @@ export default function EventDetails() {
 
   const totalResponses = event?.questions?.reduce(
     (sum, q) => sum + (q.responses?.length || 0), 0
-  ) || 0;
+  ) || event?.response_count || event?.import_summary?.response_count || 0;
+
+  const eventSource = getEventSource(event);
+  const isImported = eventSource === 'imported';
+  const importedSourceName = event?.source_name || event?.import_summary?.source_name;
+  const importedFileName = event?.import_file_name || event?.import_summary?.file_name;
+  const importedAt = event?.imported_at || event?.import_summary?.imported_at;
 
   if (loading) {
     return (
@@ -625,10 +637,15 @@ export default function EventDetails() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
+            <span className={`survey-card-source-badge survey-card-source-${eventSource}`} style={{ marginBottom: '0.75rem' }}>
+              {isImported ? t('source.imported') : t('source.online')}
+            </span>
             <h1 className="page-title">{event.name}</h1>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>{event.description}</p>
             <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              <span>{t('eventDetails.endDate', { date: new Date(event.end).toLocaleDateString(locale) })}</span>
+              {event.end && (
+                <span>{t('eventDetails.endDate', { date: new Date(event.end).toLocaleDateString(locale) })}</span>
+              )}
               <span>{t('eventDetails.totalResponses', { count: totalResponses })}</span>
             </div>
           </div>
@@ -642,47 +659,76 @@ export default function EventDetails() {
         )}
       </header>
 
-      {/* Share Link Card */}
-      <div className="share-card">
-        <div className="share-card-header">
-          <div className="share-card-icon">🔗</div>
-          <div>
-            <h3 className="share-card-title">{t('eventDetails.shareTitle')}</h3>
-            <p className="share-card-subtitle">{t('eventDetails.shareSubtitle')}</p>
+      {isImported ? (
+        <div className="share-card">
+          <div className="share-card-header">
+            <div className="share-card-icon">↑</div>
+            <div>
+              <h3 className="share-card-title">{t('eventDetails.importTitle')}</h3>
+              <p className="share-card-subtitle">{t('eventDetails.importSubtitle')}</p>
+            </div>
+          </div>
+          <div className="import-summary-grid">
+            <div className="import-summary-item">
+              <span>{t('eventDetails.importSource')}</span>
+              <strong>{importedSourceName || t('eventDetails.importSourceFallback')}</strong>
+            </div>
+            <div className="import-summary-item">
+              <span>{t('eventDetails.importFile')}</span>
+              <strong>{importedFileName || t('eventDetails.importFileFallback')}</strong>
+            </div>
+            <div className="import-summary-item">
+              <span>{t('eventDetails.importRows')}</span>
+              <strong>{totalResponses}</strong>
+            </div>
+            <div className="import-summary-item">
+              <span>{t('eventDetails.importDate')}</span>
+              <strong>{importedAt ? new Date(importedAt).toLocaleDateString(locale) : t('eventDetails.importDateFallback')}</strong>
+            </div>
           </div>
         </div>
-        <div className="share-card-url">
-          <input
-            type="text"
-            readOnly
-            value={shareUrl || t('eventDetails.shareGenerating')}
-            className="share-card-input"
-          />
-          <button
-            onClick={handleCopyLink}
-            className={`share-card-btn ${copied ? 'copied' : ''}`}
-            disabled={!shareUrl}
-          >
-            {copied ? t('eventDetails.shareCopied') : t('eventDetails.shareCopy')}
-          </button>
-          <button
-            onClick={() => setShowQr(true)}
-            disabled={!shareUrl}
-            className="share-card-btn"
-            title="Ver código QR"
-            style={{ background: 'var(--text-primary)', flexShrink: 0 }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
-              <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none" /><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none" /><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none" />
-              <path d="M14 14h3v3" /><path d="M17 21h3v-3" /><path d="M14 21h.01" /><path d="M21 14h.01" />
-            </svg>
-          </button>
+      ) : (
+        <div className="share-card">
+          <div className="share-card-header">
+            <div className="share-card-icon">🔗</div>
+            <div>
+              <h3 className="share-card-title">{t('eventDetails.shareTitle')}</h3>
+              <p className="share-card-subtitle">{t('eventDetails.shareSubtitle')}</p>
+            </div>
+          </div>
+          <div className="share-card-url">
+            <input
+              type="text"
+              readOnly
+              value={shareUrl || t('eventDetails.shareGenerating')}
+              className="share-card-input"
+            />
+            <button
+              onClick={handleCopyLink}
+              className={`share-card-btn ${copied ? 'copied' : ''}`}
+              disabled={!shareUrl}
+            >
+              {copied ? t('eventDetails.shareCopied') : t('eventDetails.shareCopy')}
+            </button>
+            <button
+              onClick={() => setShowQr(true)}
+              disabled={!shareUrl}
+              className="share-card-btn"
+              title="Ver código QR"
+              style={{ background: 'var(--text-primary)', flexShrink: 0 }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none" /><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none" /><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none" />
+                <path d="M14 14h3v3" /><path d="M17 21h3v-3" /><path d="M14 21h.01" /><path d="M21 14h.01" />
+              </svg>
+            </button>
+          </div>
+          <p className="share-card-hint">{t('eventDetails.shareHint')}</p>
         </div>
-        <p className="share-card-hint">{t('eventDetails.shareHint')}</p>
-      </div>
+      )}
 
-      {showQr && (
+      {showQr && !isImported && (
         <Modal isOpen={true} onClose={() => setShowQr(false)} title="Código QR">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem', padding: '0.5rem 0' }}>
             <QRCodeSVG value={shareUrl} size={220} bgColor="#ffffff" fgColor="#111827" />
@@ -809,9 +855,11 @@ export default function EventDetails() {
                         </svg>
                       )}
                     </button>
-                    <button className="btn btn-secondary" onClick={handleEditClick}>
-                      ✏️ {t('editEvent.editBtn')}
-                    </button>
+                    {!isImported && (
+                      <button className="btn btn-secondary" onClick={handleEditClick}>
+                        ✏️ {t('editEvent.editBtn')}
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -919,6 +967,13 @@ export default function EventDetails() {
                         </div>
                       </div>
                     ))}
+                    {(!event.questions || event.questions.length === 0) && (
+                      <div className="card">
+                        <p style={{ color: 'var(--text-secondary)' }}>
+                          {isImported ? t('eventDetails.importNoPreview') : t('eventDetails.noResponses')}
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
               </div>

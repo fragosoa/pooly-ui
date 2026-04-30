@@ -10,6 +10,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PublicSurvey from './pages/PublicSurvey';
 import CreateEvent from './pages/CreateEvent';
 import EventDetails from './pages/EventDetails';
+import ImportResults from './pages/ImportResults';
 import Settings from './pages/Settings';
 import TermsOfUse from './pages/TermsOfUse';
 import PrivacyNotice from './pages/PrivacyNotice';
@@ -30,6 +31,7 @@ function App() {
           <Route path="/register" element={<><Navbar /><Auth /></>} />
           <Route path="/admin" element={<><Navbar /><ProtectedRoute><AdminDashboard /></ProtectedRoute></>} />
           <Route path="/admin/create" element={<><Navbar /><ProtectedRoute><CreateEvent /></ProtectedRoute></>} />
+          <Route path="/admin/import" element={<><Navbar /><ProtectedRoute><ImportResults /></ProtectedRoute></>} />
           <Route path="/admin/events/:eventId" element={<><Navbar /><ProtectedRoute><EventDetails /></ProtectedRoute></>} />
           <Route path="/admin/settings" element={<><Navbar /><ProtectedRoute><Settings /></ProtectedRoute></>} />
           <Route path="/terms_of_use" element={<><Navbar /><TermsOfUse /></>} />
