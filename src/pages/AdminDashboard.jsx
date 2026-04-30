@@ -231,25 +231,11 @@ const AdminDashboard = () => {
             )}
 
             <div className="dashboard-section-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <h2 className="section-title">{t('admin.sectionTitle')}</h2>
-                        <span className="section-count">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <h2 className="section-title">{t('admin.sectionTitle')}</h2>
+                    <span className="section-count">
                         {events.length} {events.length === 1 ? t('admin.project') : t('admin.projects')}
-                        </span>
-                    </div>
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <Link to="/admin/import" className="btn btn-outline create-survey-inline">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l4.5-4.5M12 15l-4.5-4.5M4.5 16.5v.75A2.25 2.25 0 006.75 19.5h10.5a2.25 2.25 0 002.25-2.25v-.75" />
-                        </svg>
-                        {t('admin.importResults')}
-                    </Link>
-                    <Link to="/admin/create" className="btn btn-primary create-survey-inline">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        {t('admin.newSurvey')}
-                    </Link>
+                    </span>
                 </div>
             </div>
 

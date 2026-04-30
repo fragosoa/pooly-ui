@@ -1,100 +1,114 @@
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import api from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 
-const ACCEPTED_TYPES = [
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.ms-excel',
-];
+const ACCEPTED_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
+
+async function parseFileHeaders(file) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.csv')) {
+    const text = await file.text();
+    const firstLine = text.split('\n')[0] || '';
+    return firstLine
+      .split(',')
+      .map(h => h.trim().replace(/^["']|["']$/g, ''))
+      .filter(Boolean);
+  }
+  // Excel
+  const arrayBuffer = await file.arrayBuffer();
+  const workbook = XLSX.read(arrayBuffer, { sheetRows: 1 });
+  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+  return ((rows[0]) || []).map(h => String(h).trim()).filter(Boolean);
+}
 
 export default function ImportResults() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const fileInputRef = useRef(null);
+  const isES = locale === 'es-MX';
 
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-  });
+  const [formData, setFormData] = useState({ name: '', description: '' });
   const [file, setFile] = useState(null);
+  const [columns, setColumns] = useState([]);
+  const [columnInput, setColumnInput] = useState('');
+  const [isParsingHeaders, setIsParsingHeaders] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
 
-  const selectedFileLabel = useMemo(() => {
-    if (!file) return t('import.fileEmpty');
-    const fileSizeMb = (file.size / (1024 * 1024)).toFixed(1);
-    return `${file.name} · ${fileSizeMb} MB`;
-  }, [file, t]);
+  const fileLabel = file
+    ? `${file.name} · ${(file.size / (1024 * 1024)).toFixed(1)} MB`
+    : t('import.fileEmpty');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const validateAndSetFile = (nextFile) => {
+  const validateAndSetFile = async (nextFile) => {
     setError('');
+    if (!nextFile) { setFile(null); return false; }
 
-    if (!nextFile) {
-      setFile(null);
-      return false;
-    }
-
-    const extension = nextFile.name.toLowerCase();
-    const isExcelFile =
-      ACCEPTED_TYPES.includes(nextFile.type) ||
-      extension.endsWith('.xlsx') ||
-      extension.endsWith('.xls');
-
-    if (!isExcelFile) {
+    const ext = nextFile.name.toLowerCase();
+    const valid = ACCEPTED_EXTENSIONS.some(e => ext.endsWith(e));
+    if (!valid) {
       setError(t('import.errorInvalidFile'));
       return false;
     }
 
     setFile(nextFile);
+    setIsParsingHeaders(true);
+    try {
+      const headers = await parseFileHeaders(nextFile);
+      if (headers.length > 0) setColumns(headers);
+    } catch (_) {
+      // silently skip — user can add manually
+    } finally {
+      setIsParsingHeaders(false);
+    }
     return true;
   };
 
-  const handleFileChange = (event) => {
-    const nextFile = event.target.files?.[0] || null;
-    const isValid = validateAndSetFile(nextFile);
-    if (!isValid && event.target) {
-      event.target.value = '';
-    }
+  const handleFileChange = async (e) => {
+    const nextFile = e.target.files?.[0] || null;
+    const valid = await validateAndSetFile(nextFile);
+    if (!valid && e.target) e.target.value = '';
   };
 
-  const handleDrop = (event) => {
-    event.preventDefault();
+  const handleDrop = async (e) => {
+    e.preventDefault();
     setIsDragActive(false);
-
-    const nextFile = event.dataTransfer.files?.[0] || null;
-    const isValid = validateAndSetFile(nextFile);
-    if (!isValid && fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    const nextFile = e.dataTransfer.files?.[0] || null;
+    const valid = await validateAndSetFile(nextFile);
+    if (!valid && fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleBrowseClick = () => {
-    fileInputRef.current?.click();
+  const handleAddColumn = () => {
+    const val = columnInput.trim();
+    if (!val || columns.includes(val)) return;
+    setColumns(prev => [...prev, val]);
+    setColumnInput('');
   };
+
+  const handleRemoveColumn = (col) => setColumns(prev => prev.filter(c => c !== col));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!file) {
-      setError(t('import.errorNoFile'));
-      return;
-    }
+    if (!file) { setError(t('import.errorNoFile')); return; }
+    if (columns.length === 0) { setError(t('import.errorNoColumns')); return; }
 
     setIsSubmitting(true);
-
     try {
       const payload = new FormData();
       payload.append('file', file);
       payload.append('name', formData.name);
       payload.append('description', formData.description);
+      payload.append('columns', JSON.stringify(columns));
 
       const response = await api.post('/imports', payload, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -105,17 +119,10 @@ export default function ImportResults() {
         response.data?.project?.id ||
         response.data?.event?.id;
 
-      if (!createdId) {
-        throw new Error(t('import.errorMissingProject'));
-      }
-
+      if (!createdId) throw new Error(t('import.errorMissingProject'));
       navigate(`/admin/events/${createdId}`);
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-        err.message ||
-        t('import.errorSubmit')
-      );
+      setError(err.response?.data?.message || err.message || t('import.errorSubmit'));
     } finally {
       setIsSubmitting(false);
     }
@@ -138,6 +145,7 @@ export default function ImportResults() {
       )}
 
       <div className="import-layout">
+        {/* ── Left: form ── */}
         <div>
           <div className="card" style={{ padding: '2rem' }}>
             <form onSubmit={handleSubmit}>
@@ -171,21 +179,15 @@ export default function ImportResults() {
                 <label className="input-label">{t('import.fileLabel')}</label>
                 <div
                   className={`import-dropzone ${isDragActive ? 'is-drag-active' : ''}`}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    setIsDragActive(true);
-                  }}
-                  onDragLeave={(event) => {
-                    event.preventDefault();
-                    setIsDragActive(false);
-                  }}
+                  onDragOver={e => { e.preventDefault(); setIsDragActive(true); }}
+                  onDragLeave={e => { e.preventDefault(); setIsDragActive(false); }}
                   onDrop={handleDrop}
                 >
                   <input
                     ref={fileInputRef}
                     id="import-file"
                     type="file"
-                    accept=".xlsx,.xls"
+                    accept=".xlsx,.xls,.csv"
                     onChange={handleFileChange}
                     style={{ display: 'none' }}
                   />
@@ -199,23 +201,17 @@ export default function ImportResults() {
                     <div className="import-dropzone-subtitle">{t('import.fileHelp')}</div>
                   </div>
                   <div>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={handleBrowseClick}
-                    >
+                    <button type="button" className="btn btn-secondary" onClick={() => fileInputRef.current?.click()}>
                       {t('import.fileBrowse')}
                     </button>
                   </div>
-                  <div className="import-dropzone-file">{selectedFileLabel}</div>
+                  <div className="import-dropzone-file">{fileLabel}</div>
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
-                <Link to="/admin" className="btn btn-secondary">
-                  {t('import.cancel')}
-                </Link>
-                <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                <Link to="/admin" className="btn btn-secondary">{t('import.cancel')}</Link>
+                <button type="submit" className="btn btn-primary" disabled={isSubmitting || columns.length === 0}>
                   {isSubmitting ? t('import.submitting') : t('import.submit')}
                 </button>
               </div>
@@ -223,49 +219,124 @@ export default function ImportResults() {
           </div>
         </div>
 
+        {/* ── Right: column builder ── */}
         <aside className="import-sidebar">
           <div className="tips-panel">
-            <div className="tips-header">
-              <span className="tips-header-icon">↑</span>
-              <h3 className="tips-title">{t('import.sidebarTitle')}</h3>
+            {/* Header */}
+            <div className="tips-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 className="tips-title" style={{ margin: 0 }}>
+                {isES ? 'Columnas a analizar' : 'Columns to analyze'}
+              </h3>
+              {columns.length > 0 && (
+                <span style={{
+                  background: 'var(--primary)', color: '#fff',
+                  fontSize: '0.75rem', fontWeight: '700',
+                  padding: '0.15rem 0.55rem', borderRadius: '999px',
+                }}>
+                  {columns.length}
+                </span>
+              )}
             </div>
 
-            <div className="tips-list">
-              <div className="tip-item">
-                <span className="tip-icon">1</span>
-                <div>
-                  <h4 className="tip-title">{t('import.tip1Title')}</h4>
-                  <p className="tip-description">{t('import.tip1Desc')}</p>
-                </div>
+            <p style={{ fontSize: '0.83rem', color: 'var(--text-secondary)', margin: '0.75rem 0 1rem' }}>
+              {isES
+                ? 'Sube tu archivo para detectarlas automáticamente, o agrégalas una a una.'
+                : 'Upload your file to detect them automatically, or add them one by one.'}
+            </p>
+
+            {/* Column chips */}
+            {isParsingHeaders ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.83rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                <span className="btn-spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span>
+                {isES ? 'Detectando columnas…' : 'Detecting columns…'}
               </div>
-              <div className="tip-item">
-                <span className="tip-icon">2</span>
-                <div>
-                  <h4 className="tip-title">{t('import.tip2Title')}</h4>
-                  <p className="tip-description">{t('import.tip2Desc')}</p>
-                </div>
+            ) : columns.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', marginBottom: '1rem' }}>
+                {columns.map(col => (
+                  <span key={col} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                    padding: '0.25rem 0.5rem 0.25rem 0.65rem',
+                    background: 'var(--primary-light, #EEF0FF)',
+                    border: '1px solid var(--primary, #6366F1)',
+                    fontSize: '0.78rem', fontFamily: 'monospace', fontWeight: '600',
+                    color: 'var(--primary)',
+                  }}>
+                    {col}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveColumn(col)}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        padding: '0 0.1rem', lineHeight: 1,
+                        color: 'var(--primary)', fontSize: '0.9rem', fontWeight: '700',
+                      }}
+                      title={isES ? 'Quitar columna' : 'Remove column'}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
               </div>
-              <div className="tip-item">
-                <span className="tip-icon">3</span>
-                <div>
-                  <h4 className="tip-title">{t('import.tip3Title')}</h4>
-                  <p className="tip-description">{t('import.tip3Desc')}</p>
-                </div>
+            ) : (
+              <div style={{
+                padding: '1rem', marginBottom: '1rem',
+                background: 'var(--bg-secondary, #F9FAFB)',
+                border: '1px dashed var(--border, #E5E7EB)',
+                textAlign: 'center',
+                fontSize: '0.82rem', color: 'var(--text-secondary)',
+              }}>
+                {isES
+                  ? 'Aún no hay columnas. Sube un archivo o agrégalas manualmente.'
+                  : 'No columns yet. Upload a file or add them manually.'}
               </div>
+            )}
+
+            {/* Manual input */}
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                type="text"
+                className="input-field"
+                placeholder={isES ? 'ej. review_content' : 'e.g. review_content'}
+                value={columnInput}
+                onChange={e => setColumnInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') { e.preventDefault(); handleAddColumn(); }
+                }}
+                style={{ flex: 1, margin: 0, padding: '0.4rem 0.65rem', fontSize: '0.83rem' }}
+              />
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleAddColumn}
+                disabled={!columnInput.trim()}
+                style={{ padding: '0.4rem 0.8rem', flexShrink: 0, fontSize: '0.83rem' }}
+              >
+                {isES ? '+ Agregar' : '+ Add'}
+              </button>
             </div>
 
-            <div className="tips-examples">
-              <h4 className="tips-examples-title">{t('import.expectedTitle')}</h4>
-              <ul className="tips-examples-list">
-                <li>{t('import.expected1')}</li>
-                <li>{t('import.expected2')}</li>
-                <li>{t('import.expected3')}</li>
-              </ul>
-            </div>
+            {/* Footer note */}
+            {columns.length > 0 && (
+              <p style={{ fontSize: '0.77rem', color: 'var(--text-secondary)', marginTop: '1.25rem', lineHeight: 1.5 }}>
+                {isES
+                  ? 'Cada columna se convierte en una dimensión de análisis. El contenido de cada fila se procesa como una respuesta individual.'
+                  : 'Each column becomes an analysis dimension. Each row is processed as an individual response.'}
+              </p>
+            )}
 
-            <div className="tips-highlight">
-              <span className="tips-highlight-icon">AI</span>
-              <p>{t('import.highlight')}</p>
+            {/* Hint: include only text columns */}
+            <div style={{
+              marginTop: '1.25rem', padding: '0.75rem',
+              background: 'var(--bg-secondary, #F9FAFB)',
+              border: '1px solid var(--border, #E5E7EB)',
+              fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5,
+            }}>
+              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.25rem' }}>
+                {isES ? '¿Qué columnas incluir?' : 'Which columns to include?'}
+              </strong>
+              {isES
+                ? 'Incluye solo columnas con texto libre (comentarios, reseñas, respuestas abiertas). Omite fechas, IDs o puntuaciones numéricas — no aportan al análisis de temas.'
+                : 'Include only free-text columns (comments, reviews, open answers). Skip dates, IDs, or numeric scores — they don\'t contribute to topic analysis.'}
             </div>
           </div>
         </aside>
