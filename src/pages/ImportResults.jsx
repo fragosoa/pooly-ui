@@ -5,25 +5,153 @@ import api from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 
 const ACCEPTED_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
+const MAX_ROWS_TO_SCAN = 1000;
+const MAX_UNIQUE_FOR_MULTIPLE = 20;
 
-async function parseFileHeaders(file) {
+// Reads headers + scans data rows to classify each column
+async function parseFileWithColumns(file) {
   const name = file.name.toLowerCase();
+  let headers = [];
+  let dataRows = []; // array of string arrays
+
   if (name.endsWith('.csv')) {
     const text = await file.text();
-    const firstLine = text.split('\n')[0] || '';
-    return firstLine
-      .split(',')
-      .map(h => h.trim().replace(/^["']|["']$/g, ''))
-      .filter(Boolean);
+    const lines = text.split('\n');
+    if (!lines.length) return [];
+    headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+    for (let i = 1; i < Math.min(lines.length, MAX_ROWS_TO_SCAN + 1); i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      dataRows.push(line.split(',').map(c => c.trim().replace(/^["']|["']$/g, '')));
+    }
+  } else {
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { sheetRows: MAX_ROWS_TO_SCAN + 1 });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const allRows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+    if (!allRows.length) return [];
+    headers = (allRows[0] || []).map(h => String(h).trim()).filter(Boolean);
+    dataRows = allRows.slice(1).map(row =>
+      row.map(c => (c === null || c === undefined ? '' : String(c)).trim())
+    );
   }
-  // Excel
-  const arrayBuffer = await file.arrayBuffer();
-  const workbook = XLSX.read(arrayBuffer, { sheetRows: 1 });
-  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
-  return ((rows[0]) || []).map(h => String(h).trim()).filter(Boolean);
+
+  return headers.map((colName, colIdx) => {
+    const seen = new Set();
+    let allNumeric = true;
+
+    for (const row of dataRows) {
+      const val = (row[colIdx] ?? '').toString().trim();
+      if (!val) continue;
+      seen.add(val);
+      if (allNumeric && (isNaN(parseFloat(val)) || !isFinite(Number(val)))) {
+        allNumeric = false;
+      }
+    }
+
+    const uniqueVals = [...seen].sort((a, b) => {
+      const na = parseFloat(a), nb = parseFloat(b);
+      return !isNaN(na) && !isNaN(nb) ? na - nb : a.localeCompare(b);
+    });
+
+    const isMultiple = allNumeric && seen.size > 0 && seen.size <= MAX_UNIQUE_FOR_MULTIPLE;
+
+    return {
+      name: colName,
+      type: isMultiple ? 'multiple' : 'open',
+      options: isMultiple ? uniqueVals : [],
+    };
+  });
 }
 
+// ── Small toggle button used for type selection ──────────────────────────────
+function TypeBtn({ active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        flex: 1, padding: '0.25rem 0', fontSize: '0.75rem', fontWeight: '600',
+        border: `1px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
+        background: active ? 'var(--primary)' : 'transparent',
+        color: active ? '#fff' : 'var(--text-secondary)',
+        cursor: 'pointer', lineHeight: 1.4,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── Column card shown in the sidebar ─────────────────────────────────────────
+function ColumnCard({ col, idx, isES, onTypeChange, onRemove }) {
+  return (
+    <div style={{
+      border: '1px solid var(--border)', background: '#fff',
+      padding: '0.6rem 0.7rem', marginBottom: '0.5rem',
+    }}>
+      {/* Name + remove */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
+        <span style={{
+          fontFamily: 'monospace', fontSize: '0.78rem', fontWeight: '700',
+          color: 'var(--primary)', wordBreak: 'break-all',
+        }}>
+          {col.name}
+        </span>
+        <button
+          type="button"
+          onClick={() => onRemove(idx)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1,
+            padding: '0 0.1rem', marginLeft: '0.4rem', flexShrink: 0,
+          }}
+          title={isES ? 'Quitar columna' : 'Remove column'}
+        >
+          ×
+        </button>
+      </div>
+
+      {/* Type toggle */}
+      <div style={{ display: 'flex', gap: '0.3rem' }}>
+        <TypeBtn active={col.type === 'open'} onClick={() => onTypeChange(idx, 'open')}>
+          {isES ? 'Abierta' : 'Open-ended'}
+        </TypeBtn>
+        <TypeBtn active={col.type === 'multiple'} onClick={() => onTypeChange(idx, 'multiple')}>
+          {isES ? 'Opción múltiple' : 'Multiple choice'}
+        </TypeBtn>
+      </div>
+
+      {/* Options preview for multiple */}
+      {col.type === 'multiple' && (
+        <div style={{ marginTop: '0.45rem' }}>
+          {col.options.length > 0 ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem' }}>
+              {col.options.map((opt, i) => (
+                <span key={i} style={{
+                  fontSize: '0.7rem', padding: '0.1rem 0.35rem',
+                  background: 'var(--bg-secondary, #F9FAFB)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-primary)',
+                }}>
+                  {opt}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: 0, fontStyle: 'italic' }}>
+              {isES
+                ? 'Sin valores detectados — el backend extraerá las opciones del archivo.'
+                : 'No values detected — the backend will extract options from the file.'}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function ImportResults() {
   const navigate = useNavigate();
   const { t, locale } = useLanguage();
@@ -32,9 +160,10 @@ export default function ImportResults() {
 
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [file, setFile] = useState(null);
+  // columns: Array<{ name: string, type: 'open'|'multiple', options: string[] }>
   const [columns, setColumns] = useState([]);
   const [columnInput, setColumnInput] = useState('');
-  const [isParsingHeaders, setIsParsingHeaders] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
@@ -53,21 +182,20 @@ export default function ImportResults() {
     if (!nextFile) { setFile(null); return false; }
 
     const ext = nextFile.name.toLowerCase();
-    const valid = ACCEPTED_EXTENSIONS.some(e => ext.endsWith(e));
-    if (!valid) {
+    if (!ACCEPTED_EXTENSIONS.some(e => ext.endsWith(e))) {
       setError(t('import.errorInvalidFile'));
       return false;
     }
 
     setFile(nextFile);
-    setIsParsingHeaders(true);
+    setIsParsing(true);
     try {
-      const headers = await parseFileHeaders(nextFile);
-      if (headers.length > 0) setColumns(headers);
+      const detected = await parseFileWithColumns(nextFile);
+      if (detected.length > 0) setColumns(detected);
     } catch (_) {
-      // silently skip — user can add manually
+      // silently skip — user can configure manually
     } finally {
-      setIsParsingHeaders(false);
+      setIsParsing(false);
     }
     return true;
   };
@@ -86,19 +214,24 @@ export default function ImportResults() {
     if (!valid && fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleAddColumn = () => {
-    const val = columnInput.trim();
-    if (!val || columns.includes(val)) return;
-    setColumns(prev => [...prev, val]);
-    setColumnInput('');
+  const handleColumnTypeChange = (idx, type) => {
+    setColumns(prev => prev.map((col, i) => i === idx ? { ...col, type } : col));
   };
 
-  const handleRemoveColumn = (col) => setColumns(prev => prev.filter(c => c !== col));
+  const handleRemoveColumn = (idx) => {
+    setColumns(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleAddColumn = () => {
+    const val = columnInput.trim();
+    if (!val) return;
+    setColumns(prev => [...prev, { name: val, type: 'open', options: [] }]);
+    setColumnInput('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
     if (!file) { setError(t('import.errorNoFile')); return; }
     if (columns.length === 0) { setError(t('import.errorNoColumns')); return; }
 
@@ -108,6 +241,7 @@ export default function ImportResults() {
       payload.append('file', file);
       payload.append('name', formData.name);
       payload.append('description', formData.description);
+      // Each column: { name, type, options }
       payload.append('columns', JSON.stringify(columns));
 
       const response = await api.post('/imports', payload, {
@@ -128,6 +262,9 @@ export default function ImportResults() {
     }
   };
 
+  const openCount = columns.filter(c => c.type === 'open').length;
+  const multipleCount = columns.filter(c => c.type === 'multiple').length;
+
   return (
     <div className="container" style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
       <header style={{ marginBottom: '2rem' }}>
@@ -139,9 +276,7 @@ export default function ImportResults() {
       </header>
 
       {error && (
-        <div className="alert alert-error" style={{ maxWidth: '920px' }}>
-          {error}
-        </div>
+        <div className="alert alert-error" style={{ maxWidth: '920px' }}>{error}</div>
       )}
 
       <div className="import-layout">
@@ -152,26 +287,18 @@ export default function ImportResults() {
               <div className="input-group">
                 <label className="input-label">{t('import.name')}</label>
                 <input
-                  type="text"
-                  name="name"
-                  className="input-field"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  placeholder={t('import.namePlaceholder')}
+                  type="text" name="name" className="input-field"
+                  value={formData.name} onChange={handleInputChange}
+                  required placeholder={t('import.namePlaceholder')}
                 />
               </div>
 
               <div className="input-group">
                 <label className="input-label">{t('import.description')}</label>
                 <textarea
-                  name="description"
-                  className="input-field"
-                  rows="3"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  required
-                  placeholder={t('import.descriptionPlaceholder')}
+                  name="description" className="input-field" rows="3"
+                  value={formData.description} onChange={handleInputChange}
+                  required placeholder={t('import.descriptionPlaceholder')}
                 />
               </div>
 
@@ -184,11 +311,8 @@ export default function ImportResults() {
                   onDrop={handleDrop}
                 >
                   <input
-                    ref={fileInputRef}
-                    id="import-file"
-                    type="file"
-                    accept=".xlsx,.xls,.csv"
-                    onChange={handleFileChange}
+                    ref={fileInputRef} id="import-file" type="file"
+                    accept=".xlsx,.xls,.csv" onChange={handleFileChange}
                     style={{ display: 'none' }}
                   />
                   <div className="import-dropzone-icon">
@@ -244,38 +368,32 @@ export default function ImportResults() {
                 : 'Upload your file to detect them automatically, or add them one by one.'}
             </p>
 
-            {/* Column chips */}
-            {isParsingHeaders ? (
+            {/* Column list */}
+            {isParsing ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.83rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
                 <span className="btn-spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span>
-                {isES ? 'Detectando columnas…' : 'Detecting columns…'}
+                {isES ? 'Analizando columnas…' : 'Analyzing columns…'}
               </div>
             ) : columns.length > 0 ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', marginBottom: '1rem' }}>
-                {columns.map(col => (
-                  <span key={col} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                    padding: '0.25rem 0.5rem 0.25rem 0.65rem',
-                    background: 'var(--primary-light, #EEF0FF)',
-                    border: '1px solid var(--primary, #6366F1)',
-                    fontSize: '0.78rem', fontFamily: 'monospace', fontWeight: '600',
-                    color: 'var(--primary)',
-                  }}>
-                    {col}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveColumn(col)}
-                      style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        padding: '0 0.1rem', lineHeight: 1,
-                        color: 'var(--primary)', fontSize: '0.9rem', fontWeight: '700',
-                      }}
-                      title={isES ? 'Quitar columna' : 'Remove column'}
-                    >
-                      ×
-                    </button>
-                  </span>
+              <div style={{ marginBottom: '0.75rem' }}>
+                {columns.map((col, idx) => (
+                  <ColumnCard
+                    key={idx}
+                    col={col}
+                    idx={idx}
+                    isES={isES}
+                    onTypeChange={handleColumnTypeChange}
+                    onRemove={handleRemoveColumn}
+                  />
                 ))}
+                {/* Summary */}
+                {(openCount > 0 || multipleCount > 0) && (
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0.75rem', lineHeight: 1.5 }}>
+                    {isES
+                      ? `${openCount} abierta${openCount !== 1 ? 's' : ''} · ${multipleCount} opción múltiple`
+                      : `${openCount} open-ended · ${multipleCount} multiple choice`}
+                  </p>
+                )}
               </div>
             ) : (
               <div style={{
@@ -299,9 +417,7 @@ export default function ImportResults() {
                 placeholder={isES ? 'ej. review_content' : 'e.g. review_content'}
                 value={columnInput}
                 onChange={e => setColumnInput(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') { e.preventDefault(); handleAddColumn(); }
-                }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddColumn(); } }}
                 style={{ flex: 1, margin: 0, padding: '0.4rem 0.65rem', fontSize: '0.83rem' }}
               />
               <button
@@ -315,28 +431,35 @@ export default function ImportResults() {
               </button>
             </div>
 
-            {/* Footer note */}
-            {columns.length > 0 && (
-              <p style={{ fontSize: '0.77rem', color: 'var(--text-secondary)', marginTop: '1.25rem', lineHeight: 1.5 }}>
-                {isES
-                  ? 'Cada columna se convierte en una dimensión de análisis. El contenido de cada fila se procesa como una respuesta individual.'
-                  : 'Each column becomes an analysis dimension. Each row is processed as an individual response.'}
-              </p>
-            )}
-
-            {/* Hint: include only text columns */}
+            {/* Legend */}
             <div style={{
               marginTop: '1.25rem', padding: '0.75rem',
               background: 'var(--bg-secondary, #F9FAFB)',
               border: '1px solid var(--border, #E5E7EB)',
-              fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5,
+              fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.6,
             }}>
-              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.25rem' }}>
-                {isES ? '¿Qué columnas incluir?' : 'Which columns to include?'}
+              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.3rem' }}>
+                {isES ? '¿Qué tipo elegir?' : 'Which type to pick?'}
               </strong>
-              {isES
-                ? 'Incluye solo columnas con texto libre (comentarios, reseñas, respuestas abiertas). Omite fechas, IDs o puntuaciones numéricas — no aportan al análisis de temas.'
-                : 'Include only free-text columns (comments, reviews, open answers). Skip dates, IDs, or numeric scores — they don\'t contribute to topic analysis.'}
+              {isES ? (
+                <>
+                  <p style={{ margin: '0 0 0.3rem' }}>
+                    <strong style={{ color: 'var(--text-primary)' }}>Abierta</strong> — comentarios, reseñas, respuestas libres. Ideal para análisis de temas y sentimiento.
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    <strong style={{ color: 'var(--text-primary)' }}>Opción múltiple</strong> — calificaciones numéricas, categorías fijas. Los valores únicos del archivo se usan como opciones. Se detecta automáticamente si la columna es numérica.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p style={{ margin: '0 0 0.3rem' }}>
+                    <strong style={{ color: 'var(--text-primary)' }}>Open-ended</strong> — comments, reviews, free-text answers. Best for topic and sentiment analysis.
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    <strong style={{ color: 'var(--text-primary)' }}>Multiple choice</strong> — numeric ratings, fixed categories. Unique values from the file are used as options. Auto-detected for numeric columns.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </aside>
