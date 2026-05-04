@@ -844,25 +844,19 @@ export default function EventDetails() {
                     <button
                       onClick={handleAnalyzeClick}
                       disabled={analyzing}
-                      title={t('eventDetails.analyzeTitle')}
-                      style={{
-                        width: '2.25rem', height: '2.25rem', borderRadius: '50%', padding: 0,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        border: 'none', cursor: analyzing ? 'not-allowed' : 'pointer',
-                        background: analyzing ? '#818cf8' : 'var(--primary)',
-                        transition: 'background 0.2s',
-                        flexShrink: 0,
-                      }}
+                      className="btn btn-primary"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                       {analyzing ? (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}>
-                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                        </svg>
+                        <><span className="btn-spinner"></span>{t('eventDetails.analyzing')}</>
                       ) : (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                          <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
-                          <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
-                        </svg>
+                        <>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
+                            <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
+                          </svg>
+                          {t('eventDetails.analyzeTitle')}
+                        </>
                       )}
                     </button>
                     {!isImported && (
