@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 
+const emptyQuestion = () => ({ text: '', optional: false, type: 'open', options: ['', ''] });
+
 const CreateEvent = () => {
     const navigate = useNavigate();
     const { t } = useLanguage();
@@ -14,7 +16,7 @@ const CreateEvent = () => {
         name: '',
         description: '',
         end_date: '',
-        questions: [{ text: '', optional: false }]
+        questions: [emptyQuestion()]
     });
 
     const handleInputChange = (e) => {
@@ -34,28 +36,49 @@ const CreateEvent = () => {
         setFormData(prev => ({ ...prev, questions: newQuestions }));
     };
 
+    const handleQuestionTypeChange = (index, type) => {
+        const newQuestions = [...formData.questions];
+        newQuestions[index] = { ...newQuestions[index], type };
+        setFormData(prev => ({ ...prev, questions: newQuestions }));
+    };
+
+    const handleOptionChange = (qIndex, oIndex, value) => {
+        const newQuestions = [...formData.questions];
+        const newOptions = [...newQuestions[qIndex].options];
+        newOptions[oIndex] = value;
+        newQuestions[qIndex] = { ...newQuestions[qIndex], options: newOptions };
+        setFormData(prev => ({ ...prev, questions: newQuestions }));
+    };
+
+    const addOption = (qIndex) => {
+        const newQuestions = [...formData.questions];
+        newQuestions[qIndex] = { ...newQuestions[qIndex], options: [...newQuestions[qIndex].options, ''] };
+        setFormData(prev => ({ ...prev, questions: newQuestions }));
+    };
+
+    const removeOption = (qIndex, oIndex) => {
+        const newQuestions = [...formData.questions];
+        if (newQuestions[qIndex].options.length <= 2) return;
+        const newOptions = newQuestions[qIndex].options.filter((_, i) => i !== oIndex);
+        newQuestions[qIndex] = { ...newQuestions[qIndex], options: newOptions };
+        setFormData(prev => ({ ...prev, questions: newQuestions }));
+    };
+
     const addQuestion = () => {
-        setFormData(prev => ({ ...prev, questions: [...prev.questions, { text: '', optional: false }] }));
+        setFormData(prev => ({ ...prev, questions: [...prev.questions, emptyQuestion()] }));
     };
 
     const removeQuestion = (index) => {
         if (formData.questions.length === 1) return;
-        const newQuestions = formData.questions.filter((_, i) => i !== index);
-        setFormData(prev => ({ ...prev, questions: newQuestions }));
+        setFormData(prev => ({ ...prev, questions: prev.questions.filter((_, i) => i !== index) }));
     };
 
     const handleStep1Submit = (e) => {
         e.preventDefault();
-        if (!formData.end_date) {
-            setError(t('create.errorNoDate'));
-            return;
-        }
+        if (!formData.end_date) { setError(t('create.errorNoDate')); return; }
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        if (new Date(formData.end_date) < today) {
-            setError(t('create.errorPastDate'));
-            return;
-        }
+        if (new Date(formData.end_date) < today) { setError(t('create.errorPastDate')); return; }
         setError('');
         setStep(2);
     };
@@ -65,15 +88,25 @@ const CreateEvent = () => {
         setIsLoading(true);
         setError('');
         try {
-            const cleanedQuestions = formData.questions.filter(q => q.text.trim() !== '');
-            if (cleanedQuestions.length === 0) {
-                throw new Error(t('create.errorNoQuestions'));
-            }
+            const cleanedQuestions = formData.questions
+                .filter(q => q.text.trim() !== '')
+                .map(q => ({
+                    text: q.text.trim(),
+                    optional: q.optional,
+                    type: q.type,
+                    options: q.type === 'multiple'
+                        ? q.options.map(o => o.trim()).filter(Boolean)
+                        : [],
+                }));
 
-            await api.post('/events/new', {
-                ...formData,
-                questions: cleanedQuestions.map(q => q.text.trim()),
-            });
+            if (cleanedQuestions.length === 0) throw new Error(t('create.errorNoQuestions'));
+
+            const badMultiple = cleanedQuestions.find(
+                q => q.type === 'multiple' && q.options.length < 2
+            );
+            if (badMultiple) throw new Error(t('create.errorMultipleOptions'));
+
+            await api.post('/events/new', { ...formData, questions: cleanedQuestions });
             navigate('/admin');
         } catch (err) {
             setError(err.response?.data?.message || err.message || t('create.errorGeneric'));
@@ -95,7 +128,6 @@ const CreateEvent = () => {
                 highlight: { icon: '🎯', text: t('tips.step1.highlight') }
             };
         }
-
         return {
             title: t('tips.step2.title'),
             icon: '❓',
@@ -133,9 +165,7 @@ const CreateEvent = () => {
             </div>
 
             {error && (
-                <div className="alert alert-error" style={{ maxWidth: '900px' }}>
-                    {error}
-                </div>
+                <div className="alert alert-error" style={{ maxWidth: '900px' }}>{error}</div>
             )}
 
             <div className="create-event-layout">
@@ -197,9 +227,11 @@ const CreateEvent = () => {
                                     <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', marginBottom: '1rem' }}>
                                         {t('create.questionsHint')}
                                     </p>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                        {formData.questions.map((question, index) => (
-                                            <div key={index} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                        {formData.questions.map((question, qIndex) => (
+                                            <div key={qIndex} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                                                {/* Number badge */}
                                                 <span style={{
                                                     width: '28px', height: '28px',
                                                     background: 'var(--primary-light)', color: 'var(--primary)',
@@ -207,31 +239,103 @@ const CreateEvent = () => {
                                                     justifyContent: 'center', fontSize: '0.875rem',
                                                     fontWeight: '600', flexShrink: 0, marginTop: '0.5rem'
                                                 }}>
-                                                    {index + 1}
+                                                    {qIndex + 1}
                                                 </span>
+
+                                                {/* Question body */}
                                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                                    {/* Question text */}
                                                     <textarea
                                                         className="input-field"
                                                         rows="2"
                                                         value={question.text}
-                                                        onChange={(e) => handleQuestionChange(index, e.target.value)}
-                                                        placeholder={t('create.questionPlaceholder', { num: index + 1 })}
+                                                        onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
+                                                        placeholder={t('create.questionPlaceholder', { num: qIndex + 1 })}
                                                         style={{ margin: 0 }}
                                                     />
-                                                    <select
-                                                        className="input-field"
-                                                        value={question.optional ? 'optional' : 'required'}
-                                                        onChange={(e) => handleQuestionOptionalChange(index, e.target.value === 'optional')}
-                                                        style={{ margin: 0, fontSize: '0.8rem', padding: '0.35rem 0.6rem', cursor: 'pointer' }}
-                                                    >
-                                                        <option value="required">{t('create.questionRequired')}</option>
-                                                        <option value="optional">{t('create.questionOptional')}</option>
-                                                    </select>
+
+                                                    {/* Type + required selectors */}
+                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                        <select
+                                                            className="input-field"
+                                                            value={question.type}
+                                                            onChange={(e) => handleQuestionTypeChange(qIndex, e.target.value)}
+                                                            style={{ margin: 0, fontSize: '0.8rem', padding: '0.35rem 0.6rem', cursor: 'pointer', flex: 1 }}
+                                                        >
+                                                            <option value="open">{t('create.questionTypeOpen')}</option>
+                                                            <option value="multiple">{t('create.questionTypeMultiple')}</option>
+                                                        </select>
+                                                        <select
+                                                            className="input-field"
+                                                            value={question.optional ? 'optional' : 'required'}
+                                                            onChange={(e) => handleQuestionOptionalChange(qIndex, e.target.value === 'optional')}
+                                                            style={{ margin: 0, fontSize: '0.8rem', padding: '0.35rem 0.6rem', cursor: 'pointer', flex: 1 }}
+                                                        >
+                                                            <option value="required">{t('create.questionRequired')}</option>
+                                                            <option value="optional">{t('create.questionOptional')}</option>
+                                                        </select>
+                                                    </div>
+
+                                                    {/* Multiple choice options */}
+                                                    {question.type === 'multiple' && (
+                                                        <div style={{
+                                                            display: 'flex', flexDirection: 'column', gap: '0.4rem',
+                                                            padding: '0.75rem',
+                                                            background: 'var(--bg-secondary, #F9FAFB)',
+                                                            border: '1px solid var(--border)',
+                                                        }}>
+                                                            {question.options.map((opt, oIndex) => (
+                                                                <div key={oIndex} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                                    <span style={{
+                                                                        width: '18px', height: '18px', flexShrink: 0,
+                                                                        border: '2px solid var(--border)',
+                                                                        borderRadius: '50%', display: 'inline-block',
+                                                                    }} />
+                                                                    <input
+                                                                        type="text"
+                                                                        className="input-field"
+                                                                        value={opt}
+                                                                        onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)}
+                                                                        placeholder={t('create.optionPlaceholder', { num: oIndex + 1 })}
+                                                                        style={{ margin: 0, padding: '0.3rem 0.6rem', fontSize: '0.875rem' }}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeOption(qIndex, oIndex)}
+                                                                        disabled={question.options.length <= 2}
+                                                                        style={{
+                                                                            background: 'none', border: 'none', cursor: question.options.length <= 2 ? 'default' : 'pointer',
+                                                                            color: question.options.length <= 2 ? 'var(--border)' : 'var(--text-secondary)',
+                                                                            padding: '0.2rem', flexShrink: 0, lineHeight: 1,
+                                                                            fontSize: '1rem', fontWeight: '600',
+                                                                        }}
+                                                                        title="Eliminar opción"
+                                                                    >
+                                                                        ×
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => addOption(qIndex)}
+                                                                style={{
+                                                                    background: 'none', border: 'none', cursor: 'pointer',
+                                                                    color: 'var(--primary)', fontSize: '0.8rem',
+                                                                    fontWeight: '600', textAlign: 'left', padding: '0.2rem 0',
+                                                                    marginTop: '0.1rem',
+                                                                }}
+                                                            >
+                                                                {t('create.addOption')}
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
+
+                                                {/* Remove question */}
                                                 {formData.questions.length > 1 && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => removeQuestion(index)}
+                                                        onClick={() => removeQuestion(qIndex)}
                                                         className="btn btn-outline"
                                                         style={{ padding: '0.5rem', color: 'var(--error)', borderColor: 'var(--error-light)', marginTop: '0.25rem' }}
                                                         title={t('admin.delete')}
