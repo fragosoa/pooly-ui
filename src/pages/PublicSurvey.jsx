@@ -26,9 +26,9 @@ export default function PublicSurvey() {
           name: 'Movilidad Urbana 2026',
           description: 'Ayúdanos a mejorar el transporte de nuestra ciudad. Tu opinión es importante para nosotros.',
           questions: [
-            { id: 101, text: '¿Cuál es tu principal medio de transporte para ir al trabajo o escuela?' },
-            { id: 102, text: '¿Qué opinas sobre las ciclovías actuales en la ciudad?' },
-            { id: 103, text: '¿Qué mejora priorizarías para el transporte público?' }
+            { id: 101, text: '¿Cuál es tu principal medio de transporte para ir al trabajo o escuela?', type: 'multiple', options: ['Metro', 'Bicicleta', 'Auto particular', 'Transporte público', 'A pie'] },
+            { id: 102, text: '¿Qué opinas sobre las ciclovías actuales en la ciudad?', type: 'open', options: [] },
+            { id: 103, text: '¿Qué mejora priorizarías para el transporte público?', type: 'open', options: [] }
           ]
         });
       } finally {
@@ -57,7 +57,10 @@ export default function PublicSurvey() {
       const toNums = (pairs) =>
         pairs.map(([id]) => event.questions.findIndex(q => q.id === parseInt(id)) + 1).join(', ');
 
-      const tooLongList = answeredQuestions.filter(([_, text]) => text.trim().length > 500);
+      const tooLongList = answeredQuestions.filter(([questionId, text]) => {
+        const q = event.questions.find(q => q.id === parseInt(questionId));
+        return q?.type !== 'multiple' && text.trim().length > 500;
+      });
       if (tooLongList.length > 0) {
         throw new Error(t('survey.errorMaxChars', { nums: toNums(tooLongList) }));
       }
@@ -75,7 +78,7 @@ export default function PublicSurvey() {
     } catch (err) {
       const status = err.response?.status;
       if (status === 422) {
-        setError(err.message || t('survey.errorMaxChars', { nums: '?' }));
+        setError(err.response?.data?.message || err.message || t('survey.errorMaxChars', { nums: '?' }));
       } else {
         setError(err.message || t('survey.errorSubmit'));
       }
@@ -184,18 +187,45 @@ export default function PublicSurvey() {
                 </div>
 
                 <div className="chat-message chat-user">
-                  <div className="chat-input-container">
-                    <textarea
-                      className="chat-textarea"
-                      placeholder={t('survey.placeholder')}
-                      value={responses[question.id] || ''}
-                      onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                      rows={3}
-                    />
-                    {responses[question.id]?.trim() && (
-                      <div className="chat-input-status">✓</div>
-                    )}
-                  </div>
+                  {question.type === 'multiple' && question.options?.length > 0 ? (
+                    <div className="chat-options">
+                      {question.options.map((option, oIdx) => {
+                        const isSelected = responses[question.id] === option;
+                        return (
+                          <label key={oIdx} className={`chat-option ${isSelected ? 'is-selected' : ''}`}>
+                            <input
+                              type="radio"
+                              name={`q-${question.id}`}
+                              value={option}
+                              checked={isSelected}
+                              onChange={() => handleResponseChange(question.id, option)}
+                              style={{ display: 'none' }}
+                            />
+                            <span className="chat-option-dot" />
+                            <span className="chat-option-text">{option}</span>
+                          </label>
+                        );
+                      })}
+                      {responses[question.id] && (
+                        <div className="chat-options-done">
+                          <span>✓</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="chat-input-container">
+                      <textarea
+                        className="chat-textarea"
+                        placeholder={t('survey.placeholder')}
+                        value={responses[question.id] || ''}
+                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                        rows={3}
+                      />
+                      {responses[question.id]?.trim() && (
+                        <div className="chat-input-status">✓</div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
