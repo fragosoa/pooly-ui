@@ -115,10 +115,10 @@ function ColumnCard({ col, idx, isES, onTypeChange, onRemove }) {
       {/* Type toggle */}
       <div style={{ display: 'flex', gap: '0.3rem' }}>
         <TypeBtn active={col.type === 'open'} onClick={() => onTypeChange(idx, 'open')}>
-          {isES ? 'Abierta' : 'Open-ended'}
+          {isES ? 'Texto libre' : 'Free text'}
         </TypeBtn>
         <TypeBtn active={col.type === 'multiple'} onClick={() => onTypeChange(idx, 'multiple')}>
-          {isES ? 'Opción múltiple' : 'Multiple choice'}
+          {isES ? 'Columna numérica' : 'Numeric column'}
         </TypeBtn>
       </div>
 
@@ -390,8 +390,8 @@ export default function ImportResults() {
                 {(openCount > 0 || multipleCount > 0) && (
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0.75rem', lineHeight: 1.5 }}>
                     {isES
-                      ? `${openCount} abierta${openCount !== 1 ? 's' : ''} · ${multipleCount} opción múltiple`
-                      : `${openCount} open-ended · ${multipleCount} multiple choice`}
+                      ? `${openCount} texto libre · ${multipleCount} numérica${multipleCount !== 1 ? 's' : ''}`
+                      : `${openCount} free text · ${multipleCount} numeric`}
                   </p>
                 )}
               </div>
@@ -444,19 +444,19 @@ export default function ImportResults() {
               {isES ? (
                 <>
                   <p style={{ margin: '0 0 0.3rem' }}>
-                    <strong style={{ color: 'var(--text-primary)' }}>Abierta</strong> — comentarios, reseñas, respuestas libres. Ideal para análisis de temas y sentimiento.
+                    <strong style={{ color: 'var(--text-primary)' }}>Texto libre</strong> — comentarios, reseñas, respuestas abiertas. Ideal para análisis de temas y sentimiento.
                   </p>
                   <p style={{ margin: 0 }}>
-                    <strong style={{ color: 'var(--text-primary)' }}>Opción múltiple</strong> — calificaciones numéricas, categorías fijas. Los valores únicos del archivo se usan como opciones. Se detecta automáticamente si la columna es numérica.
+                    <strong style={{ color: 'var(--text-primary)' }}>Columna numérica</strong> — calificaciones, escalas o categorías fijas. Los valores únicos del archivo se usan como opciones. Se detecta automáticamente.
                   </p>
                 </>
               ) : (
                 <>
                   <p style={{ margin: '0 0 0.3rem' }}>
-                    <strong style={{ color: 'var(--text-primary)' }}>Open-ended</strong> — comments, reviews, free-text answers. Best for topic and sentiment analysis.
+                    <strong style={{ color: 'var(--text-primary)' }}>Free text</strong> — comments, reviews, open answers. Best for topic and sentiment analysis.
                   </p>
                   <p style={{ margin: 0 }}>
-                    <strong style={{ color: 'var(--text-primary)' }}>Multiple choice</strong> — numeric ratings, fixed categories. Unique values from the file are used as options. Auto-detected for numeric columns.
+                    <strong style={{ color: 'var(--text-primary)' }}>Numeric column</strong> — ratings, scales, or fixed categories. Unique values from the file become options. Auto-detected.
                   </p>
                 </>
               )}
