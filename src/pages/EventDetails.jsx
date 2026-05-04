@@ -73,6 +73,8 @@ export default function EventDetails() {
   const [selectedTimestamp, setSelectedTimestamp] = useState(null);
 
   const [isExporting, setIsExporting] = useState(false);
+  const [expandedQuestions, setExpandedQuestions] = useState(new Set());
+  const RESPONSE_PREVIEW = 5;
 
   // Jobs state
   const [jobs, setJobs] = useState([]);
@@ -224,6 +226,14 @@ export default function EventDetails() {
   };
 
   const handleAnalyzeClick = () => setShowAnalyzeModal(true);
+
+  const toggleQuestion = (id) => {
+    setExpandedQuestions(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
 
   const handleAnalyzeConfirm = async () => {
     setShowAnalyzeModal(false);
@@ -834,25 +844,19 @@ export default function EventDetails() {
                     <button
                       onClick={handleAnalyzeClick}
                       disabled={analyzing}
-                      title={t('eventDetails.analyzeTitle')}
-                      style={{
-                        width: '2.25rem', height: '2.25rem', borderRadius: '50%', padding: 0,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        border: 'none', cursor: analyzing ? 'not-allowed' : 'pointer',
-                        background: analyzing ? '#818cf8' : 'var(--primary)',
-                        transition: 'background 0.2s',
-                        flexShrink: 0,
-                      }}
+                      className="btn btn-primary"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                       {analyzing ? (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}>
-                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                        </svg>
+                        <><span className="btn-spinner"></span>{t('eventDetails.analyzing')}</>
                       ) : (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                          <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
-                          <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
-                        </svg>
+                        <>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
+                            <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
+                          </svg>
+                          {t('eventDetails.analyzeTitle')}
+                        </>
                       )}
                     </button>
                     {!isImported && (
@@ -953,17 +957,40 @@ export default function EventDetails() {
                         <div style={{ padding: '1rem 1.25rem' }}>
                           {question.responses?.length === 0 ? (
                             <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                              {t('eventDetails.noResponses')}
+                              {isImported ? t('eventDetails.importNoPreview') : t('eventDetails.noResponses')}
                             </p>
-                          ) : (
-                            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                              {question.responses?.map(response => (
-                                <li key={response.id} className="response-item">
-                                  {response.text}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
+                          ) : (() => {
+                            const all = question.responses;
+                            const isExpanded = expandedQuestions.has(question.id);
+                            const visible = isExpanded ? all : all.slice(0, RESPONSE_PREVIEW);
+                            const hasMore = all.length > RESPONSE_PREVIEW;
+                            return (
+                              <>
+                                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', margin: 0 }}>
+                                  {visible.map(response => (
+                                    <li key={response.id} className="response-item">
+                                      {response.text}
+                                    </li>
+                                  ))}
+                                </ul>
+                                {hasMore && (
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleQuestion(question.id)}
+                                    style={{
+                                      marginTop: '0.75rem', background: 'none', border: 'none',
+                                      cursor: 'pointer', color: 'var(--primary)',
+                                      fontSize: '0.8rem', fontWeight: '600', padding: 0,
+                                    }}
+                                  >
+                                    {isExpanded
+                                      ? (locale === 'es-MX' ? '▲ Ver menos' : '▲ Show less')
+                                      : `▼ ${locale === 'es-MX' ? `Ver todas (${all.length})` : `Show all (${all.length})`}`}
+                                  </button>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                     ))}
@@ -992,13 +1019,33 @@ export default function EventDetails() {
                       : t('reports.subtitleEmpty')}
                   </p>
                 </div>
-                <button onClick={fetchReports} className="btn btn-secondary" disabled={reportsLoading}>
-                  {reportsLoading ? (
-                    <><span className="btn-spinner"></span>{t('reports.loading')}</>
-                  ) : (
-                    t('reports.refresh')
-                  )}
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={handleAnalyzeClick}
+                    disabled={analyzing}
+                    className="btn btn-primary"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                  >
+                    {analyzing ? (
+                      <><span className="btn-spinner"></span>{t('eventDetails.analyzing')}</>
+                    ) : (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
+                          <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
+                        </svg>
+                        {t('eventDetails.analyzeTitle')}
+                      </>
+                    )}
+                  </button>
+                  <button onClick={fetchReports} className="btn btn-secondary" disabled={reportsLoading}>
+                    {reportsLoading ? (
+                      <><span className="btn-spinner"></span>{t('reports.loading')}</>
+                    ) : (
+                      t('reports.refresh')
+                    )}
+                  </button>
+                </div>
               </div>
 
               {reportsError && (
@@ -1295,15 +1342,15 @@ export default function EventDetails() {
                       <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
                         {t('charts.pieTitle')}
                       </h4>
-                      <ResponsiveContainer width="100%" height={280}>
+                      <ResponsiveContainer width="100%" height={320}>
                         <PieChart>
                           <Pie
                             data={pieData}
                             cx="50%"
-                            cy="45%"
-                            outerRadius={100}
+                            cy="46%"
+                            outerRadius={85}
                             dataKey="value"
-                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                             labelLine={true}
                           >
                             {pieData.map((entry, i) => (

@@ -118,7 +118,7 @@ function ColumnCard({ col, idx, isES, onTypeChange, onRemove }) {
           {isES ? 'Texto libre' : 'Free text'}
         </TypeBtn>
         <TypeBtn active={col.type === 'multiple'} onClick={() => onTypeChange(idx, 'multiple')}>
-          {isES ? 'Columna numérica' : 'Numeric column'}
+          {isES ? 'Columna Categórica' : 'Categorical column'}
         </TypeBtn>
       </div>
 
@@ -241,8 +241,10 @@ export default function ImportResults() {
       payload.append('file', file);
       payload.append('name', formData.name);
       payload.append('description', formData.description);
-      // Each column: { name, type, options }
-      payload.append('columns', JSON.stringify(columns));
+      // Backend expects { text, type, options } — map from internal { name, type, options }
+      payload.append('columns', JSON.stringify(
+        columns.map(col => ({ text: col.name, type: col.type, options: col.options }))
+      ));
 
       const response = await api.post('/imports', payload, {
         headers: { 'Content-Type': 'multipart/form-data' },
