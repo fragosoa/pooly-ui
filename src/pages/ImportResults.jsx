@@ -118,7 +118,7 @@ function ColumnCard({ col, idx, isES, onTypeChange, onRemove }) {
           {isES ? 'Texto libre' : 'Free text'}
         </TypeBtn>
         <TypeBtn active={col.type === 'multiple'} onClick={() => onTypeChange(idx, 'multiple')}>
-          {isES ? 'Columna numérica' : 'Numeric column'}
+          {isES ? 'Columna Categórica' : 'Categorical column'}
         </TypeBtn>
       </div>
 
