@@ -1054,6 +1054,32 @@ textarea.input-field {
   color: var(--text-muted);
 }
 
+@keyframes carouselFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.carousel-slide {
+  animation: carouselFadeIn 0.35s ease;
+}
+
+.chat-input-single {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-white);
+  color: var(--text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.chat-input-single:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
 .chat-input-status {
   position: absolute;
   right: 0.75rem;
@@ -2005,7 +2031,6 @@ textarea.input-field {
 .create-event-tips {
   position: sticky;
   top: 6rem;
-  height: fit-content;
 }
 
 .import-layout {

@@ -26,9 +26,10 @@ export default function PublicSurvey() {
           name: 'Movilidad Urbana 2026',
           description: 'Ayúdanos a mejorar el transporte de nuestra ciudad. Tu opinión es importante para nosotros.',
           questions: [
-            { id: 101, text: '¿Cuál es tu principal medio de transporte para ir al trabajo o escuela?', type: 'multiple', options: ['Metro', 'Bicicleta', 'Auto particular', 'Transporte público', 'A pie'] },
+            { id: 101, text: '¿Cuál es tu principal medio de transporte?', type: 'multiple', options: ['Metro', 'Bicicleta', 'Auto particular', 'Transporte público', 'A pie'] },
             { id: 102, text: '¿Qué opinas sobre las ciclovías actuales en la ciudad?', type: 'open', options: [] },
-            { id: 103, text: '¿Qué mejora priorizarías para el transporte público?', type: 'open', options: [] }
+            { id: 103, text: '¿Cuántas veces por semana usas el transporte público?', type: 'numeric', options: [] },
+            { id: 104, text: '¿Cuándo fue tu último viaje en transporte público?', type: 'date', options: [] }
           ]
         });
       } finally {
@@ -59,7 +60,7 @@ export default function PublicSurvey() {
 
       const tooLongList = answeredQuestions.filter(([questionId, text]) => {
         const q = event.questions.find(q => q.id === parseInt(questionId));
-        return q?.type !== 'multiple' && text.trim().length > 500;
+        return !['multiple', 'numeric', 'date'].includes(q?.type) && text.trim().length > 500;
       });
       if (tooLongList.length > 0) {
         throw new Error(t('survey.errorMaxChars', { nums: toNums(tooLongList) }));
@@ -207,9 +208,32 @@ export default function PublicSurvey() {
                         );
                       })}
                       {responses[question.id] && (
-                        <div className="chat-options-done">
-                          <span>✓</span>
-                        </div>
+                        <div className="chat-options-done"><span>✓</span></div>
+                      )}
+                    </div>
+                  ) : question.type === 'numeric' ? (
+                    <div className="chat-input-container">
+                      <input
+                        type="number"
+                        className="chat-input-single"
+                        placeholder={t('survey.placeholderNumeric')}
+                        value={responses[question.id] || ''}
+                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                      />
+                      {responses[question.id]?.trim() && (
+                        <div className="chat-input-status">✓</div>
+                      )}
+                    </div>
+                  ) : question.type === 'date' ? (
+                    <div className="chat-input-container">
+                      <input
+                        type="date"
+                        className="chat-input-single"
+                        value={responses[question.id] || ''}
+                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                      />
+                      {responses[question.id]?.trim() && (
+                        <div className="chat-input-status">✓</div>
                       )}
                     </div>
                   ) : (
