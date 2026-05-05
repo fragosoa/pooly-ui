@@ -2031,7 +2031,6 @@ textarea.input-field {
 .create-event-tips {
   position: sticky;
   top: 6rem;
-  height: fit-content;
 }
 
 .import-layout {

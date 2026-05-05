@@ -20,7 +20,7 @@ const CreateEvent = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '', description: '', end_date: '',
-        questions: [emptyQuestion()],
+        questions: [],
     });
 
     // ── UI-only state ─────────────────────────────────────────────────────────
@@ -232,6 +232,18 @@ const CreateEvent = () => {
                                     {t('create.questionsHint')}
                                 </p>
 
+                                {/* Empty state */}
+                                {formData.questions.length === 0 && (
+                                    <div style={{
+                                        padding: '2rem 1rem', textAlign: 'center', marginBottom: '1rem',
+                                        border: '1px dashed var(--border)', background: 'var(--bg-secondary)',
+                                    }}>
+                                        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0 }}>
+                                            {isES ? 'Comienza agregando preguntas.' : 'Start by adding questions.'}
+                                        </p>
+                                    </div>
+                                )}
+
                                 {/* Compact question rows */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1rem' }}>
                                     {formData.questions.map((q, idx) => (
@@ -367,9 +379,9 @@ const CreateEvent = () => {
                         </div>
                     ) : (
                         // Carousel for step 2
-                        <div className="tips-panel">
+                        <div className="tips-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
                             {/* Slide content */}
-                            <div key={carouselIdx} className="carousel-slide">
+                            <div key={carouselIdx} className="carousel-slide" style={{ flex: 1 }}>
                                 <div className="tips-header">
                                     <span className="tips-header-icon">{slides[carouselIdx].icon}</span>
                                     <h3 className="tips-title">{slides[carouselIdx].title}</h3>
@@ -549,35 +561,26 @@ const CreateEvent = () => {
                     </div>
                 )}
 
-                {/* Required / Optional toggle */}
+                {/* Required toggle — ON = required, OFF = optional */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem' }}>
-                    <span style={{
-                        fontSize: '0.85rem', fontWeight: '600',
-                        color: !modalData.optional ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    }}>
-                        {t('create.questionRequired')}
-                    </span>
                     <button
                         type="button"
                         onClick={() => setModalData(prev => ({ ...prev, optional: !prev.optional }))}
                         style={{
                             width: '40px', height: '22px', borderRadius: '11px', position: 'relative',
-                            background: modalData.optional ? 'var(--primary)' : 'var(--border)',
+                            background: !modalData.optional ? 'var(--primary)' : 'var(--border)',
                             border: 'none', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0,
                         }}
                     >
                         <span style={{
                             position: 'absolute', top: '2px',
-                            left: modalData.optional ? '20px' : '2px',
+                            left: !modalData.optional ? '20px' : '2px',
                             width: '18px', height: '18px', borderRadius: '50%',
                             background: '#fff', transition: 'left 0.2s',
                         }} />
                     </button>
-                    <span style={{
-                        fontSize: '0.85rem', fontWeight: '600',
-                        color: modalData.optional ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    }}>
-                        {t('create.questionOptional')}
+                    <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-primary)' }}>
+                        {t('create.questionRequired')}
                     </span>
                 </div>
             </Modal>
