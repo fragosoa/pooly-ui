@@ -171,6 +171,7 @@ export default function ImportResults() {
   const [columns, setColumns] = useState([]);
   const [columnInput, setColumnInput] = useState('');
   const [isParsing, setIsParsing] = useState(false);
+  const [activeColIdx, setActiveColIdx] = useState(null);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
@@ -271,8 +272,10 @@ export default function ImportResults() {
     }
   };
 
-  const openCount = columns.filter(c => c.type === 'open').length;
-  const multipleCount = columns.filter(c => c.type === 'multiple').length;
+  const typeCounts = Object.keys(TYPE_META).reduce((acc, type) => {
+    acc[type] = columns.filter(c => c.type === type).length;
+    return acc;
+  }, {});
 
   return (
     <div className="container" style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
@@ -371,13 +374,42 @@ export default function ImportResults() {
               )}
             </div>
 
-            <p style={{ fontSize: '0.83rem', color: 'var(--text-secondary)', margin: '0.75rem 0 1rem' }}>
+            <p style={{ fontSize: '0.83rem', color: 'var(--text-secondary)', margin: '0.75rem 0 0' }}>
               {isES
                 ? 'Sube tu archivo para detectarlas automáticamente, o agrégalas una a una.'
                 : 'Upload your file to detect them automatically, or add them one by one.'}
             </p>
 
-            {/* Column list */}
+            {/* Type guide — shown right below intro */}
+            <div style={{
+              margin: '0.85rem 0 1rem', padding: '0.65rem 0.75rem',
+              background: 'var(--bg-secondary, #F9FAFB)',
+              border: '1px solid var(--border, #E5E7EB)',
+              fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5,
+            }}>
+              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.4rem' }}>
+                {isES ? '¿Qué tipo elegir?' : 'Which type to pick?'}
+              </strong>
+              {Object.entries(TYPE_META).map(([val, m]) => (
+                <p key={val} style={{ margin: '0 0 0.25rem', display: 'flex', gap: '0.35rem' }}>
+                  <span style={{ flexShrink: 0 }}>{m.icon}</span>
+                  <span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{isES ? m.labelES : m.labelEN}</strong>
+                    {' — '}{isES ? m.descES : m.descEN}
+                  </span>
+                </p>
+              ))}
+              <p style={{ margin: '0.5rem 0 0', fontStyle: 'italic', display: 'flex', gap: '0.3rem', alignItems: 'flex-start', borderTop: '1px solid var(--border)', paddingTop: '0.5rem' }}>
+                <span style={{ flexShrink: 0 }}>ⓘ</span>
+                <span>
+                  {isES
+                    ? 'Ratings numéricos (1–5) se detectan como Opción múltiple. Si son mediciones continuas (ej. edades), cámbialos a Numérico.'
+                    : 'Numeric ratings (1–5) are detected as Multiple choice. For continuous values (e.g. ages), switch to Numeric.'}
+                </span>
+              </p>
+            </div>
+
+            {/* Column chips */}
             {isParsing ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.83rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
                 <span className="btn-spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span>
@@ -385,24 +417,73 @@ export default function ImportResults() {
               </div>
             ) : columns.length > 0 ? (
               <div style={{ marginBottom: '0.75rem' }}>
-                {columns.map((col, idx) => (
-                  <ColumnCard
-                    key={idx}
-                    col={col}
-                    idx={idx}
-                    isES={isES}
-                    onTypeChange={handleColumnTypeChange}
-                    onRemove={handleRemoveColumn}
-                  />
-                ))}
-                {/* Summary */}
-                {(openCount > 0 || multipleCount > 0) && (
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0.75rem', lineHeight: 1.5 }}>
-                    {isES
-                      ? `${openCount} texto libre · ${multipleCount} numérica${multipleCount !== 1 ? 's' : ''}`
-                      : `${openCount} free text · ${multipleCount} numeric`}
-                  </p>
-                )}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.5rem' }}>
+                  {columns.map((col, idx) => {
+                    const meta = TYPE_META[col.type] || TYPE_META.open;
+                    const isActive = activeColIdx === idx;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setActiveColIdx(isActive ? null : idx)}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                          padding: '0.25rem 0.4rem 0.25rem 0.55rem',
+                          border: `1px solid ${isActive ? 'var(--primary)' : 'var(--border)'}`,
+                          background: isActive ? 'var(--primary-light, #EEF0FF)' : '#fff',
+                          cursor: 'pointer', userSelect: 'none',
+                          transition: 'border-color 0.15s, background 0.15s',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.78rem' }}>{meta.icon}</span>
+                        <span style={{
+                          fontFamily: 'monospace', fontSize: '0.74rem', fontWeight: '700',
+                          color: 'var(--primary)', maxWidth: '120px',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {col.name}
+                        </span>
+                        {isActive && (
+                          <select
+                            value={col.type}
+                            onChange={e => handleColumnTypeChange(idx, e.target.value)}
+                            onClick={e => e.stopPropagation()}
+                            style={{
+                              fontSize: '0.72rem', padding: '0.1rem 0.25rem',
+                              border: '1px solid var(--primary)', background: '#fff',
+                              cursor: 'pointer', marginLeft: '0.15rem',
+                            }}
+                          >
+                            {Object.entries(TYPE_META).map(([val, m]) => (
+                              <option key={val} value={val}>
+                                {m.icon} {isES ? m.labelES : m.labelEN}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        <button
+                          type="button"
+                          onClick={e => { e.stopPropagation(); handleRemoveColumn(idx); if (activeColIdx === idx) setActiveColIdx(null); }}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            color: 'var(--text-secondary)', fontSize: '0.9rem',
+                            lineHeight: 1, padding: '0 0.1rem', marginLeft: '0.1rem',
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Type summary */}
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  {Object.entries(typeCounts)
+                    .filter(([, n]) => n > 0)
+                    .map(([type, n]) => `${TYPE_META[type].icon} ×${n}`)
+                    .join('  ')}
+                  {' · '}
+                  {isES ? 'clic para editar tipo' : 'click to edit type'}
+                </p>
               </div>
             ) : (
               <div style={{
@@ -438,40 +519,6 @@ export default function ImportResults() {
               >
                 {isES ? '+ Agregar' : '+ Add'}
               </button>
-            </div>
-
-            {/* Legend */}
-            <div style={{
-              marginTop: '1.25rem', padding: '0.75rem',
-              background: 'var(--bg-secondary, #F9FAFB)',
-              border: '1px solid var(--border, #E5E7EB)',
-              fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.6,
-            }}>
-              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.5rem' }}>
-                {isES ? '¿Qué tipo elegir?' : 'Which type to pick?'}
-              </strong>
-              {Object.entries(TYPE_META).map(([val, m]) => (
-                <p key={val} style={{ margin: '0 0 0.3rem', display: 'flex', gap: '0.4rem' }}>
-                  <span style={{ flexShrink: 0 }}>{m.icon}</span>
-                  <span>
-                    <strong style={{ color: 'var(--text-primary)' }}>{isES ? m.labelES : m.labelEN}</strong>
-                    {' — '}
-                    {isES ? m.descES : m.descEN}
-                  </span>
-                </p>
-              ))}
-              <div style={{
-                marginTop: '0.65rem', paddingTop: '0.65rem',
-                borderTop: '1px solid var(--border)',
-                display: 'flex', gap: '0.4rem', alignItems: 'flex-start',
-              }}>
-                <span style={{ flexShrink: 0 }}>ⓘ</span>
-                <p style={{ margin: 0, fontStyle: 'italic' }}>
-                  {isES
-                    ? 'Columnas con pocos valores numéricos únicos (ej. ratings 1–5) se detectan como Opción múltiple. Si representan mediciones continuas (ej. edades), cámbialas a Numérico manualmente.'
-                    : 'Columns with few unique numeric values (e.g. ratings 1–5) are detected as Multiple choice. If they represent continuous measurements (e.g. ages), switch them to Numeric manually.'}
-                </p>
-              </div>
             </div>
           </div>
         </aside>
