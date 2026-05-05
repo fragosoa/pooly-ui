@@ -1054,6 +1054,14 @@ textarea.input-field {
   color: var(--text-muted);
 }
 
+@keyframes carouselFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.carousel-slide {
+  animation: carouselFadeIn 0.35s ease;
+}
+
 .chat-input-single {
   width: 100%;
   padding: 1rem;
