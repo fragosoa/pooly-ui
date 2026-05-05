@@ -8,11 +8,19 @@ const ACCEPTED_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
 const MAX_ROWS_TO_SCAN = 1000;
 const MAX_UNIQUE_FOR_MULTIPLE = 20;
 
-// Reads headers + scans data rows to classify each column
+function looksLikeDate(val) {
+  if (val.length < 5 || val.length > 25) return false;
+  if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(val)) return true;   // 2024-01-15
+  if (/^\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/.test(val)) return true; // 01/15/2024
+  const d = new Date(val);
+  return !isNaN(d.getTime());
+}
+
+// Reads headers + scans data rows to classify each column as open/multiple/numeric/date
 async function parseFileWithColumns(file) {
   const name = file.name.toLowerCase();
   let headers = [];
-  let dataRows = []; // array of string arrays
+  let dataRows = [];
 
   if (name.endsWith('.csv')) {
     const text = await file.text();
@@ -39,14 +47,14 @@ async function parseFileWithColumns(file) {
   return headers.map((colName, colIdx) => {
     const seen = new Set();
     let allNumeric = true;
+    let allDate = true;
 
     for (const row of dataRows) {
       const val = (row[colIdx] ?? '').toString().trim();
       if (!val) continue;
       seen.add(val);
-      if (allNumeric && (isNaN(parseFloat(val)) || !isFinite(Number(val)))) {
-        allNumeric = false;
-      }
+      if (allNumeric && (isNaN(parseFloat(val)) || !isFinite(Number(val)))) allNumeric = false;
+      if (allDate && !looksLikeDate(val)) allDate = false;
     }
 
     const uniqueVals = [...seen].sort((a, b) => {
@@ -54,37 +62,37 @@ async function parseFileWithColumns(file) {
       return !isNaN(na) && !isNaN(nb) ? na - nb : a.localeCompare(b);
     });
 
-    const isMultiple = allNumeric && seen.size > 0 && seen.size <= MAX_UNIQUE_FOR_MULTIPLE;
+    let type;
+    if (seen.size === 0) {
+      type = 'open';
+    } else if (allDate && !allNumeric) {
+      type = 'date';
+    } else if (allNumeric) {
+      // Few unique numeric values → categorical (e.g. ratings 1-5); many → continuous numeric
+      type = seen.size <= MAX_UNIQUE_FOR_MULTIPLE ? 'multiple' : 'numeric';
+    } else {
+      type = 'open';
+    }
 
     return {
       name: colName,
-      type: isMultiple ? 'multiple' : 'open',
-      options: isMultiple ? uniqueVals : [],
+      type,
+      options: type === 'multiple' ? uniqueVals : [],
     };
   });
 }
 
-// ── Small toggle button used for type selection ──────────────────────────────
-function TypeBtn({ active, onClick, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        flex: 1, padding: '0.25rem 0', fontSize: '0.75rem', fontWeight: '600',
-        border: `1px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
-        background: active ? 'var(--primary)' : 'transparent',
-        color: active ? '#fff' : 'var(--text-secondary)',
-        cursor: 'pointer', lineHeight: 1.4,
-      }}
-    >
-      {children}
-    </button>
-  );
-}
+const TYPE_META = {
+  open:     { icon: '💬', labelES: 'Texto libre',       labelEN: 'Free text',        descES: 'NLP: temas y sentimiento',          descEN: 'NLP: topics & sentiment' },
+  multiple: { icon: '☑️', labelES: 'Opción múltiple',   labelEN: 'Multiple choice',  descES: 'Distribución entre categorías',     descEN: 'Distribution across options' },
+  numeric:  { icon: '🔢', labelES: 'Numérico',          labelEN: 'Numeric',          descES: 'Estadísticas y promedios',          descEN: 'Statistics & averages' },
+  date:     { icon: '📅', labelES: 'Fecha',             labelEN: 'Date',             descES: 'Tendencias temporales',             descEN: 'Time trends' },
+};
 
 // ── Column card shown in the sidebar ─────────────────────────────────────────
 function ColumnCard({ col, idx, isES, onTypeChange, onRemove }) {
+  const meta = TYPE_META[col.type] || TYPE_META.open;
+
   return (
     <div style={{
       border: '1px solid var(--border)', background: '#fff',
@@ -112,39 +120,38 @@ function ColumnCard({ col, idx, isES, onTypeChange, onRemove }) {
         </button>
       </div>
 
-      {/* Type toggle */}
-      <div style={{ display: 'flex', gap: '0.3rem' }}>
-        <TypeBtn active={col.type === 'open'} onClick={() => onTypeChange(idx, 'open')}>
-          {isES ? 'Texto libre' : 'Free text'}
-        </TypeBtn>
-        <TypeBtn active={col.type === 'multiple'} onClick={() => onTypeChange(idx, 'multiple')}>
-          {isES ? 'Columna Categórica' : 'Categorical column'}
-        </TypeBtn>
-      </div>
+      {/* Type dropdown */}
+      <select
+        className="input-field"
+        value={col.type}
+        onChange={e => onTypeChange(idx, e.target.value)}
+        style={{ margin: 0, fontSize: '0.78rem', padding: '0.3rem 0.5rem' }}
+      >
+        {Object.entries(TYPE_META).map(([val, m]) => (
+          <option key={val} value={val}>
+            {m.icon} {isES ? m.labelES : m.labelEN}
+          </option>
+        ))}
+      </select>
+
+      {/* Type description */}
+      <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', margin: '0.3rem 0 0', lineHeight: 1.4 }}>
+        {isES ? meta.descES : meta.descEN}
+      </p>
 
       {/* Options preview for multiple */}
-      {col.type === 'multiple' && (
-        <div style={{ marginTop: '0.45rem' }}>
-          {col.options.length > 0 ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem' }}>
-              {col.options.map((opt, i) => (
-                <span key={i} style={{
-                  fontSize: '0.7rem', padding: '0.1rem 0.35rem',
-                  background: 'var(--bg-secondary, #F9FAFB)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-primary)',
-                }}>
-                  {opt}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: 0, fontStyle: 'italic' }}>
-              {isES
-                ? 'Sin valores detectados — el backend extraerá las opciones del archivo.'
-                : 'No values detected — the backend will extract options from the file.'}
-            </p>
-          )}
+      {col.type === 'multiple' && col.options.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', marginTop: '0.4rem' }}>
+          {col.options.map((opt, i) => (
+            <span key={i} style={{
+              fontSize: '0.7rem', padding: '0.1rem 0.35rem',
+              background: 'var(--bg-secondary, #F9FAFB)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-primary)',
+            }}>
+              {opt}
+            </span>
+          ))}
         </div>
       )}
     </div>
@@ -440,28 +447,31 @@ export default function ImportResults() {
               border: '1px solid var(--border, #E5E7EB)',
               fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.6,
             }}>
-              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.3rem' }}>
+              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.5rem' }}>
                 {isES ? '¿Qué tipo elegir?' : 'Which type to pick?'}
               </strong>
-              {isES ? (
-                <>
-                  <p style={{ margin: '0 0 0.3rem' }}>
-                    <strong style={{ color: 'var(--text-primary)' }}>Texto libre</strong> — comentarios, reseñas, respuestas abiertas. Ideal para análisis de temas y sentimiento.
-                  </p>
-                  <p style={{ margin: 0 }}>
-                    <strong style={{ color: 'var(--text-primary)' }}>Columna numérica</strong> — calificaciones, escalas o categorías fijas. Los valores únicos del archivo se usan como opciones. Se detecta automáticamente.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p style={{ margin: '0 0 0.3rem' }}>
-                    <strong style={{ color: 'var(--text-primary)' }}>Free text</strong> — comments, reviews, open answers. Best for topic and sentiment analysis.
-                  </p>
-                  <p style={{ margin: 0 }}>
-                    <strong style={{ color: 'var(--text-primary)' }}>Numeric column</strong> — ratings, scales, or fixed categories. Unique values from the file become options. Auto-detected.
-                  </p>
-                </>
-              )}
+              {Object.entries(TYPE_META).map(([val, m]) => (
+                <p key={val} style={{ margin: '0 0 0.3rem', display: 'flex', gap: '0.4rem' }}>
+                  <span style={{ flexShrink: 0 }}>{m.icon}</span>
+                  <span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{isES ? m.labelES : m.labelEN}</strong>
+                    {' — '}
+                    {isES ? m.descES : m.descEN}
+                  </span>
+                </p>
+              ))}
+              <div style={{
+                marginTop: '0.65rem', paddingTop: '0.65rem',
+                borderTop: '1px solid var(--border)',
+                display: 'flex', gap: '0.4rem', alignItems: 'flex-start',
+              }}>
+                <span style={{ flexShrink: 0 }}>ⓘ</span>
+                <p style={{ margin: 0, fontStyle: 'italic' }}>
+                  {isES
+                    ? 'Columnas con pocos valores numéricos únicos (ej. ratings 1–5) se detectan como Opción múltiple. Si representan mediciones continuas (ej. edades), cámbialas a Numérico manualmente.'
+                    : 'Columns with few unique numeric values (e.g. ratings 1–5) are detected as Multiple choice. If they represent continuous measurements (e.g. ages), switch them to Numeric manually.'}
+                </p>
+              </div>
             </div>
           </div>
         </aside>

@@ -7,7 +7,8 @@ const emptyQuestion = () => ({ text: '', optional: false, type: 'open', options:
 
 const CreateEvent = () => {
     const navigate = useNavigate();
-    const { t } = useLanguage();
+    const { t, locale } = useLanguage();
+    const isES = locale === 'es-MX';
     const [step, setStep] = useState(1);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -264,6 +265,8 @@ const CreateEvent = () => {
                                                         >
                                                             <option value="open">{t('create.questionTypeOpen')}</option>
                                                             <option value="multiple">{t('create.questionTypeMultiple')}</option>
+                                                            <option value="numeric">{t('create.questionTypeNumeric')}</option>
+                                                            <option value="date">{t('create.questionTypeDate')}</option>
                                                         </select>
                                                         <select
                                                             className="input-field"
@@ -395,6 +398,28 @@ const CreateEvent = () => {
                                         <li key={index}>{item}</li>
                                     ))}
                                 </ul>
+                            </div>
+                        )}
+
+                        {step === 2 && (
+                            <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border)' }}>
+                                <h4 style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>
+                                    {isES ? 'Tipos de respuesta' : 'Response types'}
+                                </h4>
+                                {[
+                                    { icon: '💬', label: t('create.questionTypeOpen'),    desc: isES ? 'Opiniones libres → análisis de temas y sentimiento'      : 'Free opinions → topic & sentiment analysis' },
+                                    { icon: '☑️', label: t('create.questionTypeMultiple'), desc: isES ? 'Categorías o escalas → distribución de respuestas'         : 'Fixed categories or scales → distribution' },
+                                    { icon: '🔢', label: t('create.questionTypeNumeric'),  desc: isES ? 'Edades, salarios, puntajes → estadísticas y promedios'     : 'Ages, salaries, scores → statistics' },
+                                    { icon: '📅', label: t('create.questionTypeDate'),     desc: isES ? 'Eventos y plazos → análisis de tendencias temporales'      : 'Events & deadlines → time trend analysis' },
+                                ].map(({ icon, label, desc }) => (
+                                    <div key={label} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.6rem', alignItems: 'flex-start' }}>
+                                        <span style={{ fontSize: '0.9rem', flexShrink: 0, marginTop: '0.05rem' }}>{icon}</span>
+                                        <div>
+                                            <span style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-primary)' }}>{label}</span>
+                                            <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', display: 'block', lineHeight: 1.4 }}>{desc}</span>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
 
