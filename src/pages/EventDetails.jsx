@@ -138,15 +138,13 @@ export default function EventDetails() {
       const response = await api.get(`/events/${eventId}/reports`);
       if (response.data.status === 'success') {
         const data = response.data.reports || [];
+        setReports(data);
         if (data.length > 0) {
-          setReports(data);
           const tsList = [...new Set(data.map(r => r.timestamp))].sort((a, b) => new Date(b) - new Date(a));
           setSelectedTimestamp(tsList[0]);
-        } else {
-          loadDemoReports();
         }
       } else {
-        loadDemoReports();
+        setReports([]);
       }
     } catch (err) {
       console.error('Failed to fetch reports:', err);
@@ -691,7 +689,8 @@ export default function EventDetails() {
         doc.text(isES ? 'ESTADÍSTICAS NUMÉRICAS' : 'NUMERIC STATISTICS', mg, y); y += 7;
 
         reportsByType.numeric.forEach(r => {
-          checkPage(25);
+          const histRows = r.histogram?.length || 0;
+          checkPage(30 + (histRows > 0 ? 32 : 0));
           doc.setFont('helvetica', 'bold'); doc.setFontSize(9); txt(C.textMain);
           const qLines = doc.splitTextToSize(r.question_text, cW);
           doc.text(qLines, mg, y); y += qLines.length * 4.5 + 3;
@@ -701,13 +700,37 @@ export default function EventDetails() {
             [isES ? 'Media' : 'Mean', s.mean?.toFixed(1)],
             [isES ? 'Mediana' : 'Median', s.median?.toFixed(1)],
             [isES ? 'Desv. est.' : 'Std dev.', s.std?.toFixed(1)],
-            [isES ? 'Mínimo' : 'Min', s.min],
-            [isES ? 'Máximo' : 'Max', s.max],
+            [isES ? 'Mín' : 'Min', s.min],
+            [isES ? 'Máx' : 'Max', s.max],
+            ['P25', s.p25 ?? '—'], ['P75', s.p75 ?? '—'],
             ['N', s.count],
           ];
           doc.setFont('helvetica', 'normal'); doc.setFontSize(8); txt(C.textGrey);
-          doc.text(metrics.map(([l, v]) => `${l}: ${v ?? '—'}`).join('   ·   '), mg, y);
-          y += 9;
+          doc.text(metrics.map(([l, v]) => `${l}: ${v ?? '—'}`).join('  ·  '), mg, y);
+          y += 6;
+
+          // ── Histogram bars ─────────────────────────────────
+          if (r.histogram?.length > 0) {
+            const maxCount = Math.max(...r.histogram.map(b => b.count));
+            const barsW = cW - 4;
+            const bW = barsW / r.histogram.length;
+            const chartH = 18;
+            const baseY = y + chartH;
+            r.histogram.forEach((b, i) => {
+              const bH = maxCount > 0 ? (b.count / maxCount) * chartH : 0;
+              fill(C.primary); if (bH > 0) doc.rect(mg + 2 + i * bW, baseY - bH, bW - 1, bH, 'F');
+              doc.setFontSize(5.5); txt(C.textGrey);
+              doc.text(b.range, mg + 2 + i * bW + (bW - 1) / 2, baseY + 3.5, { align: 'center' });
+              if (bH > 3) { doc.setFontSize(6); txt(C.textMain); doc.text(String(b.count), mg + 2 + i * bW + (bW - 1) / 2, baseY - bH - 1, { align: 'center' }); }
+            });
+            if (s.mean != null) {
+              txt([239, 68, 68]); doc.setFontSize(6.5);
+              doc.text(`μ = ${s.mean.toFixed(1)}`, mg + barsW + 6, y + chartH / 2);
+            }
+            y += chartH + 8;
+          } else {
+            y += 5;
+          }
         });
       }
 
@@ -720,7 +743,8 @@ export default function EventDetails() {
         doc.text(isES ? 'ANÁLISIS TEMPORAL' : 'TEMPORAL ANALYSIS', mg, y); y += 7;
 
         reportsByType.date.forEach(r => {
-          checkPage(20);
+          const distRows = r.distribution?.length || 0;
+          checkPage(30 + (distRows > 0 ? 32 : 0));
           doc.setFont('helvetica', 'bold'); doc.setFontSize(9); txt(C.textMain);
           const qLines = doc.splitTextToSize(r.question_text, cW);
           doc.text(qLines, mg, y); y += qLines.length * 4.5 + 3;
@@ -728,12 +752,34 @@ export default function EventDetails() {
           const s = r.stats || {};
           doc.setFont('helvetica', 'normal'); doc.setFontSize(8); txt(C.textGrey);
           doc.text(
-            `${isES ? 'Rango:' : 'Range:'} ${s.earliest || '—'} → ${s.latest || '—'}   ·   ` +
-            `${isES ? 'Respuestas:' : 'Responses:'} ${s.count || 0}   ·   ` +
-            `${isES ? 'Período pico:' : 'Peak period:'} ${s.peak_period || '—'}`,
+            `${isES ? 'Rango:' : 'Range:'} ${s.earliest || '—'} → ${s.latest || '—'}  ·  ` +
+            `N: ${s.count || 0}  ·  ` +
+            `${isES ? 'Período pico:' : 'Peak:'} ${s.peak_period || '—'}`,
             mg, y
           );
-          y += 9;
+          y += 6;
+
+          // ── Period distribution bars ────────────────────────
+          if (r.distribution?.length > 0) {
+            const maxCount = Math.max(...r.distribution.map(d => d.count));
+            const barsW = cW - 4;
+            const bW = barsW / r.distribution.length;
+            const chartH = 18;
+            const baseY = y + chartH;
+            r.distribution.forEach((d, i) => {
+              const bH = maxCount > 0 ? (d.count / maxCount) * chartH : 0;
+              const isPeak = d.period === s.peak_period;
+              fill(isPeak ? C.primary : [199, 210, 254]);
+              if (bH > 0) doc.rect(mg + 2 + i * bW, baseY - bH, bW - 1, bH, 'F');
+              doc.setFontSize(5.5); txt(C.textGrey);
+              const label = d.period.slice(0, 8);
+              doc.text(label, mg + 2 + i * bW + (bW - 1) / 2, baseY + 3.5, { align: 'center' });
+              if (bH > 3) { doc.setFontSize(6); txt(C.textMain); doc.text(String(d.count), mg + 2 + i * bW + (bW - 1) / 2, baseY - bH - 1, { align: 'center' }); }
+            });
+            y += chartH + 8;
+          } else {
+            y += 5;
+          }
         });
       }
 
@@ -1393,11 +1439,14 @@ export default function EventDetails() {
                               </div>
                               <div className="report-stats-grid">
                                 {[
-                                  [locale === 'es-MX' ? 'Media' : 'Mean',        s.mean?.toFixed(1) ?? '—'],
-                                  [locale === 'es-MX' ? 'Mediana' : 'Median',    s.median?.toFixed(1) ?? '—'],
-                                  [locale === 'es-MX' ? 'Desv. est.' : 'Std dev.', s.std?.toFixed(1) ?? '—'],
-                                  [locale === 'es-MX' ? 'Mínimo' : 'Min',        s.min ?? '—'],
-                                  [locale === 'es-MX' ? 'Máximo' : 'Max',        s.max ?? '—'],
+                                  [locale === 'es-MX' ? 'Media' : 'Mean',           s.mean?.toFixed(1) ?? '—'],
+                                  [locale === 'es-MX' ? 'Mediana' : 'Median',       s.median?.toFixed(1) ?? '—'],
+                                  [locale === 'es-MX' ? 'Desv. est.' : 'Std dev.',  s.std?.toFixed(1) ?? '—'],
+                                  ['P25',                                             s.p25 ?? '—'],
+                                  ['P75',                                             s.p75 ?? '—'],
+                                  ['IQR',                                             (s.p25 != null && s.p75 != null) ? (s.p75 - s.p25).toFixed(1) : '—'],
+                                  [locale === 'es-MX' ? 'Mínimo' : 'Min',           s.min ?? '—'],
+                                  [locale === 'es-MX' ? 'Máximo' : 'Max',           s.max ?? '—'],
                                   [locale === 'es-MX' ? 'Respuestas' : 'Responses', s.count ?? '—'],
                                 ].map(([label, value]) => (
                                   <div key={label} className="report-stat-box">

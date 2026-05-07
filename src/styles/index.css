@@ -1626,6 +1626,7 @@ textarea.input-field {
 .report-stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: auto;
   border-top: 1px solid var(--border);
   border-left: 1px solid var(--border);
   margin: 0;
