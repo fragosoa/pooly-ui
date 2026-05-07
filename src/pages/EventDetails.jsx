@@ -136,15 +136,13 @@ export default function EventDetails() {
     setReportsError('');
     try {
       const response = await api.get(`/events/${eventId}/reports`);
-      if (response.data.status === 'success') {
-        const data = response.data.reports || [];
+      const data = response.data?.reports || [];
+      if (data.length > 0) {
         setReports(data);
-        if (data.length > 0) {
-          const tsList = [...new Set(data.map(r => r.timestamp))].sort((a, b) => new Date(b) - new Date(a));
-          setSelectedTimestamp(tsList[0]);
-        }
+        const tsList = [...new Set(data.map(r => r.timestamp))].sort((a, b) => new Date(b) - new Date(a));
+        setSelectedTimestamp(tsList[0]);
       } else {
-        setReports([]);
+        loadDemoReports();
       }
     } catch (err) {
       console.error('Failed to fetch reports:', err);
