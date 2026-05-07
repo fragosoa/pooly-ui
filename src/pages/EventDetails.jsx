@@ -138,19 +138,28 @@ export default function EventDetails() {
       const response = await api.get(`/events/${eventId}/reports`);
       if (response.data.status === 'success') {
         const data = response.data.reports || [];
-        setReports(data);
         if (data.length > 0) {
+          setReports(data);
           const tsList = [...new Set(data.map(r => r.timestamp))].sort((a, b) => new Date(b) - new Date(a));
           setSelectedTimestamp(tsList[0]);
+        } else {
+          loadDemoReports();
         }
       } else {
-        setReports([]);
+        loadDemoReports();
       }
     } catch (err) {
       console.error('Failed to fetch reports:', err);
       setReportsError(t('reports.error'));
-      const demoTs = '2026-01-29T10:30:00';
-      setReports([
+      loadDemoReports();
+    } finally {
+      setReportsLoading(false);
+    }
+  };
+
+  const loadDemoReports = () => {
+    const demoTs = '2026-01-29T10:30:00';
+    setReports([
         // open — NLP clusters
         {
           id: 1, event_id: eventId, question_type: 'open', question_id: 101,
@@ -212,10 +221,7 @@ export default function EventDetails() {
           ],
         },
       ]);
-      setSelectedTimestamp(demoTs);
-    } finally {
-      setReportsLoading(false);
-    }
+    setSelectedTimestamp(demoTs);
   };
 
   useEffect(() => {
@@ -362,11 +368,19 @@ export default function EventDetails() {
     ? reports.filter(r => r.timestamp === selectedTimestamp)
     : (runTimestamps.length > 0 ? reports.filter(r => r.timestamp === runTimestamps[0]) : []);
 
+  const inferReportType = (r) => {
+    if (r.question_type) return r.question_type;
+    if (r.distribution?.[0]?.period !== undefined) return 'date';
+    if (r.stats?.mean !== undefined) return 'numeric';
+    if (r.distribution?.[0]?.option !== undefined) return 'multiple';
+    return 'open';
+  };
+
   const reportsByType = {
-    open:     selectedReports.filter(r => !r.question_type || r.question_type === 'open'),
-    multiple: selectedReports.filter(r => r.question_type === 'multiple'),
-    numeric:  selectedReports.filter(r => r.question_type === 'numeric'),
-    date:     selectedReports.filter(r => r.question_type === 'date'),
+    open:     selectedReports.filter(r => inferReportType(r) === 'open'),
+    multiple: selectedReports.filter(r => inferReportType(r) === 'multiple'),
+    numeric:  selectedReports.filter(r => inferReportType(r) === 'numeric'),
+    date:     selectedReports.filter(r => inferReportType(r) === 'date'),
   };
 
   const exportToPDF = async () => {
