@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-  PieChart, Pie, Legend,
+  PieChart, Pie, Legend, ReferenceLine,
 } from 'recharts';
 import { jsPDF } from 'jspdf';
 import api from '../services/api';
@@ -151,27 +151,66 @@ export default function EventDetails() {
       setReportsError(t('reports.error'));
       const demoTs = '2026-01-29T10:30:00';
       setReports([
+        // open — NLP clusters
         {
-          id: 1, event_id: eventId, category: 'Transporte público',
+          id: 1, event_id: eventId, question_type: 'open', question_id: 101,
+          question_text: '¿Qué opinas sobre las ciclovías actuales?',
+          category: 'Transporte público',
           volume: 45, percentage: 35.5, urgency: 0.8, sentiment: -0.2,
           summary: 'Los ciudadanos expresan preocupación por la frecuencia del transporte público y la saturación en horas pico.',
           examples: ['Necesitamos más autobuses', 'El metro siempre está lleno'],
-          timestamp: demoTs
+          timestamp: demoTs,
         },
         {
-          id: 2, event_id: eventId, category: 'Ciclovías',
+          id: 2, event_id: eventId, question_type: 'open', question_id: 101,
+          question_text: '¿Qué opinas sobre las ciclovías actuales?',
+          category: 'Ciclovías',
           volume: 30, percentage: 23.6, urgency: 0.6, sentiment: 0.4,
           summary: 'Solicitudes de expansión de la red de ciclovías con enfoque en seguridad y conectividad.',
           examples: ['Más carriles para bicicletas', 'Conectar el centro con los barrios'],
-          timestamp: demoTs
+          timestamp: demoTs,
         },
+        // multiple — distribution
         {
-          id: 3, event_id: eventId, category: 'Estacionamiento',
-          volume: 20, percentage: 15.7, urgency: 0.4, sentiment: -0.5,
-          summary: 'Quejas sobre la falta de estacionamiento en zonas comerciales y costos elevados.',
-          examples: ['No hay donde estacionarse', 'Los parquímetros son muy caros'],
-          timestamp: demoTs
-        }
+          id: 3, event_id: eventId, question_type: 'multiple', question_id: 102,
+          question_text: '¿Cómo calificarías la atención recibida?',
+          timestamp: demoTs,
+          total_responses: 117,
+          most_common: 'Buena',
+          distribution: [
+            { option: 'Excelente', count: 38, percentage: 32.5 },
+            { option: 'Buena',     count: 45, percentage: 38.5 },
+            { option: 'Regular',   count: 20, percentage: 17.1 },
+            { option: 'Mala',      count: 14, percentage: 11.9 },
+          ],
+        },
+        // numeric — descriptive stats
+        {
+          id: 4, event_id: eventId, question_type: 'numeric', question_id: 103,
+          question_text: '¿Cuántos años tienes?',
+          timestamp: demoTs,
+          stats: { count: 117, mean: 34.2, median: 32.0, std: 12.5, min: 18, max: 72, p25: 25, p75: 42 },
+          histogram: [
+            { range: '18–25', count: 28 },
+            { range: '26–35', count: 41 },
+            { range: '36–50', count: 32 },
+            { range: '51–72', count: 16 },
+          ],
+        },
+        // date — temporal distribution
+        {
+          id: 5, event_id: eventId, question_type: 'date', question_id: 104,
+          question_text: '¿Cuándo fue tu última visita?',
+          timestamp: demoTs,
+          stats: { count: 95, earliest: '2025-01-03', latest: '2026-05-01', peak_period: '2026-03' },
+          distribution: [
+            { period: 'ene 2026', count: 12 },
+            { period: 'feb 2026', count: 18 },
+            { period: 'mar 2026', count: 35 },
+            { period: 'abr 2026', count: 22 },
+            { period: 'may 2026', count: 8 },
+          ],
+        },
       ]);
       setSelectedTimestamp(demoTs);
     } finally {
@@ -323,6 +362,13 @@ export default function EventDetails() {
     ? reports.filter(r => r.timestamp === selectedTimestamp)
     : (runTimestamps.length > 0 ? reports.filter(r => r.timestamp === runTimestamps[0]) : []);
 
+  const reportsByType = {
+    open:     selectedReports.filter(r => !r.question_type || r.question_type === 'open'),
+    multiple: selectedReports.filter(r => r.question_type === 'multiple'),
+    numeric:  selectedReports.filter(r => r.question_type === 'numeric'),
+    date:     selectedReports.filter(r => r.question_type === 'date'),
+  };
+
   const exportToPDF = async () => {
     if (!selectedReports.length || isExporting) return;
     setIsExporting(true);
@@ -424,11 +470,12 @@ export default function EventDetails() {
       y += 7;
 
       // ── Summary chips ─────────────────────────────────────────────
-      const totalVol = selectedReports.reduce((s, r) => s + r.volume, 0);
+      const openReports = reportsByType.open;
+      const totalVol = openReports.reduce((s, r) => s + (r.volume || 0), 0);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5);
       txt(C.textGrey);
-      doc.text(`${selectedReports.length}  ${labels.categories}   ·   ${totalVol}  ${labels.mentions}`, mg, y);
+      doc.text(`${openReports.length}  ${labels.categories}   ·   ${totalVol}  ${labels.mentions}`, mg, y);
       y += 10;
 
       // ── Bar chart section ─────────────────────────────────────────
@@ -443,7 +490,7 @@ export default function EventDetails() {
       const barAreaW  = cW - labelColW - pctColW;
       const barH      = 5;
 
-      selectedReports.forEach((r, i) => {
+      openReports.forEach((r, i) => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         const catLines = doc.splitTextToSize(r.category, labelColW - 2);
@@ -490,7 +537,7 @@ export default function EventDetails() {
       y += 6;
 
       let pos = 0, neg = 0, neu = 0;
-      selectedReports.forEach(r => {
+      openReports.forEach(r => {
         if (r.sentiment >= 0.3)       pos += r.volume;
         else if (r.sentiment <= -0.3) neg += r.volume;
         else                          neu += r.volume;
@@ -537,7 +584,7 @@ export default function EventDetails() {
       doc.text(labels.detailSection, mg, y);
       y += 8;
 
-      selectedReports.forEach((r, i) => {
+      openReports.forEach((r, i) => {
         checkPage(25);
 
         // Category header
@@ -588,6 +635,93 @@ export default function EventDetails() {
         }
         y += 7;
       });
+
+      // ── Multiple choice distribution ─────────────────────────────
+      if (reportsByType.multiple.length > 0) {
+        checkPage(20);
+        draw(C.border); doc.setLineWidth(0.3); doc.line(mg, y, pageW - mg, y); y += 6;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5);
+        txt(C.primary);
+        doc.text(isES ? 'DISTRIBUCIÓN DE OPCIONES' : 'OPTION DISTRIBUTION', mg, y); y += 7;
+
+        reportsByType.multiple.forEach(r => {
+          checkPage(20 + (r.distribution?.length || 0) * 8);
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+          txt(C.textMain);
+          const qLines = doc.splitTextToSize(r.question_text, cW);
+          doc.text(qLines, mg, y); y += qLines.length * 4.5 + 2;
+
+          const maxPct = Math.max(...(r.distribution || []).map(d => d.percentage));
+          (r.distribution || []).forEach(d => {
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(8); txt(C.textMain);
+            doc.text(d.option.slice(0, 25), mg, y);
+            const barW = (d.percentage / Math.max(maxPct, 1)) * (cW * 0.45);
+            fill(C.border); doc.rect(mg + 55, y - 3, cW * 0.45, 4, 'F');
+            fill(C.primary); if (barW > 0) doc.rect(mg + 55, y - 3, barW, 4, 'F');
+            txt(C.textGrey); doc.setFontSize(7.5);
+            doc.text(`${d.count} (${d.percentage.toFixed(1)}%)`, mg + 55 + cW * 0.45 + 2, y);
+            y += 6;
+          });
+          txt(C.textGrey); doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5);
+          doc.text(`${r.total_responses} ${isES ? 'respuestas · Más elegida:' : 'responses · Most chosen:'} ${r.most_common}`, mg, y);
+          y += 9;
+        });
+      }
+
+      // ── Numeric statistics ────────────────────────────────────────
+      if (reportsByType.numeric.length > 0) {
+        checkPage(20);
+        draw(C.border); doc.setLineWidth(0.3); doc.line(mg, y, pageW - mg, y); y += 6;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5);
+        txt(C.primary);
+        doc.text(isES ? 'ESTADÍSTICAS NUMÉRICAS' : 'NUMERIC STATISTICS', mg, y); y += 7;
+
+        reportsByType.numeric.forEach(r => {
+          checkPage(25);
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(9); txt(C.textMain);
+          const qLines = doc.splitTextToSize(r.question_text, cW);
+          doc.text(qLines, mg, y); y += qLines.length * 4.5 + 3;
+
+          const s = r.stats || {};
+          const metrics = [
+            [isES ? 'Media' : 'Mean', s.mean?.toFixed(1)],
+            [isES ? 'Mediana' : 'Median', s.median?.toFixed(1)],
+            [isES ? 'Desv. est.' : 'Std dev.', s.std?.toFixed(1)],
+            [isES ? 'Mínimo' : 'Min', s.min],
+            [isES ? 'Máximo' : 'Max', s.max],
+            ['N', s.count],
+          ];
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(8); txt(C.textGrey);
+          doc.text(metrics.map(([l, v]) => `${l}: ${v ?? '—'}`).join('   ·   '), mg, y);
+          y += 9;
+        });
+      }
+
+      // ── Date temporal distribution ────────────────────────────────
+      if (reportsByType.date.length > 0) {
+        checkPage(20);
+        draw(C.border); doc.setLineWidth(0.3); doc.line(mg, y, pageW - mg, y); y += 6;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5);
+        txt(C.primary);
+        doc.text(isES ? 'ANÁLISIS TEMPORAL' : 'TEMPORAL ANALYSIS', mg, y); y += 7;
+
+        reportsByType.date.forEach(r => {
+          checkPage(20);
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(9); txt(C.textMain);
+          const qLines = doc.splitTextToSize(r.question_text, cW);
+          doc.text(qLines, mg, y); y += qLines.length * 4.5 + 3;
+
+          const s = r.stats || {};
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(8); txt(C.textGrey);
+          doc.text(
+            `${isES ? 'Rango:' : 'Range:'} ${s.earliest || '—'} → ${s.latest || '—'}   ·   ` +
+            `${isES ? 'Respuestas:' : 'Responses:'} ${s.count || 0}   ·   ` +
+            `${isES ? 'Período pico:' : 'Peak period:'} ${s.peak_period || '—'}`,
+            mg, y
+          );
+          y += 9;
+        });
+      }
 
       // ── Footer on every page ──────────────────────────────────────
       const total = doc.internal.getNumberOfPages();
@@ -1097,6 +1231,7 @@ export default function EventDetails() {
 
               {reports.length > 0 && (
                 <>
+                  {/* Run selector */}
                   {runTimestamps.length > 0 && (
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
@@ -1111,12 +1246,8 @@ export default function EventDetails() {
                           {new Date(runTimestamps[0]).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
                         </span>
                       ) : (
-                        <select
-                          value={selectedTimestamp || ''}
-                          onChange={e => setSelectedTimestamp(e.target.value)}
-                          className="input-field"
-                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem', width: 'auto', margin: 0 }}
-                        >
+                        <select value={selectedTimestamp || ''} onChange={e => setSelectedTimestamp(e.target.value)}
+                          className="input-field" style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem', width: 'auto', margin: 0 }}>
                           {runTimestamps.map(ts => (
                             <option key={ts} value={ts}>
                               {new Date(ts).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
@@ -1131,49 +1262,219 @@ export default function EventDetails() {
                       </span>
                     </div>
                   )}
-                  <div className="reports-grid">
-                  {selectedReports.map(report => {
-                    const sentiment = getSentimentLabel(report.sentiment);
-                    const urgency = getUrgencyLabel(report.urgency);
-                    return (
-                      <div key={report.id} className="report-card">
-                        <div className="report-card-header">
-                          <h4 className="report-category">{report.category}</h4>
-                          <div className="report-badges">
-                            <span className={`report-badge sentiment-${sentiment.class}`}>{sentiment.text}</span>
-                            <span className={`report-badge urgency-${urgency.class}`}>
-                              {t('urgency.label', { level: urgency.text })}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="report-stats">
-                          <div className="report-stat">
-                            <span className="report-stat-value">{report.volume}</span>
-                            <span className="report-stat-label">{t('reports.mentions')}</span>
-                          </div>
-                          <div className="report-stat">
-                            <span className="report-stat-value">{report.percentage.toFixed(1)}%</span>
-                            <span className="report-stat-label">{t('reports.ofTotal')}</span>
-                          </div>
-                        </div>
-                        <p className="report-summary">{report.summary}</p>
-                        {report.examples && report.examples.length > 0 && (
-                          <div className="report-examples">
-                            <span className="report-examples-label">{t('reports.examples')}</span>
-                            <ul className="report-examples-list">
-                              {report.examples.map((example, idx) => (
-                                <li key={idx}>"{example}"</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        <div className="report-timestamp">
-                          {t('reports.generated', { date: new Date(report.timestamp).toLocaleString(locale) })}
-                        </div>
+
+                  {/* ── open: NLP clusters ── */}
+                  {reportsByType.open.length > 0 && (
+                    <div className="report-type-section">
+                      <div className="report-type-section-title">
+                        <span>💬</span>
+                        <span>{locale === 'es-MX' ? 'Análisis de texto libre' : 'Free text analysis'}</span>
+                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                        <span style={{ fontWeight: 400 }}>({reportsByType.open.length})</span>
                       </div>
-                    );
-                  })}
-                  </div>
+                      <div className="reports-grid">
+                        {reportsByType.open.map(report => {
+                          const sentiment = getSentimentLabel(report.sentiment);
+                          const urgency = getUrgencyLabel(report.urgency);
+                          return (
+                            <div key={report.id} className="report-card">
+                              <div className="report-card-header">
+                                <h4 className="report-category">{report.category}</h4>
+                                <div className="report-badges">
+                                  <span className={`report-badge sentiment-${sentiment.class}`}>{sentiment.text}</span>
+                                  <span className={`report-badge urgency-${urgency.class}`}>{t('urgency.label', { level: urgency.text })}</span>
+                                </div>
+                              </div>
+                              <div className="report-stats">
+                                <div className="report-stat">
+                                  <span className="report-stat-value">{report.volume}</span>
+                                  <span className="report-stat-label">{t('reports.mentions')}</span>
+                                </div>
+                                <div className="report-stat">
+                                  <span className="report-stat-value">{report.percentage.toFixed(1)}%</span>
+                                  <span className="report-stat-label">{t('reports.ofTotal')}</span>
+                                </div>
+                              </div>
+                              <p className="report-summary">{report.summary}</p>
+                              {report.examples?.length > 0 && (
+                                <div className="report-examples">
+                                  <span className="report-examples-label">{t('reports.examples')}</span>
+                                  <ul className="report-examples-list">
+                                    {report.examples.map((ex, i) => <li key={i}>"{ex}"</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                              <div className="report-timestamp">
+                                {t('reports.generated', { date: new Date(report.timestamp).toLocaleString(locale) })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── multiple: distribution ── */}
+                  {reportsByType.multiple.length > 0 && (
+                    <div className="report-type-section">
+                      <div className="report-type-section-title">
+                        <span>☑️</span>
+                        <span>{locale === 'es-MX' ? 'Distribución de opciones' : 'Option distribution'}</span>
+                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                        <span style={{ fontWeight: 400 }}>({reportsByType.multiple.length})</span>
+                      </div>
+                      <div className="reports-grid">
+                        {reportsByType.multiple.map(report => (
+                          <div key={report.id} className="report-card">
+                            <div className="report-card-header">
+                              <h4 className="report-category">{report.question_text}</h4>
+                              <span className="report-badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
+                                ☑️ {locale === 'es-MX' ? 'Opción múltiple' : 'Multiple choice'}
+                              </span>
+                            </div>
+                            <div style={{ padding: '0.75rem 1.25rem' }}>
+                              {(report.distribution || []).map((d, i) => (
+                                <div key={i} className="report-dist-row">
+                                  <span className="report-dist-label">{d.option}</span>
+                                  <div className="report-dist-bar-track">
+                                    <div className="report-dist-bar-fill" style={{ width: `${d.percentage}%` }} />
+                                  </div>
+                                  <span className="report-dist-value">
+                                    {d.count} <small style={{ color: 'var(--text-secondary)' }}>({d.percentage.toFixed(1)}%)</small>
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            <div style={{ padding: '0.6rem 1.25rem', borderTop: '1px solid var(--border)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                              {report.total_responses} {locale === 'es-MX' ? 'respuestas' : 'responses'}
+                              {report.most_common && (
+                                <> · {locale === 'es-MX' ? 'Más elegida:' : 'Most chosen:'} <strong style={{ color: 'var(--text-primary)' }}>{report.most_common}</strong></>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── numeric: stats ── */}
+                  {reportsByType.numeric.length > 0 && (
+                    <div className="report-type-section">
+                      <div className="report-type-section-title">
+                        <span>🔢</span>
+                        <span>{locale === 'es-MX' ? 'Estadísticas numéricas' : 'Numeric statistics'}</span>
+                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                        <span style={{ fontWeight: 400 }}>({reportsByType.numeric.length})</span>
+                      </div>
+                      <div className="reports-grid">
+                        {reportsByType.numeric.map(report => {
+                          const s = report.stats || {};
+                          return (
+                            <div key={report.id} className="report-card">
+                              <div className="report-card-header">
+                                <h4 className="report-category">{report.question_text}</h4>
+                                <span className="report-badge" style={{ background: '#F0FDF4', color: '#15803D' }}>
+                                  🔢 {locale === 'es-MX' ? 'Numérico' : 'Numeric'}
+                                </span>
+                              </div>
+                              <div className="report-stats-grid">
+                                {[
+                                  [locale === 'es-MX' ? 'Media' : 'Mean',        s.mean?.toFixed(1) ?? '—'],
+                                  [locale === 'es-MX' ? 'Mediana' : 'Median',    s.median?.toFixed(1) ?? '—'],
+                                  [locale === 'es-MX' ? 'Desv. est.' : 'Std dev.', s.std?.toFixed(1) ?? '—'],
+                                  [locale === 'es-MX' ? 'Mínimo' : 'Min',        s.min ?? '—'],
+                                  [locale === 'es-MX' ? 'Máximo' : 'Max',        s.max ?? '—'],
+                                  [locale === 'es-MX' ? 'Respuestas' : 'Responses', s.count ?? '—'],
+                                ].map(([label, value]) => (
+                                  <div key={label} className="report-stat-box">
+                                    <span className="report-stat-value">{value}</span>
+                                    <span className="report-stat-label">{label}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              {report.histogram?.length > 0 && (
+                                <div style={{ padding: '0.75rem 1rem 0.5rem' }}>
+                                  <p style={{ fontSize: '0.72rem', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
+                                    {locale === 'es-MX' ? 'Distribución' : 'Distribution'}
+                                    {s.mean != null && <span style={{ fontWeight: 400, marginLeft: '0.5rem' }}>— {locale === 'es-MX' ? 'media:' : 'mean:'} {s.mean.toFixed(1)}</span>}
+                                  </p>
+                                  <ResponsiveContainer width="100%" height={100}>
+                                    <BarChart data={report.histogram} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+                                      <XAxis dataKey="range" tick={{ fontSize: 9, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                                      <YAxis tick={{ fontSize: 9, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                                      <Tooltip formatter={v => [v, locale === 'es-MX' ? 'Respuestas' : 'Responses']} contentStyle={{ fontSize: '0.8rem' }} />
+                                      <Bar dataKey="count" fill="#6366F1" radius={[2, 2, 0, 0]} />
+                                    </BarChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── date: temporal ── */}
+                  {reportsByType.date.length > 0 && (
+                    <div className="report-type-section">
+                      <div className="report-type-section-title">
+                        <span>📅</span>
+                        <span>{locale === 'es-MX' ? 'Análisis temporal' : 'Temporal analysis'}</span>
+                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                        <span style={{ fontWeight: 400 }}>({reportsByType.date.length})</span>
+                      </div>
+                      <div className="reports-grid">
+                        {reportsByType.date.map(report => {
+                          const s = report.stats || {};
+                          return (
+                            <div key={report.id} className="report-card">
+                              <div className="report-card-header">
+                                <h4 className="report-category">{report.question_text}</h4>
+                                <span className="report-badge" style={{ background: '#FFF7ED', color: '#C2410C' }}>
+                                  📅 {locale === 'es-MX' ? 'Fecha' : 'Date'}
+                                </span>
+                              </div>
+                              <div className="report-stats">
+                                <div className="report-stat">
+                                  <span className="report-stat-value">{s.count ?? '—'}</span>
+                                  <span className="report-stat-label">{locale === 'es-MX' ? 'Respuestas' : 'Responses'}</span>
+                                </div>
+                                <div className="report-stat">
+                                  <span className="report-stat-value" style={{ fontSize: '1rem' }}>{s.peak_period ?? '—'}</span>
+                                  <span className="report-stat-label">{locale === 'es-MX' ? 'Período pico' : 'Peak period'}</span>
+                                </div>
+                              </div>
+                              {s.earliest && s.latest && (
+                                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', padding: '0 1.25rem 0.25rem' }}>
+                                  {s.earliest} → {s.latest}
+                                </p>
+                              )}
+                              {report.distribution?.length > 0 && (
+                                <div style={{ padding: '0.5rem 1rem 0.75rem' }}>
+                                  <p style={{ fontSize: '0.72rem', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
+                                    {locale === 'es-MX' ? 'Distribución mensual' : 'Monthly distribution'}
+                                  </p>
+                                  <ResponsiveContainer width="100%" height={100}>
+                                    <BarChart data={report.distribution} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+                                      <XAxis dataKey="period" tick={{ fontSize: 9, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                                      <YAxis tick={{ fontSize: 9, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                                      <Tooltip formatter={v => [v, locale === 'es-MX' ? 'Respuestas' : 'Responses']} contentStyle={{ fontSize: '0.8rem' }} />
+                                      <Bar dataKey="count" radius={[2, 2, 0, 0]} maxBarSize={32}>
+                                        {report.distribution.map((d, i) => (
+                                          <Cell key={i} fill={d.period === s.peak_period ? '#6366F1' : '#C7D2FE'} />
+                                        ))}
+                                      </Bar>
+                                    </BarChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </section>
@@ -1232,147 +1533,201 @@ export default function EventDetails() {
                 </div>
               )}
 
-              {reports.length > 0 && (() => {
-                // Bar chart data
-                const barData = selectedReports.map(r => ({
-                  name: r.category,
-                  value: parseFloat(r.percentage.toFixed(1)),
-                  volume: r.volume,
-                }));
-
-                // Pie chart data — volume weighted by sentiment bucket (±0.3 threshold)
-                let pos = 0, neg = 0, neu = 0;
-                selectedReports.forEach(r => {
-                  if (r.sentiment >= 0.3)       pos += r.volume;
-                  else if (r.sentiment <= -0.3) neg += r.volume;
-                  else                          neu += r.volume;
-                });
-                const pieData = [
-                  { name: t('sentiment.positive'), value: pos, fill: '#10B981' },
-                  { name: t('sentiment.negative'), value: neg, fill: '#EF4444' },
-                  { name: t('sentiment.neutral'),  value: neu, fill: '#6366F1' },
-                ].filter(d => d.value > 0);
-
-                const barColors = ['#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'];
-
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-
-                    {/* Run selector for charts */}
-                    {runTimestamps.length > 0 && (
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
-                        padding: '0.75rem 1rem',
-                        background: 'var(--bg-secondary, #F9FAFB)', border: '1px solid var(--border, #E5E7EB)',
-                      }}>
-                        <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                          {locale === 'es-MX' ? 'Análisis:' : 'Analysis:'}
+              {reports.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                  {/* Run selector */}
+                  {runTimestamps.length > 0 && (
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
+                      padding: '0.75rem 1rem',
+                      background: 'var(--bg-secondary, #F9FAFB)', border: '1px solid var(--border, #E5E7EB)',
+                    }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                        {locale === 'es-MX' ? 'Análisis:' : 'Analysis:'}
+                      </span>
+                      {runTimestamps.length === 1 ? (
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                          {new Date(runTimestamps[0]).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
                         </span>
-                        {runTimestamps.length === 1 ? (
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                            {new Date(runTimestamps[0]).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
-                          </span>
-                        ) : (
-                          <select
-                            value={selectedTimestamp || ''}
-                            onChange={e => setSelectedTimestamp(e.target.value)}
-                            className="input-field"
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem', width: 'auto', margin: 0 }}
-                          >
-                            {runTimestamps.map(ts => (
-                              <option key={ts} value={ts}>
-                                {new Date(ts).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
-                              </option>
-                            ))}
-                          </select>
+                      ) : (
+                        <select value={selectedTimestamp || ''} onChange={e => setSelectedTimestamp(e.target.value)}
+                          className="input-field" style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem', width: 'auto', margin: 0 }}>
+                          {runTimestamps.map(ts => (
+                            <option key={ts} value={ts}>
+                              {new Date(ts).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginLeft: 'auto' }}>
+                        {runTimestamps.length} {locale === 'es-MX'
+                          ? (runTimestamps.length === 1 ? 'análisis disponible' : 'análisis disponibles')
+                          : (runTimestamps.length === 1 ? 'analysis available' : 'analyses available')}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* ── open: category bar + sentiment pie ── */}
+                  {reportsByType.open.length > 0 && (() => {
+                    const barColors = ['#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'];
+                    const barData = reportsByType.open.map(r => ({ name: r.category, value: parseFloat(r.percentage.toFixed(1)), volume: r.volume }));
+                    let pos = 0, neg = 0, neu = 0;
+                    reportsByType.open.forEach(r => {
+                      if (r.sentiment >= 0.3) pos += r.volume;
+                      else if (r.sentiment <= -0.3) neg += r.volume;
+                      else neu += r.volume;
+                    });
+                    const pieData = [
+                      { name: t('sentiment.positive'), value: pos, fill: '#10B981' },
+                      { name: t('sentiment.negative'), value: neg, fill: '#EF4444' },
+                      { name: t('sentiment.neutral'),  value: neu, fill: '#6366F1' },
+                    ].filter(d => d.value > 0);
+                    return (
+                      <>
+                        <div className="report-type-section-title">
+                          <span>💬</span><span>{locale === 'es-MX' ? 'Texto libre' : 'Free text'}</span>
+                          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                        </div>
+                        <div className="card" style={{ padding: '1.5rem' }}>
+                          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{t('charts.barTitle')}</h4>
+                          <ResponsiveContainer width="100%" height={barData.length * 64 + 40}>
+                            <BarChart data={barData} layout="vertical" margin={{ top: 0, right: 40, left: 8, bottom: 0 }}>
+                              <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                              <YAxis type="category" dataKey="name" width={190} tick={<MultiLineTick />} axisLine={false} tickLine={false} />
+                              <Tooltip formatter={(v, _, p) => [`${v}% (${p.payload.volume} ${t('reports.mentions')})`, t('charts.percentage')]} contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }} />
+                              <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={28}>
+                                {barData.map((_, i) => <Cell key={i} fill={barColors[i % barColors.length]} />)}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                        {pieData.length > 0 && (
+                          <div className="card" style={{ padding: '1.5rem' }}>
+                            <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{t('charts.pieTitle')}</h4>
+                            <ResponsiveContainer width="100%" height={320}>
+                              <PieChart>
+                                <Pie data={pieData} cx="50%" cy="46%" outerRadius={85} dataKey="value" label={({ percent }) => `${(percent * 100).toFixed(0)}%`} labelLine>
+                                  {pieData.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                                </Pie>
+                                <Legend formatter={v => <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{v}</span>} />
+                                <Tooltip formatter={(v, n) => [`${v} ${t('reports.mentions')}`, n]} contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
                         )}
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginLeft: 'auto' }}>
-                          {runTimestamps.length} {locale === 'es-MX'
-                            ? (runTimestamps.length === 1 ? 'análisis disponible' : 'análisis disponibles')
-                            : (runTimestamps.length === 1 ? 'analysis available' : 'analyses available')}
-                        </span>
+                      </>
+                    );
+                  })()}
+
+                  {/* ── multiple: bar per question ── */}
+                  {reportsByType.multiple.length > 0 && (
+                    <>
+                      <div className="report-type-section-title">
+                        <span>☑️</span><span>{locale === 'es-MX' ? 'Distribución de opciones' : 'Option distribution'}</span>
+                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                       </div>
-                    )}
+                      {reportsByType.multiple.map(r => {
+                        const distColors = ['#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'];
+                        return (
+                          <div key={r.id} className="card" style={{ padding: '1.5rem' }}>
+                            <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{r.question_text}</h4>
+                            <ResponsiveContainer width="100%" height={(r.distribution?.length || 1) * 52 + 40}>
+                              <BarChart data={r.distribution} layout="vertical" margin={{ top: 0, right: 60, left: 8, bottom: 0 }}>
+                                <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                                <YAxis type="category" dataKey="option" width={120} tick={{ fontSize: 11, fill: 'var(--text-primary)' }} axisLine={false} tickLine={false} />
+                                <Tooltip formatter={(v, _, p) => [`${p.payload.count} (${v.toFixed(1)}%)`, r.question_text]} contentStyle={{ fontSize: '0.82rem' }} />
+                                <Bar dataKey="percentage" radius={[0, 4, 4, 0]} maxBarSize={24}>
+                                  {(r.distribution || []).map((_, i) => <Cell key={i} fill={distColors[i % distColors.length]} />)}
+                                </Bar>
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
 
-                    {/* Bar chart */}
-                    <div className="card" style={{ padding: '1.5rem' }}>
-                      <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
-                        {t('charts.barTitle')}
-                      </h4>
-                      <ResponsiveContainer width="100%" height={barData.length * 64 + 40}>
-                        <BarChart
-                          data={barData}
-                          layout="vertical"
-                          margin={{ top: 0, right: 40, left: 8, bottom: 0 }}
-                        >
-                          <XAxis
-                            type="number"
-                            domain={[0, 100]}
-                            tickFormatter={v => `${v}%`}
-                            tick={{ fontSize: 12, fill: 'var(--text-secondary, #6B7280)' }}
-                            axisLine={false}
-                            tickLine={false}
-                          />
-                          <YAxis
-                            type="category"
-                            dataKey="name"
-                            width={190}
-                            tick={<MultiLineTick />}
-                            axisLine={false}
-                            tickLine={false}
-                          />
-                          <Tooltip
-                            formatter={(value, _name, props) => [
-                              `${value}% (${props.payload.volume} ${t('reports.mentions')})`,
-                              t('charts.percentage'),
-                            ]}
-                            contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }}
-                          />
-                          <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={28}>
-                            {barData.map((_, i) => (
-                              <Cell key={i} fill={barColors[i % barColors.length]} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    {/* Pie chart */}
-                    <div className="card" style={{ padding: '1.5rem' }}>
-                      <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
-                        {t('charts.pieTitle')}
-                      </h4>
-                      <ResponsiveContainer width="100%" height={320}>
-                        <PieChart>
-                          <Pie
-                            data={pieData}
-                            cx="50%"
-                            cy="46%"
-                            outerRadius={85}
-                            dataKey="value"
-                            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                            labelLine={true}
-                          >
-                            {pieData.map((entry, i) => (
-                              <Cell key={i} fill={entry.fill} />
-                            ))}
-                          </Pie>
-                          <Legend
-                            formatter={(value) => (
-                              <span style={{ fontSize: '0.85rem', color: 'var(--text-primary, #111827)' }}>{value}</span>
+                  {/* ── numeric: histogram per question ── */}
+                  {reportsByType.numeric.length > 0 && (
+                    <>
+                      <div className="report-type-section-title">
+                        <span>🔢</span><span>{locale === 'es-MX' ? 'Estadísticas numéricas' : 'Numeric statistics'}</span>
+                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                      </div>
+                      {reportsByType.numeric.map(r => {
+                        const s = r.stats || {};
+                        return (
+                          <div key={r.id} className="card" style={{ padding: '1.5rem' }}>
+                            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.75rem' }}>{r.question_text}</h4>
+                            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+                              {[
+                                [locale === 'es-MX' ? 'Media' : 'Mean',   s.mean?.toFixed(1)],
+                                [locale === 'es-MX' ? 'Mediana' : 'Median', s.median?.toFixed(1)],
+                                [locale === 'es-MX' ? 'Desv.' : 'Std',    s.std?.toFixed(1)],
+                                ['Min', s.min], ['Max', s.max],
+                                ['N', s.count],
+                              ].map(([l, v]) => (
+                                <span key={l} style={{ fontSize: '0.8rem', padding: '0.2rem 0.6rem', background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: '600' }}>
+                                  {l}: {v ?? '—'}
+                                </span>
+                              ))}
+                            </div>
+                            {r.histogram?.length > 0 && (
+                              <ResponsiveContainer width="100%" height={180}>
+                                <BarChart data={r.histogram} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
+                                  <XAxis dataKey="range" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                                  <YAxis tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                                  <Tooltip formatter={v => [v, locale === 'es-MX' ? 'Respuestas' : 'Responses']} contentStyle={{ fontSize: '0.82rem' }} />
+                                  <Bar dataKey="count" fill="#6366F1" radius={[3, 3, 0, 0]} />
+                                  {s.mean != null && <ReferenceLine x={r.histogram.reduce((closest, b) => Math.abs(parseFloat(b.range) - s.mean) < Math.abs(parseFloat(closest.range) - s.mean) ? b : closest, r.histogram[0])?.range} stroke="#EF4444" strokeDasharray="4 2" label={{ value: `μ=${s.mean.toFixed(1)}`, position: 'top', fontSize: 10, fill: '#EF4444' }} />}
+                                </BarChart>
+                              </ResponsiveContainer>
                             )}
-                          />
-                          <Tooltip
-                            formatter={(value, name) => [`${value} ${t('reports.mentions')}`, name]}
-                            contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
 
-                  </div>
-                );
-              })()}
+                  {/* ── date: temporal bar per question ── */}
+                  {reportsByType.date.length > 0 && (
+                    <>
+                      <div className="report-type-section-title">
+                        <span>📅</span><span>{locale === 'es-MX' ? 'Análisis temporal' : 'Temporal analysis'}</span>
+                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                      </div>
+                      {reportsByType.date.map(r => {
+                        const s = r.stats || {};
+                        return (
+                          <div key={r.id} className="card" style={{ padding: '1.5rem' }}>
+                            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>{r.question_text}</h4>
+                            {s.earliest && s.latest && (
+                              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+                                {s.earliest} → {s.latest} · {s.count} {locale === 'es-MX' ? 'respuestas' : 'responses'}
+                                {s.peak_period && <> · <strong style={{ color: 'var(--primary)' }}>{locale === 'es-MX' ? 'Pico:' : 'Peak:'} {s.peak_period}</strong></>}
+                              </p>
+                            )}
+                            {r.distribution?.length > 0 && (
+                              <ResponsiveContainer width="100%" height={200}>
+                                <BarChart data={r.distribution} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
+                                  <XAxis dataKey="period" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                                  <YAxis tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                                  <Tooltip formatter={v => [v, locale === 'es-MX' ? 'Respuestas' : 'Responses']} contentStyle={{ fontSize: '0.82rem' }} />
+                                  <Bar dataKey="count" radius={[3, 3, 0, 0]} maxBarSize={40}>
+                                    {r.distribution.map((d, i) => (
+                                      <Cell key={i} fill={d.period === s.peak_period ? '#6366F1' : '#C7D2FE'} />
+                                    ))}
+                                  </Bar>
+                                </BarChart>
+                              </ResponsiveContainer>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+                </div>
+              )}
             </section>
           )}
 
