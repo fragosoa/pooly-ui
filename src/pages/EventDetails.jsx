@@ -137,87 +137,17 @@ export default function EventDetails() {
     try {
       const response = await api.get(`/events/${eventId}/reports`);
       const data = response.data?.reports || [];
+      setReports(data);
       if (data.length > 0) {
-        setReports(data);
         const tsList = [...new Set(data.map(r => r.timestamp))].sort((a, b) => new Date(b) - new Date(a));
         setSelectedTimestamp(tsList[0]);
-      } else {
-        loadDemoReports();
       }
     } catch (err) {
       console.error('Failed to fetch reports:', err);
       setReportsError(t('reports.error'));
-      loadDemoReports();
     } finally {
       setReportsLoading(false);
     }
-  };
-
-  const loadDemoReports = () => {
-    const demoTs = '2026-01-29T10:30:00';
-    setReports([
-        // open — NLP clusters
-        {
-          id: 1, event_id: eventId, question_type: 'open', question_id: 101,
-          question_text: '¿Qué opinas sobre las ciclovías actuales?',
-          category: 'Transporte público',
-          volume: 45, percentage: 35.5, urgency: 0.8, sentiment: -0.2,
-          summary: 'Los ciudadanos expresan preocupación por la frecuencia del transporte público y la saturación en horas pico.',
-          examples: ['Necesitamos más autobuses', 'El metro siempre está lleno'],
-          timestamp: demoTs,
-        },
-        {
-          id: 2, event_id: eventId, question_type: 'open', question_id: 101,
-          question_text: '¿Qué opinas sobre las ciclovías actuales?',
-          category: 'Ciclovías',
-          volume: 30, percentage: 23.6, urgency: 0.6, sentiment: 0.4,
-          summary: 'Solicitudes de expansión de la red de ciclovías con enfoque en seguridad y conectividad.',
-          examples: ['Más carriles para bicicletas', 'Conectar el centro con los barrios'],
-          timestamp: demoTs,
-        },
-        // multiple — distribution
-        {
-          id: 3, event_id: eventId, question_type: 'multiple', question_id: 102,
-          question_text: '¿Cómo calificarías la atención recibida?',
-          timestamp: demoTs,
-          total_responses: 117,
-          most_common: 'Buena',
-          distribution: [
-            { option: 'Excelente', count: 38, percentage: 32.5 },
-            { option: 'Buena',     count: 45, percentage: 38.5 },
-            { option: 'Regular',   count: 20, percentage: 17.1 },
-            { option: 'Mala',      count: 14, percentage: 11.9 },
-          ],
-        },
-        // numeric — descriptive stats
-        {
-          id: 4, event_id: eventId, question_type: 'numeric', question_id: 103,
-          question_text: '¿Cuántos años tienes?',
-          timestamp: demoTs,
-          stats: { count: 117, mean: 34.2, median: 32.0, std: 12.5, min: 18, max: 72, p25: 25, p75: 42 },
-          histogram: [
-            { range: '18–25', count: 28 },
-            { range: '26–35', count: 41 },
-            { range: '36–50', count: 32 },
-            { range: '51–72', count: 16 },
-          ],
-        },
-        // date — temporal distribution
-        {
-          id: 5, event_id: eventId, question_type: 'date', question_id: 104,
-          question_text: '¿Cuándo fue tu última visita?',
-          timestamp: demoTs,
-          stats: { count: 95, earliest: '2025-01-03', latest: '2026-05-01', peak_period: '2026-03' },
-          distribution: [
-            { period: 'ene 2026', count: 12 },
-            { period: 'feb 2026', count: 18 },
-            { period: 'mar 2026', count: 35 },
-            { period: 'abr 2026', count: 22 },
-            { period: 'may 2026', count: 8 },
-          ],
-        },
-      ]);
-    setSelectedTimestamp(demoTs);
   };
 
   useEffect(() => {
