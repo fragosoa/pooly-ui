@@ -3282,10 +3282,16 @@ textarea.input-field {
 }
 
 .survey-welcome-markdown {
-  text-align: left;
+  text-align: center;
   font-size: 1rem;
   line-height: 1.75;
   color: var(--text-primary);
+}
+
+.survey-welcome-markdown ul,
+.survey-welcome-markdown ol {
+  display: inline-block;
+  text-align: left;
 }
 
 .survey-welcome-markdown h1 { font-size: 2rem; margin-bottom: 0.75rem; }
@@ -3308,13 +3314,19 @@ textarea.input-field {
 
 /* ─── Survey Completion Markdown ─────────────────────────────────────────── */
 .survey-success-markdown {
-  text-align: left;
+  text-align: center;
   font-size: 1rem;
   line-height: 1.75;
   color: var(--text-primary);
   max-width: 480px;
   width: 100%;
   margin-bottom: 0.5rem;
+}
+
+.survey-success-markdown ul,
+.survey-success-markdown ol {
+  display: inline-block;
+  text-align: left;
 }
 
 .survey-success-markdown h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
