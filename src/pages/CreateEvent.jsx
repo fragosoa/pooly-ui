@@ -34,6 +34,7 @@ const CreateEvent = () => {
     const [carouselIdx, setCarouselIdx] = useState(0);
     const [showWelcomeEditor, setShowWelcomeEditor] = useState(false);
     const [showCompletionEditor, setShowCompletionEditor] = useState(false);
+    const [hasEndDate, setHasEndDate] = useState(false);
 
     // Carousel auto-advance (only while on step 2)
     useEffect(() => {
@@ -63,10 +64,12 @@ const CreateEvent = () => {
 
     const handleStep1Submit = (e) => {
         e.preventDefault();
-        if (!formData.end_date) { setError(t('create.errorNoDate')); return; }
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (new Date(formData.end_date) < today) { setError(t('create.errorPastDate')); return; }
+        if (hasEndDate) {
+            if (!formData.end_date) { setError(t('create.errorNoDate')); return; }
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (new Date(formData.end_date) < today) { setError(t('create.errorPastDate')); return; }
+        }
         setError('');
         setStep(2);
     };
@@ -87,9 +90,12 @@ const CreateEvent = () => {
             if (cleanedQuestions.length === 0) throw new Error(t('create.errorNoQuestions'));
             const badMultiple = cleanedQuestions.find(q => q.type === 'multiple' && q.options.length < 2);
             if (badMultiple) throw new Error(t('create.errorMultipleOptions'));
+            const farFuture = new Date();
+            farFuture.setFullYear(farFuture.getFullYear() + 20);
             const payload = {
                 ...formData,
                 questions: cleanedQuestions,
+                end_date: hasEndDate ? formData.end_date : farFuture.toISOString().split('T')[0],
                 welcome_message: formData.welcome_message.trim() || null,
                 completion_message: formData.completion_message.trim() || null,
             };
@@ -222,10 +228,40 @@ const CreateEvent = () => {
                                         required placeholder={t('create.descPlaceholder')} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">{t('create.endDate')}</label>
-                                    <input type="date" name="end_date" className="input-field"
-                                        value={formData.end_date} onChange={handleInputChange}
-                                        required min={new Date().toISOString().split('T')[0]} />
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: hasEndDate ? '0.75rem' : 0 }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setHasEndDate(v => !v);
+                                                if (hasEndDate) setFormData(p => ({ ...p, end_date: '' }));
+                                            }}
+                                            style={{
+                                                width: '40px', height: '22px', borderRadius: '11px', position: 'relative',
+                                                background: hasEndDate ? 'var(--primary)' : 'var(--border)',
+                                                border: 'none', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0,
+                                            }}
+                                        >
+                                            <span style={{
+                                                position: 'absolute', top: '2px',
+                                                left: hasEndDate ? '20px' : '2px',
+                                                width: '18px', height: '18px', borderRadius: '50%',
+                                                background: '#fff', transition: 'left 0.2s',
+                                            }} />
+                                        </button>
+                                        <label className="input-label" style={{ margin: 0, cursor: 'pointer' }}
+                                            onClick={() => {
+                                                setHasEndDate(v => !v);
+                                                if (hasEndDate) setFormData(p => ({ ...p, end_date: '' }));
+                                            }}>
+                                            {t('create.endDateToggle')}
+                                        </label>
+                                    </div>
+                                    {hasEndDate && (
+                                        <input type="date" name="end_date" className="input-field"
+                                            value={formData.end_date} onChange={handleInputChange}
+                                            style={{ margin: 0 }}
+                                            min={new Date().toISOString().split('T')[0]} />
+                                    )}
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
                                     <button type="submit" className="btn btn-primary">{t('create.next')}</button>

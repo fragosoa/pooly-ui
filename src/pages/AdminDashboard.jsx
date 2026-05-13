@@ -60,7 +60,9 @@ const AdminDashboard = () => {
         const end = new Date(endDate);
         const diffDays = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
 
-        if (diffDays < 0) {
+        if (diffDays >= 365 * 15) {
+            return { label: t('status.alwaysOpen'), class: 'active', daysText: t('status.alwaysOpenText') };
+        } else if (diffDays < 0) {
             return { label: t('status.ended'), class: 'ended', daysText: t('status.endedDays', { days: Math.abs(diffDays) }) };
         } else if (diffDays === 0) {
             return { label: t('status.lastDay'), class: 'urgent', daysText: t('status.endsToday') };
