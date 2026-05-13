@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import Modal from '../components/Modal';
+import MarkdownEditor from '../components/MarkdownEditor';
 import { useLanguage } from '../context/LanguageContext';
 
 const emptyQuestion = () => ({ text: '', optional: false, type: 'open', options: ['', ''] });
@@ -20,6 +21,8 @@ const CreateEvent = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '', description: '', end_date: '',
+        welcome_message: '',
+        completion_message: '',
         questions: [],
     });
 
@@ -29,6 +32,8 @@ const CreateEvent = () => {
     const [modalData, setModalData] = useState(emptyQuestion());
     const [openMenuIdx, setOpenMenuIdx] = useState(null);
     const [carouselIdx, setCarouselIdx] = useState(0);
+    const [showWelcomeEditor, setShowWelcomeEditor] = useState(false);
+    const [showCompletionEditor, setShowCompletionEditor] = useState(false);
 
     // Carousel auto-advance (only while on step 2)
     useEffect(() => {
@@ -82,7 +87,13 @@ const CreateEvent = () => {
             if (cleanedQuestions.length === 0) throw new Error(t('create.errorNoQuestions'));
             const badMultiple = cleanedQuestions.find(q => q.type === 'multiple' && q.options.length < 2);
             if (badMultiple) throw new Error(t('create.errorMultipleOptions'));
-            await api.post('/events/new', { ...formData, questions: cleanedQuestions });
+            const payload = {
+                ...formData,
+                questions: cleanedQuestions,
+                welcome_message: formData.welcome_message.trim() || null,
+                completion_message: formData.completion_message.trim() || null,
+            };
+            await api.post('/events/new', payload);
             navigate('/admin');
         } catch (err) {
             setError(err.response?.data?.message || err.message || t('create.errorGeneric'));
@@ -225,6 +236,53 @@ const CreateEvent = () => {
                         {/* Step 2 — questions list (new compact design) */}
                         {step === 2 && (
                             <form onSubmit={handleSubmit}>
+
+                                {/* ── Welcome screen section ── */}
+                                <div className="screen-section">
+                                    <div className="screen-section-header">
+                                        <div>
+                                            <span className="screen-section-badge">
+                                                {isES ? 'Opcional' : 'Optional'}
+                                            </span>
+                                            <span className="screen-section-title">
+                                                {isES ? 'Pantalla de bienvenida' : 'Welcome screen'}
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className={`screen-section-toggle ${showWelcomeEditor ? 'is-active' : ''}`}
+                                            onClick={() => {
+                                                setShowWelcomeEditor(v => !v);
+                                                if (showWelcomeEditor) setFormData(p => ({ ...p, welcome_message: '' }));
+                                            }}
+                                        >
+                                            {showWelcomeEditor
+                                                ? (isES ? '✕ Quitar' : '✕ Remove')
+                                                : (isES ? '+ Agregar' : '+ Add')}
+                                        </button>
+                                    </div>
+                                    {showWelcomeEditor && (
+                                        <div style={{ marginTop: '0.75rem' }}>
+                                            <MarkdownEditor
+                                                value={formData.welcome_message}
+                                                onChange={val => setFormData(p => ({ ...p, welcome_message: val }))}
+                                                placeholder={isES
+                                                    ? 'ej. ## ¡Bienvenido!\nGracias por participar en esta encuesta...'
+                                                    : 'e.g. ## Welcome!\nThank you for participating...'}
+                                                hint={isES ? 'Soporta formato Markdown' : 'Supports Markdown formatting'}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="screen-section-divider">
+                                    <div className="screen-section-divider-line" />
+                                    <span className="screen-section-divider-label">
+                                        {isES ? 'Preguntas' : 'Questions'}
+                                    </span>
+                                    <div className="screen-section-divider-line" />
+                                </div>
+
                                 <label className="input-label" style={{ display: 'block', marginBottom: '0.5rem' }}>
                                     {t('create.questionsLabel')}
                                 </label>
@@ -337,6 +395,59 @@ const CreateEvent = () => {
                                     style={{ width: '100%', borderStyle: 'dashed' }}>
                                     {t('create.addQuestion')}
                                 </button>
+
+                                <div className="screen-section-divider" style={{ marginTop: '1.5rem' }}>
+                                    <div className="screen-section-divider-line" />
+                                    <span className="screen-section-divider-label">
+                                        {isES ? 'Pantalla final' : 'End screen'}
+                                    </span>
+                                    <div className="screen-section-divider-line" />
+                                </div>
+
+                                {/* ── Completion screen section ── */}
+                                <div className="screen-section">
+                                    <div className="screen-section-header">
+                                        <div>
+                                            <span className="screen-section-badge">
+                                                {isES ? 'Opcional' : 'Optional'}
+                                            </span>
+                                            <span className="screen-section-title">
+                                                {isES ? 'Pantalla de gracias' : 'Thank you screen'}
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className={`screen-section-toggle ${showCompletionEditor ? 'is-active' : ''}`}
+                                            onClick={() => {
+                                                setShowCompletionEditor(v => !v);
+                                                if (showCompletionEditor) setFormData(p => ({ ...p, completion_message: '' }));
+                                            }}
+                                        >
+                                            {showCompletionEditor
+                                                ? (isES ? '✕ Quitar' : '✕ Remove')
+                                                : (isES ? '+ Agregar' : '+ Add')}
+                                        </button>
+                                    </div>
+                                    {!showCompletionEditor && (
+                                        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.4rem 0 0' }}>
+                                            {isES
+                                                ? 'Si no agregas una pantalla personalizada, se mostrará el mensaje de gracias estándar de Pooly.'
+                                                : "If you don't add a custom screen, Pooly's standard thank you message will be shown."}
+                                        </p>
+                                    )}
+                                    {showCompletionEditor && (
+                                        <div style={{ marginTop: '0.75rem' }}>
+                                            <MarkdownEditor
+                                                value={formData.completion_message}
+                                                onChange={val => setFormData(p => ({ ...p, completion_message: val }))}
+                                                placeholder={isES
+                                                    ? 'ej. **¡Gracias!** Tu código de descuento es `POOLY20`'
+                                                    : 'e.g. **Thank you!** Your discount code is `POOLY20`'}
+                                                hint={isES ? 'Soporta formato Markdown' : 'Supports Markdown formatting'}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Nav */}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
