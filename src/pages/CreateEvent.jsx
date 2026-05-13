@@ -441,8 +441,8 @@ const CreateEvent = () => {
                                                 value={formData.completion_message}
                                                 onChange={val => setFormData(p => ({ ...p, completion_message: val }))}
                                                 placeholder={isES
-                                                    ? 'ej. **¡Gracias!** Tu código de descuento es `POOLY20`'
-                                                    : 'e.g. **Thank you!** Your discount code is `POOLY20`'}
+                                                    ? 'ej. **¡Gracias por participar!**`'
+                                                    : 'e.g. **Thanks for participating!** '}
                                                 hint={isES ? 'Soporta formato Markdown' : 'Supports Markdown formatting'}
                                             />
                                         </div>
