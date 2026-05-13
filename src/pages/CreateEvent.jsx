@@ -21,10 +21,10 @@ const CreateEvent = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '', description: '', end_date: '',
-        welcome_message: '',
-        completion_message: '',
         questions: [],
     });
+    const [welcomeMessage, setWelcomeMessage] = useState('');
+    const [completionMessage, setCompletionMessage] = useState('');
 
     // ── UI-only state ─────────────────────────────────────────────────────────
     const [showQuestionModal, setShowQuestionModal] = useState(false);
@@ -93,11 +93,12 @@ const CreateEvent = () => {
             const farFuture = new Date();
             farFuture.setFullYear(farFuture.getFullYear() + 20);
             const payload = {
-                ...formData,
-                questions: cleanedQuestions,
+                name: formData.name,
+                description: formData.description,
                 end_date: hasEndDate ? formData.end_date : farFuture.toISOString().split('T')[0],
-                welcome_message: formData.welcome_message.trim() || null,
-                completion_message: formData.completion_message.trim() || null,
+                welcome_message: welcomeMessage.trim() || null,
+                completion_message: completionMessage.trim() || null,
+                questions: cleanedQuestions,
             };
             await api.post('/events/new', payload);
             navigate('/admin');
@@ -288,8 +289,8 @@ const CreateEvent = () => {
                                             type="button"
                                             className={`screen-section-toggle ${showWelcomeEditor ? 'is-active' : ''}`}
                                             onClick={() => {
+                                                if (showWelcomeEditor) setWelcomeMessage('');
                                                 setShowWelcomeEditor(v => !v);
-                                                if (showWelcomeEditor) setFormData(p => ({ ...p, welcome_message: '' }));
                                             }}
                                         >
                                             {showWelcomeEditor
@@ -300,8 +301,8 @@ const CreateEvent = () => {
                                     {showWelcomeEditor && (
                                         <div style={{ marginTop: '0.75rem' }}>
                                             <MarkdownEditor
-                                                value={formData.welcome_message}
-                                                onChange={val => setFormData(p => ({ ...p, welcome_message: val }))}
+                                                value={welcomeMessage}
+                                                onChange={setWelcomeMessage}
                                                 placeholder={isES
                                                     ? 'ej. ## ¡Bienvenido!\nGracias por participar en esta encuesta...'
                                                     : 'e.g. ## Welcome!\nThank you for participating...'}
@@ -455,8 +456,8 @@ const CreateEvent = () => {
                                             type="button"
                                             className={`screen-section-toggle ${showCompletionEditor ? 'is-active' : ''}`}
                                             onClick={() => {
+                                                if (showCompletionEditor) setCompletionMessage('');
                                                 setShowCompletionEditor(v => !v);
-                                                if (showCompletionEditor) setFormData(p => ({ ...p, completion_message: '' }));
                                             }}
                                         >
                                             {showCompletionEditor
@@ -474,8 +475,8 @@ const CreateEvent = () => {
                                     {showCompletionEditor && (
                                         <div style={{ marginTop: '0.75rem' }}>
                                             <MarkdownEditor
-                                                value={formData.completion_message}
-                                                onChange={val => setFormData(p => ({ ...p, completion_message: val }))}
+                                                value={completionMessage}
+                                                onChange={setCompletionMessage}
                                                 placeholder={isES
                                                     ? 'ej. **¡Gracias por participar!**`'
                                                     : 'e.g. **Thanks for participating!** '}
