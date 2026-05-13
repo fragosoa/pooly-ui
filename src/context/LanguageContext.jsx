@@ -111,6 +111,8 @@ const translations = {
     'status.endedDays': 'Terminó hace {{days}} días',
     'status.endsToday': 'Termina hoy',
     'status.daysLeft': '{{days}} días restantes',
+    'status.alwaysOpen': 'Siempre abierta',
+    'status.alwaysOpenText': 'Sin fecha de cierre',
 
     // Event Details
     'eventDetails.loading': 'Cargando detalles del evento...',
@@ -213,6 +215,7 @@ const translations = {
     'create.description': 'Descripción',
     'create.descPlaceholder': 'Describe el propósito de esta encuesta...',
     'create.endDate': 'Fecha de cierre',
+    'create.endDateToggle': 'Definir fecha de cierre',
     'create.next': 'Siguiente: Agregar preguntas',
     'create.errorNoDate': 'Por favor selecciona una fecha de cierre para la encuesta.',
     'create.errorPastDate': 'La fecha de cierre debe ser una fecha futura.',
@@ -453,6 +456,7 @@ const translations = {
     'survey.placeholderNumeric': 'ej. 25',
     'survey.placeholderDate': 'Selecciona una fecha',
     'survey.errorLoad': 'No se pudo cargar la encuesta.',
+    'survey.welcomeStart': 'Comenzar encuesta',
     'source.online': 'En línea',
     'source.imported': 'Importado',
     'import.back': '← Volver al panel',
@@ -597,6 +601,8 @@ const translations = {
     'status.endedDays': 'Ended {{days}} days ago',
     'status.endsToday': 'Ends today',
     'status.daysLeft': '{{days}} days left',
+    'status.alwaysOpen': 'Always open',
+    'status.alwaysOpenText': 'No end date',
 
     // Event Details
     'eventDetails.loading': 'Loading event details...',
@@ -699,6 +705,7 @@ const translations = {
     'create.description': 'Description',
     'create.descPlaceholder': 'Describe the purpose of this survey...',
     'create.endDate': 'End date',
+    'create.endDateToggle': 'Set an end date',
     'create.next': 'Next: Add questions',
     'create.errorNoDate': 'Please select an end date for the survey.',
     'create.errorPastDate': 'The end date must be in the future.',
@@ -939,6 +946,7 @@ const translations = {
     'survey.placeholderNumeric': 'e.g. 25',
     'survey.placeholderDate': 'Select a date',
     'survey.errorLoad': 'Could not load the survey.',
+    'survey.welcomeStart': 'Start survey',
     'source.online': 'Online',
     'source.imported': 'Imported',
     'import.back': '← Back to dashboard',

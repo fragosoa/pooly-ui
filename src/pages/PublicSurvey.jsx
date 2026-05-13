@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import api from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -11,13 +12,16 @@ export default function PublicSurvey() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchEvent = async () => {
       try {
         const response = await api.get(`/events/public/${publicId}`);
-        setEvent(response.data.data);
+        const data = response.data.data;
+        setEvent(data);
+        if (data.welcome_message) setShowWelcome(true);
       } catch (err) {
         console.error('Failed to fetch event:', err);
         setError(t('survey.errorLoad'));
@@ -103,13 +107,22 @@ export default function PublicSurvey() {
   }
 
   if (success) {
+    const completionMsg = event?.completion_message;
     return (
       <div className="survey-page">
         <div className="survey-success">
           <div className="survey-success-icon">✓</div>
-          <h1>{t('survey.successTitle')}</h1>
-          <p>{t('survey.successDesc')}</p>
-          <p className="survey-success-note">{t('survey.successNote')}</p>
+          {completionMsg ? (
+            <div className="survey-success-markdown">
+              <ReactMarkdown>{completionMsg}</ReactMarkdown>
+            </div>
+          ) : (
+            <>
+              <h1>{t('survey.successTitle')}</h1>
+              <p>{t('survey.successDesc')}</p>
+              <p className="survey-success-note">{t('survey.successNote')}</p>
+            </>
+          )}
           <Link to="/" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
             {t('survey.goToPooly')}
           </Link>
@@ -127,6 +140,30 @@ export default function PublicSurvey() {
           <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>
             {t('survey.goToPooly')}
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (showWelcome && event.welcome_message) {
+    return (
+      <div className="survey-page">
+        <header className="survey-header">
+          <Link to="/" className="survey-brand">Pooly</Link>
+        </header>
+        <div className="survey-welcome">
+          <div className="survey-welcome-content">
+            <div className="survey-welcome-markdown">
+              <ReactMarkdown>{event.welcome_message}</ReactMarkdown>
+            </div>
+            <button
+              className="btn btn-primary btn-large"
+              style={{ marginTop: '2rem' }}
+              onClick={() => setShowWelcome(false)}
+            >
+              {t('survey.welcomeStart')}
+            </button>
+          </div>
         </div>
       </div>
     );

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import Modal from '../components/Modal';
+import MarkdownEditor from '../components/MarkdownEditor';
 import { useLanguage } from '../context/LanguageContext';
 
 const emptyQuestion = () => ({ text: '', optional: false, type: 'open', options: ['', ''] });
@@ -22,6 +23,8 @@ const CreateEvent = () => {
         name: '', description: '', end_date: '',
         questions: [],
     });
+    const [welcomeMessage, setWelcomeMessage] = useState('');
+    const [completionMessage, setCompletionMessage] = useState('');
 
     // ── UI-only state ─────────────────────────────────────────────────────────
     const [showQuestionModal, setShowQuestionModal] = useState(false);
@@ -29,6 +32,9 @@ const CreateEvent = () => {
     const [modalData, setModalData] = useState(emptyQuestion());
     const [openMenuIdx, setOpenMenuIdx] = useState(null);
     const [carouselIdx, setCarouselIdx] = useState(0);
+    const [showWelcomeEditor, setShowWelcomeEditor] = useState(false);
+    const [showCompletionEditor, setShowCompletionEditor] = useState(false);
+    const [hasEndDate, setHasEndDate] = useState(false);
 
     // Carousel auto-advance (only while on step 2)
     useEffect(() => {
@@ -58,10 +64,12 @@ const CreateEvent = () => {
 
     const handleStep1Submit = (e) => {
         e.preventDefault();
-        if (!formData.end_date) { setError(t('create.errorNoDate')); return; }
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (new Date(formData.end_date) < today) { setError(t('create.errorPastDate')); return; }
+        if (hasEndDate) {
+            if (!formData.end_date) { setError(t('create.errorNoDate')); return; }
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (new Date(formData.end_date) < today) { setError(t('create.errorPastDate')); return; }
+        }
         setError('');
         setStep(2);
     };
@@ -82,7 +90,17 @@ const CreateEvent = () => {
             if (cleanedQuestions.length === 0) throw new Error(t('create.errorNoQuestions'));
             const badMultiple = cleanedQuestions.find(q => q.type === 'multiple' && q.options.length < 2);
             if (badMultiple) throw new Error(t('create.errorMultipleOptions'));
-            await api.post('/events/new', { ...formData, questions: cleanedQuestions });
+            const farFuture = new Date();
+            farFuture.setFullYear(farFuture.getFullYear() + 20);
+            const payload = {
+                name: formData.name,
+                description: formData.description,
+                end_date: hasEndDate ? formData.end_date : farFuture.toISOString().split('T')[0],
+                welcome_message: welcomeMessage.trim() || null,
+                completion_message: completionMessage.trim() || null,
+                questions: cleanedQuestions,
+            };
+            await api.post('/events/new', payload);
             navigate('/admin');
         } catch (err) {
             setError(err.response?.data?.message || err.message || t('create.errorGeneric'));
@@ -211,10 +229,40 @@ const CreateEvent = () => {
                                         required placeholder={t('create.descPlaceholder')} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">{t('create.endDate')}</label>
-                                    <input type="date" name="end_date" className="input-field"
-                                        value={formData.end_date} onChange={handleInputChange}
-                                        required min={new Date().toISOString().split('T')[0]} />
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: hasEndDate ? '0.75rem' : 0 }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setHasEndDate(v => !v);
+                                                if (hasEndDate) setFormData(p => ({ ...p, end_date: '' }));
+                                            }}
+                                            style={{
+                                                width: '40px', height: '22px', borderRadius: '11px', position: 'relative',
+                                                background: hasEndDate ? 'var(--primary)' : 'var(--border)',
+                                                border: 'none', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0,
+                                            }}
+                                        >
+                                            <span style={{
+                                                position: 'absolute', top: '2px',
+                                                left: hasEndDate ? '20px' : '2px',
+                                                width: '18px', height: '18px', borderRadius: '50%',
+                                                background: '#fff', transition: 'left 0.2s',
+                                            }} />
+                                        </button>
+                                        <label className="input-label" style={{ margin: 0, cursor: 'pointer' }}
+                                            onClick={() => {
+                                                setHasEndDate(v => !v);
+                                                if (hasEndDate) setFormData(p => ({ ...p, end_date: '' }));
+                                            }}>
+                                            {t('create.endDateToggle')}
+                                        </label>
+                                    </div>
+                                    {hasEndDate && (
+                                        <input type="date" name="end_date" className="input-field"
+                                            value={formData.end_date} onChange={handleInputChange}
+                                            style={{ margin: 0 }}
+                                            min={new Date().toISOString().split('T')[0]} />
+                                    )}
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
                                     <button type="submit" className="btn btn-primary">{t('create.next')}</button>
@@ -225,6 +273,53 @@ const CreateEvent = () => {
                         {/* Step 2 — questions list (new compact design) */}
                         {step === 2 && (
                             <form onSubmit={handleSubmit}>
+
+                                {/* ── Welcome screen section ── */}
+                                <div className="screen-section">
+                                    <div className="screen-section-header">
+                                        <div>
+                                            <span className="screen-section-badge">
+                                                {isES ? 'Opcional' : 'Optional'}
+                                            </span>
+                                            <span className="screen-section-title">
+                                                {isES ? 'Pantalla de bienvenida' : 'Welcome screen'}
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className={`screen-section-toggle ${showWelcomeEditor ? 'is-active' : ''}`}
+                                            onClick={() => {
+                                                if (showWelcomeEditor) setWelcomeMessage('');
+                                                setShowWelcomeEditor(v => !v);
+                                            }}
+                                        >
+                                            {showWelcomeEditor
+                                                ? (isES ? '✕ Quitar' : '✕ Remove')
+                                                : (isES ? '+ Agregar' : '+ Add')}
+                                        </button>
+                                    </div>
+                                    {showWelcomeEditor && (
+                                        <div style={{ marginTop: '0.75rem' }}>
+                                            <MarkdownEditor
+                                                value={welcomeMessage}
+                                                onChange={setWelcomeMessage}
+                                                placeholder={isES
+                                                    ? 'ej. ## ¡Bienvenido!\nGracias por participar en esta encuesta...'
+                                                    : 'e.g. ## Welcome!\nThank you for participating...'}
+                                                hint={isES ? 'Soporta formato Markdown' : 'Supports Markdown formatting'}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="screen-section-divider">
+                                    <div className="screen-section-divider-line" />
+                                    <span className="screen-section-divider-label">
+                                        {isES ? 'Preguntas' : 'Questions'}
+                                    </span>
+                                    <div className="screen-section-divider-line" />
+                                </div>
+
                                 <label className="input-label" style={{ display: 'block', marginBottom: '0.5rem' }}>
                                     {t('create.questionsLabel')}
                                 </label>
@@ -337,6 +432,59 @@ const CreateEvent = () => {
                                     style={{ width: '100%', borderStyle: 'dashed' }}>
                                     {t('create.addQuestion')}
                                 </button>
+
+                                <div className="screen-section-divider" style={{ marginTop: '1.5rem' }}>
+                                    <div className="screen-section-divider-line" />
+                                    <span className="screen-section-divider-label">
+                                        {isES ? 'Pantalla final' : 'End screen'}
+                                    </span>
+                                    <div className="screen-section-divider-line" />
+                                </div>
+
+                                {/* ── Completion screen section ── */}
+                                <div className="screen-section">
+                                    <div className="screen-section-header">
+                                        <div>
+                                            <span className="screen-section-badge">
+                                                {isES ? 'Opcional' : 'Optional'}
+                                            </span>
+                                            <span className="screen-section-title">
+                                                {isES ? 'Pantalla de gracias' : 'Thank you screen'}
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className={`screen-section-toggle ${showCompletionEditor ? 'is-active' : ''}`}
+                                            onClick={() => {
+                                                if (showCompletionEditor) setCompletionMessage('');
+                                                setShowCompletionEditor(v => !v);
+                                            }}
+                                        >
+                                            {showCompletionEditor
+                                                ? (isES ? '✕ Quitar' : '✕ Remove')
+                                                : (isES ? '+ Agregar' : '+ Add')}
+                                        </button>
+                                    </div>
+                                    {!showCompletionEditor && (
+                                        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.4rem 0 0' }}>
+                                            {isES
+                                                ? 'Si no agregas una pantalla personalizada, se mostrará el mensaje de gracias estándar de Pooly.'
+                                                : "If you don't add a custom screen, Pooly's standard thank you message will be shown."}
+                                        </p>
+                                    )}
+                                    {showCompletionEditor && (
+                                        <div style={{ marginTop: '0.75rem' }}>
+                                            <MarkdownEditor
+                                                value={completionMessage}
+                                                onChange={setCompletionMessage}
+                                                placeholder={isES
+                                                    ? 'ej. **¡Gracias por participar!**`'
+                                                    : 'e.g. **Thanks for participating!** '}
+                                                hint={isES ? 'Soporta formato Markdown' : 'Supports Markdown formatting'}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Nav */}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
