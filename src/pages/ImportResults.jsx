@@ -1,15 +1,17 @@
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
+import Papa from 'papaparse';
 import api from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 
 const ACCEPTED_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
 const MAX_ROWS_TO_SCAN = 1000;
 const MAX_UNIQUE_FOR_MULTIPLE = 20;
+const MAX_UNIQUE_FOR_STRING_MULTIPLE = 30;
 
 function looksLikeDate(val) {
-  if (val.length < 5 || val.length > 25) return false;
+  if (val.length < 5 || val.length > 35) return false;
   if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(val)) return true;   // 2024-01-15
   if (/^\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/.test(val)) return true; // 01/15/2024
   const d = new Date(val);
@@ -24,14 +26,12 @@ async function parseFileWithColumns(file) {
 
   if (name.endsWith('.csv')) {
     const text = await file.text();
-    const lines = text.split('\n');
-    if (!lines.length) return [];
-    headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
-    for (let i = 1; i < Math.min(lines.length, MAX_ROWS_TO_SCAN + 1); i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      dataRows.push(line.split(',').map(c => c.trim().replace(/^["']|["']$/g, '')));
-    }
+    const result = Papa.parse(text, { header: false, skipEmptyLines: true });
+    if (!result.data.length) return [];
+    headers = result.data[0].map(h => String(h).trim()).filter(Boolean);
+    dataRows = result.data.slice(1, MAX_ROWS_TO_SCAN + 1).map(row =>
+      row.map(c => (c === null || c === undefined ? '' : String(c)).trim())
+    );
   } else {
     const arrayBuffer = await file.arrayBuffer();
     const workbook = XLSX.read(arrayBuffer, { sheetRows: MAX_ROWS_TO_SCAN + 1 });
@@ -70,6 +70,8 @@ async function parseFileWithColumns(file) {
     } else if (allNumeric) {
       // Few unique numeric values → categorical (e.g. ratings 1-5); many → continuous numeric
       type = seen.size <= MAX_UNIQUE_FOR_MULTIPLE ? 'multiple' : 'numeric';
+    } else if (seen.size <= MAX_UNIQUE_FOR_STRING_MULTIPLE) {
+      type = 'multiple';
     } else {
       type = 'open';
     }
