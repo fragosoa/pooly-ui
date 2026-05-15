@@ -70,7 +70,7 @@ async function parseFileWithColumns(file) {
     } else if (allNumeric) {
       // Few unique numeric values → categorical (e.g. ratings 1-5); many → continuous numeric
       type = seen.size <= MAX_UNIQUE_FOR_MULTIPLE ? 'multiple' : 'numeric';
-    } else if (seen.size <= MAX_UNIQUE_FOR_STRING_MULTIPLE) {
+    } else if (seen.size >= 2 && seen.size <= MAX_UNIQUE_FOR_STRING_MULTIPLE) {
       type = 'multiple';
     } else {
       type = 'open';
