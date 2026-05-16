@@ -1341,17 +1341,20 @@ export default function EventDetails() {
                                 </span>
                               </div>
                               <div style={{ padding: '0.75rem 1.25rem' }}>
-                                {dist.slice(0, DIST_PREVIEW).map((d, i) => (
-                                  <div key={i} className="report-dist-row">
-                                    <span className="report-dist-label">{d.option}</span>
-                                    <div className="report-dist-bar-track">
-                                      <div className="report-dist-bar-fill" style={{ width: `${d.percentage}%` }} />
+                                {dist.slice(0, DIST_PREVIEW).map((d, i) => {
+                                  const pct = Math.max(0, d.percentage ?? 0);
+                                  return (
+                                    <div key={i} className="report-dist-row">
+                                      <span className="report-dist-label">{d.option}</span>
+                                      <div className="report-dist-bar-track">
+                                        <div className="report-dist-bar-fill" style={{ width: `${pct}%` }} />
+                                      </div>
+                                      <span className="report-dist-value">
+                                        {d.count} <small style={{ color: 'var(--text-secondary)' }}>({pct.toFixed(1)}%)</small>
+                                      </span>
                                     </div>
-                                    <span className="report-dist-value">
-                                      {d.count} <small style={{ color: 'var(--text-secondary)' }}>({d.percentage.toFixed(1)}%)</small>
-                                    </span>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                                 {hasMore && (
                                   <button
                                     type="button"
@@ -1896,17 +1899,20 @@ export default function EventDetails() {
         title={distModal?.question_text}
       >
         <div style={{ overflowY: 'auto', maxHeight: '60vh' }}>
-          {(distModal?.distribution || []).map((d, i) => (
-            <div key={i} className="report-dist-row" style={{ marginBottom: '0.5rem' }}>
-              <span className="report-dist-label">{d.option}</span>
-              <div className="report-dist-bar-track">
-                <div className="report-dist-bar-fill" style={{ width: `${d.percentage}%` }} />
+          {(distModal?.distribution || []).map((d, i) => {
+            const pct = Math.max(0, d.percentage ?? 0);
+            return (
+              <div key={i} className="report-dist-row" style={{ marginBottom: '0.5rem' }}>
+                <span className="report-dist-label">{d.option}</span>
+                <div className="report-dist-bar-track">
+                  <div className="report-dist-bar-fill" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="report-dist-value">
+                  {d.count} <small style={{ color: 'var(--text-secondary)' }}>({pct.toFixed(1)}%)</small>
+                </span>
               </div>
-              <span className="report-dist-value">
-                {d.count} <small style={{ color: 'var(--text-secondary)' }}>({d.percentage.toFixed(1)}%)</small>
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
         {distModal?.most_common && (
           <p style={{ marginTop: '1rem', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
