@@ -1068,9 +1068,24 @@ export default function EventDetails() {
                     {event.questions?.map((question, index) => (
                       <div key={question.id} className="card" style={{ overflow: 'hidden', padding: 0 }}>
                         <div style={{ padding: '1rem 1.25rem', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
-                          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-                            <span style={{ color: 'var(--primary)', marginRight: '0.5rem' }}>{index + 1}.</span>
+                          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{ color: 'var(--primary)', marginRight: '0.25rem' }}>{index + 1}.</span>
                             {question.text}
+                            {question.type && (
+                              <span style={{
+                                fontSize: '0.7rem', fontWeight: '500',
+                                color: 'var(--text-muted)',
+                                background: 'var(--bg-tertiary, var(--border))',
+                                border: '1px solid var(--border)',
+                                borderRadius: '999px',
+                                padding: '0.15rem 0.55rem',
+                                whiteSpace: 'nowrap',
+                              }}>
+                                {{ open: '💬', multiple: '☑️', numeric: '🔢', date: '📅' }[question.type]}
+                                {' '}
+                                {t(`create.questionType${question.type.charAt(0).toUpperCase() + question.type.slice(1)}`)}
+                              </span>
+                            )}
                           </h3>
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                             {question.responses?.length || 0} {t('eventDetails.responses')}
