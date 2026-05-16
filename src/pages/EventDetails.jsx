@@ -55,6 +55,7 @@ export default function EventDetails() {
 
   // Modal state
   const [showAnalyzeModal, setShowAnalyzeModal] = useState(false);
+  const [distModal, setDistModal] = useState(null);
 
   // Tabs state
   const [activeTab, setActiveTab] = useState('responses');
@@ -1068,9 +1069,24 @@ export default function EventDetails() {
                     {event.questions?.map((question, index) => (
                       <div key={question.id} className="card" style={{ overflow: 'hidden', padding: 0 }}>
                         <div style={{ padding: '1rem 1.25rem', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
-                          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-                            <span style={{ color: 'var(--primary)', marginRight: '0.5rem' }}>{index + 1}.</span>
+                          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{ color: 'var(--primary)', marginRight: '0.25rem' }}>{index + 1}.</span>
                             {question.text}
+                            {question.type && (
+                              <span style={{
+                                fontSize: '0.7rem', fontWeight: '500',
+                                color: 'var(--text-muted)',
+                                background: 'var(--bg-tertiary, var(--border))',
+                                border: '1px solid var(--border)',
+                                borderRadius: '999px',
+                                padding: '0.15rem 0.55rem',
+                                whiteSpace: 'nowrap',
+                              }}>
+                                {{ open: '💬', multiple: '☑️', numeric: '🔢', date: '📅' }[question.type]}
+                                {' '}
+                                {t(`create.questionType${question.type.charAt(0).toUpperCase() + question.type.slice(1)}`)}
+                              </span>
+                            )}
                           </h3>
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                             {question.responses?.length || 0} {t('eventDetails.responses')}
@@ -1312,35 +1328,56 @@ export default function EventDetails() {
                         <span style={{ fontWeight: 400 }}>({reportsByType.multiple.length})</span>
                       </div>
                       <div className="reports-grid">
-                        {reportsByType.multiple.map(report => (
-                          <div key={report.id} className="report-card">
-                            <div className="report-card-header">
-                              <h4 className="report-category">{report.question_text}</h4>
-                              <span className="report-badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
-                                ☑️ {locale === 'es-MX' ? 'Opción múltiple' : 'Multiple choice'}
-                              </span>
+                        {reportsByType.multiple.map(report => {
+                          const DIST_PREVIEW = 5;
+                          const dist = report.distribution || [];
+                          const hasMore = dist.length > DIST_PREVIEW;
+                          return (
+                            <div key={report.id} className="report-card">
+                              <div className="report-card-header">
+                                <h4 className="report-category">{report.question_text}</h4>
+                                <span className="report-badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
+                                  ☑️ {locale === 'es-MX' ? 'Opción múltiple' : 'Multiple choice'}
+                                </span>
+                              </div>
+                              <div style={{ padding: '0.75rem 1.25rem' }}>
+                                {dist.slice(0, DIST_PREVIEW).map((d, i) => {
+                                  const pct = Math.max(0, d.percentage ?? 0);
+                                  return (
+                                    <div key={i} className="report-dist-row">
+                                      <span className="report-dist-label">{d.option}</span>
+                                      <div className="report-dist-bar-track">
+                                        <div className="report-dist-bar-fill" style={{ width: `${pct}%` }} />
+                                      </div>
+                                      <span className="report-dist-value">
+                                        {d.count} <small style={{ color: 'var(--text-secondary)' }}>({pct.toFixed(1)}%)</small>
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                                {hasMore && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setDistModal(report)}
+                                    style={{
+                                      marginTop: '0.5rem', background: 'none', border: 'none',
+                                      cursor: 'pointer', color: 'var(--primary)',
+                                      fontSize: '0.8rem', fontWeight: '600', padding: 0,
+                                    }}
+                                  >
+                                    {locale === 'es-MX' ? `Ver todas (${dist.length})` : `Show all (${dist.length})`} ▼
+                                  </button>
+                                )}
+                              </div>
+                              <div style={{ padding: '0.6rem 1.25rem', borderTop: '1px solid var(--border)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                {report.total_responses} {locale === 'es-MX' ? 'respuestas' : 'responses'}
+                                {report.most_common && (
+                                  <> · {locale === 'es-MX' ? 'Más elegida:' : 'Most chosen:'} <strong style={{ color: 'var(--text-primary)' }}>{report.most_common}</strong></>
+                                )}
+                              </div>
                             </div>
-                            <div style={{ padding: '0.75rem 1.25rem' }}>
-                              {(report.distribution || []).map((d, i) => (
-                                <div key={i} className="report-dist-row">
-                                  <span className="report-dist-label">{d.option}</span>
-                                  <div className="report-dist-bar-track">
-                                    <div className="report-dist-bar-fill" style={{ width: `${d.percentage}%` }} />
-                                  </div>
-                                  <span className="report-dist-value">
-                                    {d.count} <small style={{ color: 'var(--text-secondary)' }}>({d.percentage.toFixed(1)}%)</small>
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                            <div style={{ padding: '0.6rem 1.25rem', borderTop: '1px solid var(--border)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                              {report.total_responses} {locale === 'es-MX' ? 'respuestas' : 'responses'}
-                              {report.most_common && (
-                                <> · {locale === 'es-MX' ? 'Más elegida:' : 'Most chosen:'} <strong style={{ color: 'var(--text-primary)' }}>{report.most_common}</strong></>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -1853,6 +1890,37 @@ export default function EventDetails() {
             </div>
           </div>
         </div>
+      </Modal>
+
+      {/* Distribution modal */}
+      <Modal
+        isOpen={!!distModal}
+        onClose={() => setDistModal(null)}
+        title={distModal?.question_text}
+      >
+        <div style={{ overflowY: 'auto', maxHeight: '60vh' }}>
+          {(distModal?.distribution || []).map((d, i) => {
+            const pct = Math.max(0, d.percentage ?? 0);
+            return (
+              <div key={i} className="report-dist-row" style={{ marginBottom: '0.5rem' }}>
+                <span className="report-dist-label">{d.option}</span>
+                <div className="report-dist-bar-track">
+                  <div className="report-dist-bar-fill" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="report-dist-value">
+                  {d.count} <small style={{ color: 'var(--text-secondary)' }}>({pct.toFixed(1)}%)</small>
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        {distModal?.most_common && (
+          <p style={{ marginTop: '1rem', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+            {locale === 'es-MX' ? 'Más elegida:' : 'Most chosen:'}{' '}
+            <strong style={{ color: 'var(--text-primary)' }}>{distModal.most_common}</strong>
+            {' · '}{distModal.total_responses} {locale === 'es-MX' ? 'respuestas' : 'responses'}
+          </p>
+        )}
       </Modal>
     </div>
   );
