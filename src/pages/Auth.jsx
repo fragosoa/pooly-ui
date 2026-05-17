@@ -102,6 +102,9 @@ const Auth = () => {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
+    if (password.length < 8) {
+      return setError(t('register.errorPasswordLength'));
+    }
     if (password !== confirmPassword) {
       return setError(t('register.errorPasswordMatch'));
     }
