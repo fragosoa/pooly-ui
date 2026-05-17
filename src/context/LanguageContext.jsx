@@ -22,6 +22,7 @@ const translations = {
     'register.legalAnd': 'y el',
     'register.privacyLink': 'Aviso de privacidad',
     'register.legalSuffix': '. También aceptas recibir novedades del producto y promociones especiales por correo electrónico. Puedes cancelar estos correos en cualquier momento desde tu página de Preferencias de cuenta.',
+    'register.notifications': 'Quiero recibir novedades, ofertas y noticias de Pooly.mx',
 
     // Login
     'login.title': 'Bienvenido de nuevo',
@@ -279,6 +280,11 @@ const translations = {
     'settings.email': 'Correo electrónico',
     'settings.role': 'Rol',
     'settings.roleDefault': 'Usuario',
+    'settings.notificationsSection': 'Notificaciones por correo',
+    'settings.notificationsLabel': 'Recibir novedades y ofertas de Pooly.mx',
+    'settings.notificationsDesc': 'Te enviaremos actualizaciones del producto, novedades y ofertas especiales.',
+    'settings.notificationsSaved': 'Preferencia guardada.',
+    'settings.notificationsError': 'Error al guardar. Intenta de nuevo.',
 
     // Landing page
     'landing.nav.product': 'Producto',
@@ -512,6 +518,7 @@ const translations = {
     'register.legalAnd': 'and',
     'register.privacyLink': 'Privacy Notice',
     'register.legalSuffix': '. You also agree to receive product news and special promotions via email. You can opt-out of these emails in your My Account Preferences page anytime.',
+    'register.notifications': 'I want to receive news, offers and updates from Pooly.mx',
 
     // Login
     'login.title': 'Welcome back',
@@ -769,6 +776,11 @@ const translations = {
     'settings.email': 'Email address',
     'settings.role': 'Role',
     'settings.roleDefault': 'User',
+    'settings.notificationsSection': 'Email notifications',
+    'settings.notificationsLabel': 'Receive news and offers from Pooly.mx',
+    'settings.notificationsDesc': 'We will send you product updates, news and special offers.',
+    'settings.notificationsSaved': 'Preference saved.',
+    'settings.notificationsError': 'Failed to save. Please try again.',
 
     // Landing page
     'landing.nav.product': 'Product',

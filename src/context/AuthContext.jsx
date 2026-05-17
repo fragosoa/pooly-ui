@@ -45,8 +45,16 @@ export function AuthProvider({ children }) {
     return userData;
   };
 
-  const register = async (username, password, email) => {
-    await api.post('/create_user', { username, password, email });
+  const register = async (username, password, email, allowNotifications = true) => {
+    await api.post('/create_user', { username, password, email, allow_notifications: allowNotifications });
+  };
+
+  const updateUser = (updates) => {
+    setUser(prev => {
+      const next = { ...prev, ...updates };
+      localStorage.setItem('user', JSON.stringify(next));
+      return next;
+    });
   };
 
   const loginWithGoogle = async (credential) => {
@@ -85,7 +93,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
