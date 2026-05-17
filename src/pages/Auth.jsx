@@ -68,11 +68,12 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [allowNotifications, setAllowNotifications] = useState(true);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const { login, register, loginWithGoogle } = useAuth();
+  const { login, register, loginWithGoogle, updateUser } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -101,13 +102,16 @@ const Auth = () => {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
+    if (password.length < 8) {
+      return setError(t('register.errorPasswordLength'));
+    }
     if (password !== confirmPassword) {
       return setError(t('register.errorPasswordMatch'));
     }
     setIsLoading(true);
     setError('');
     try {
-      await register(username, password, email);
+      await register(username, password, email, allowNotifications);
     } catch (err) {
       if (err.response?.status === 409) {
         setError(t('register.errorUserExists'));
@@ -119,6 +123,7 @@ const Auth = () => {
     }
     try {
       await login(username, password);
+      updateUser({ allow_notifications: allowNotifications });
       navigate('/admin');
     } catch (err) {
       setError(t('register.errorAutoLogin'));
@@ -299,10 +304,21 @@ const Auth = () => {
                 placeholder="••••••••"
               />
             </div>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', margin: '1rem 0 0.25rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={allowNotifications}
+                onChange={(e) => setAllowNotifications(e.target.checked)}
+                style={{ marginTop: '0.15rem', flexShrink: 0, accentColor: 'var(--primary)' }}
+              />
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                {t('register.notifications')}
+              </span>
+            </label>
             <button
               type="submit"
               className="btn btn-primary"
-              style={{ width: '100%', marginTop: '0.5rem' }}
+              style={{ width: '100%', marginTop: '0.75rem' }}
               disabled={isLoading}
             >
               {isLoading ? t('register.submitting') : t('register.submit')}
