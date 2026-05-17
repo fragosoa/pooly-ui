@@ -73,7 +73,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const { login, register, loginWithGoogle } = useAuth();
+  const { login, register, loginWithGoogle, updateUser } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -123,6 +123,7 @@ const Auth = () => {
     }
     try {
       await login(username, password);
+      updateUser({ allow_notifications: allowNotifications });
       navigate('/admin');
     } catch (err) {
       setError(t('register.errorAutoLogin'));
