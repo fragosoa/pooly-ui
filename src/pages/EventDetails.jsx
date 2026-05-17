@@ -786,8 +786,22 @@ export default function EventDetails() {
         </div>
 
         {analysisStatus && (
-          <div className={`alert ${analysisStatus.includes('exitosamente') || analysisStatus.includes('successfully') ? 'alert-success' : 'alert-error'}`} style={{ marginTop: '1rem' }}>
-            {analysisStatus}
+          <div
+            className={`alert ${analysisStatus.includes('exitosamente') || analysisStatus.includes('successfully') ? 'alert-success' : 'alert-error'}`}
+            style={{
+              position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
+              borderRadius: 0, margin: 0,
+              justifyContent: 'space-between',
+            }}
+          >
+            <span>{analysisStatus}</span>
+            <button
+              onClick={() => setAnalysisStatus('')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1, color: 'inherit', padding: '0 0.25rem' }}
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
           </div>
         )}
       </header>
