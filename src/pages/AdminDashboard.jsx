@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -17,7 +18,10 @@ const AdminDashboard = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [eventToDelete, setEventToDelete] = useState(null);
     const [deleting, setDeleting] = useState(false);
-    const [deleteMessage, setDeleteMessage] = useState({ type: '', text: '' });
+
+    // Open action menu per card
+    const [openMenuId, setOpenMenuId] = useState(null);
+    const menuRef = useRef(null);
 
     const getEventSource = (event) => {
         const rawSource = event?.source_type || event?.source || event?.origin;
@@ -34,8 +38,8 @@ const AdminDashboard = () => {
                 console.error('Failed to fetch user events:', err);
                 setError(t('admin.errorLoad'));
                 setEvents([
-                    { id: 1, name: 'Movilidad Urbana 2026', description: '¿Qué opinas sobre las nuevas ciclovías...', end: '2026-12-31', response_count: 45, source_type: 'online' },
-                    { id: 4, name: 'Feedback asistentes Summit Norte', description: 'Resultados importados desde SurveyMonkey para análisis cualitativo.', end: '2026-05-30', response_count: 128, source_type: 'imported', source_name: 'SurveyMonkey' },
+                    { id: 1, name: 'Movilidad Urbana 2026', description: '¿Qué opinas sobre las nuevas ciclovías...', end: '2026-12-31', response_count: 45, source_type: 'online', is_paused: false },
+                    { id: 4, name: 'Feedback asistentes Summit Norte', description: 'Resultados importados desde SurveyMonkey para análisis cualitativo.', end: '2026-05-30', response_count: 128, source_type: 'imported', source_name: 'SurveyMonkey', is_paused: false },
                 ]);
             } finally {
                 setLoading(false);
@@ -44,7 +48,17 @@ const AdminDashboard = () => {
         fetchUserEvents();
     }, []);
 
-    // Calculate stats from events
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setOpenMenuId(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const getStats = () => {
         const totalEvents = events.length;
         const totalResponses = events.reduce((sum, e) => sum + (e.response_count || 0), 0);
@@ -54,8 +68,10 @@ const AdminDashboard = () => {
         return { totalEvents, totalResponses, activeEvents, avgResponses };
     };
 
-    // Get event status info
-    const getEventStatus = (endDate) => {
+    const getEventStatus = (endDate, isPaused) => {
+        if (isPaused) {
+            return { label: t('admin.paused'), class: 'paused', daysText: t('admin.paused') };
+        }
         const now = new Date();
         const end = new Date(endDate);
         const diffDays = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
@@ -79,29 +95,30 @@ const AdminDashboard = () => {
         navigate(`/admin/events/${eventId}`);
     };
 
+    const handleMenuToggle = (e, eventId) => {
+        e.stopPropagation();
+        setOpenMenuId(prev => prev === eventId ? null : eventId);
+    };
+
     const handleDeleteClick = (e, event) => {
         e.stopPropagation();
+        setOpenMenuId(null);
         setEventToDelete(event);
         setShowDeleteModal(true);
     };
 
     const handleDeleteConfirm = async () => {
         if (!eventToDelete) return;
-
         setDeleting(true);
-        setDeleteMessage({ type: '', text: '' });
-
         try {
             const response = await api.delete(`/events/${eventToDelete.id}`);
-
             if (response.data.status === 'success') {
                 setEvents(prev => prev.filter(e => e.id !== eventToDelete.id));
                 setShowDeleteModal(false);
                 setEventToDelete(null);
-                setDeleteMessage({ type: 'success', text: t('admin.deleteSuccess') });
-                setTimeout(() => setDeleteMessage({ type: '', text: '' }), 4000);
+                toast.success(t('admin.deleteSuccess'));
             } else {
-                setDeleteMessage({ type: 'error', text: response.data.message || t('admin.deleteError') });
+                toast.error(response.data.message || t('admin.deleteError'));
                 setShowDeleteModal(false);
                 setEventToDelete(null);
             }
@@ -109,7 +126,7 @@ const AdminDashboard = () => {
             console.error('Failed to delete event:', err);
             setShowDeleteModal(false);
             setEventToDelete(null);
-            setDeleteMessage({ type: 'error', text: err.response?.data?.message || t('admin.deleteErrorGeneric') });
+            toast.error(err.response?.data?.message || t('admin.deleteErrorGeneric'));
         } finally {
             setDeleting(false);
         }
@@ -120,10 +137,72 @@ const AdminDashboard = () => {
         setEventToDelete(null);
     };
 
+    const handlePauseToggle = async (e, event) => {
+        e.stopPropagation();
+        setOpenMenuId(null);
+        const newPaused = !event.is_paused;
+        // Optimistic update
+        setEvents(prev => prev.map(ev => ev.id === event.id ? { ...ev, is_paused: newPaused } : ev));
+        try {
+            await api.patch(`/events/${event.id}`, { is_paused: newPaused });
+            toast.success(newPaused ? t('admin.pauseSuccess') : t('admin.resumeSuccess'));
+        } catch (err) {
+            // Revert on error
+            setEvents(prev => prev.map(ev => ev.id === event.id ? { ...ev, is_paused: !newPaused } : ev));
+            toast.error(t('admin.pauseError'));
+        }
+    };
+
+    const handleDuplicate = async (e, event) => {
+        e.stopPropagation();
+        setOpenMenuId(null);
+        const toastId = toast.loading(t('admin.duplicate') + '...');
+        try {
+            const response = await api.post(`/events/${event.id}/duplicate`);
+            const newEvent = response.data.event || response.data;
+            setEvents(prev => [newEvent, ...prev]);
+            toast.success(t('admin.duplicateSuccess'), { id: toastId });
+        } catch (err) {
+            toast.error(t('admin.duplicateError'), { id: toastId });
+        }
+    };
+
+    const handleEditClick = (e, eventId) => {
+        e.stopPropagation();
+        setOpenMenuId(null);
+        navigate(`/admin/events/${eventId}/edit`);
+    };
+
     if (loading) {
         return (
-            <div className="container" style={{ paddingTop: '8rem', textAlign: 'center' }}>
-                <p style={{ color: 'var(--text-secondary)' }}>{t('admin.loading')}</p>
+            <div className="container" style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+                <div className="dashboard-header">
+                    <div>
+                        <div className="skeleton" style={{ width: '220px', height: '2rem', marginBottom: '0.5rem' }} />
+                        <div className="skeleton" style={{ width: '320px', height: '1rem' }} />
+                    </div>
+                </div>
+                <div className="stats-grid" style={{ marginTop: '2rem' }}>
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="stat-card">
+                            <div className="skeleton" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+                            <div style={{ flex: 1 }}>
+                                <div className="skeleton" style={{ width: '60px', height: '1.8rem', marginBottom: '0.4rem' }} />
+                                <div className="skeleton" style={{ width: '100px', height: '0.8rem' }} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <div className="events-grid" style={{ marginTop: '2rem' }}>
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="survey-card" style={{ pointerEvents: 'none' }}>
+                            <div className="skeleton" style={{ width: '70px', height: '1.4rem', borderRadius: '20px', marginBottom: '1rem' }} />
+                            <div className="skeleton" style={{ width: '80%', height: '1.2rem', marginBottom: '0.5rem' }} />
+                            <div className="skeleton" style={{ width: '95%', height: '0.9rem', marginBottom: '0.3rem' }} />
+                            <div className="skeleton" style={{ width: '60%', height: '0.9rem' }} />
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
@@ -223,15 +302,6 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {deleteMessage.text && (
-                <div className={`alert ${deleteMessage.type === 'success' ? 'alert-success' : 'alert-error'}`}>
-                    <span className="alert-icon">
-                        {deleteMessage.type === 'success' ? '✓' : '✕'}
-                    </span>
-                    {deleteMessage.text}
-                </div>
-            )}
-
             <div className="dashboard-section-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <h2 className="section-title">{t('admin.sectionTitle')}</h2>
@@ -267,28 +337,78 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             ) : (
-                <div className="events-grid">
+                <div className="events-grid" ref={menuRef}>
                     {events.map(event => {
-                        const status = getEventStatus(event.end);
+                        const status = getEventStatus(event.end, event.is_paused);
                         const source = getEventSource(event);
+                        const isMenuOpen = openMenuId === event.id;
                         return (
                             <article
                                 key={event.id}
-                                className="survey-card"
+                                className={`survey-card${event.is_paused ? ' survey-card-paused' : ''}`}
                                 onClick={() => handleCardClick(event.id)}
                                 role="button"
                                 tabIndex={0}
                                 onKeyDown={(e) => e.key === 'Enter' && handleCardClick(event.id)}
                             >
-                                <button
-                                    className="survey-card-delete"
-                                    onClick={(e) => handleDeleteClick(e, event)}
-                                    aria-label={t('admin.deleteModalTitle')}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                    </svg>
-                                </button>
+                                {/* Three-dot actions menu */}
+                                <div className="survey-card-menu-wrapper">
+                                    <button
+                                        className="survey-card-menu-btn"
+                                        onClick={(e) => handleMenuToggle(e, event.id)}
+                                        aria-label="Opciones"
+                                        aria-expanded={isMenuOpen}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                                        </svg>
+                                    </button>
+
+                                    {isMenuOpen && (
+                                        <div className="survey-card-dropdown">
+                                            <button className="survey-card-dropdown-item" onClick={(e) => handleEditClick(e, event.id)}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                                </svg>
+                                                {t('admin.edit')}
+                                            </button>
+
+                                            <button className="survey-card-dropdown-item" onClick={(e) => handleDuplicate(e, event)}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                                                </svg>
+                                                {t('admin.duplicate')}
+                                            </button>
+
+                                            <button className="survey-card-dropdown-item" onClick={(e) => handlePauseToggle(e, event)}>
+                                                {event.is_paused ? (
+                                                    <>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                                                        </svg>
+                                                        {t('admin.resume')}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                                                        </svg>
+                                                        {t('admin.pause')}
+                                                    </>
+                                                )}
+                                            </button>
+
+                                            <div className="survey-card-dropdown-divider" />
+
+                                            <button className="survey-card-dropdown-item survey-card-dropdown-item-danger" onClick={(e) => handleDeleteClick(e, event)}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                </svg>
+                                                {t('admin.delete')}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
 
                                 <span className={`survey-card-status survey-card-status-${status.class}`}>
                                     {status.label}

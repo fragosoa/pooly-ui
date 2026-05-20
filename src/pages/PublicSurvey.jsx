@@ -14,6 +14,7 @@ export default function PublicSurvey() {
   const [success, setSuccess] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [error, setError] = useState('');
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -23,19 +24,25 @@ export default function PublicSurvey() {
         setEvent(data);
         if (data.welcome_message) setShowWelcome(true);
       } catch (err) {
-        console.error('Failed to fetch event:', err);
-        setError(t('survey.errorLoad'));
-        setEvent({
-          public_id: publicId,
-          name: 'Movilidad Urbana 2026',
-          description: 'Ayúdanos a mejorar el transporte de nuestra ciudad. Tu opinión es importante para nosotros.',
-          questions: [
-            { id: 101, text: '¿Cuál es tu principal medio de transporte?', type: 'multiple', options: ['Metro', 'Bicicleta', 'Auto particular', 'Transporte público', 'A pie'] },
-            { id: 102, text: '¿Qué opinas sobre las ciclovías actuales en la ciudad?', type: 'open', options: [] },
-            { id: 103, text: '¿Cuántas veces por semana usas el transporte público?', type: 'numeric', options: [] },
-            { id: 104, text: '¿Cuándo fue tu último viaje en transporte público?', type: 'date', options: [] }
-          ]
-        });
+        const status = err.response?.status;
+        const errorCode = err.response?.data?.error;
+        if (status === 423 || errorCode === 'survey_paused') {
+          setIsPaused(true);
+        } else {
+          console.error('Failed to fetch event:', err);
+          setError(t('survey.errorLoad'));
+          setEvent({
+            public_id: publicId,
+            name: 'Movilidad Urbana 2026',
+            description: 'Ayúdanos a mejorar el transporte de nuestra ciudad. Tu opinión es importante para nosotros.',
+            questions: [
+              { id: 101, text: '¿Cuál es tu principal medio de transporte?', type: 'multiple', options: ['Metro', 'Bicicleta', 'Auto particular', 'Transporte público', 'A pie'] },
+              { id: 102, text: '¿Qué opinas sobre las ciclovías actuales en la ciudad?', type: 'open', options: [] },
+              { id: 103, text: '¿Cuántas veces por semana usas el transporte público?', type: 'numeric', options: [] },
+              { id: 104, text: '¿Cuándo fue tu último viaje en transporte público?', type: 'date', options: [] }
+            ]
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -126,6 +133,21 @@ export default function PublicSurvey() {
           <Link to="/" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
             {t('survey.goToPooly')}
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (isPaused) {
+    return (
+      <div className="survey-page">
+        <header className="survey-header">
+          <Link to="/" className="survey-brand">Pooly</Link>
+        </header>
+        <div className="survey-error">
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏸</div>
+          <h1>{t('survey.pausedTitle')}</h1>
+          <p>{t('survey.pausedDesc')}</p>
         </div>
       </div>
     );

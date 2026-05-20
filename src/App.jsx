@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -14,6 +15,8 @@ import ImportResults from './pages/ImportResults';
 import Settings from './pages/Settings';
 import TermsOfUse from './pages/TermsOfUse';
 import PrivacyNotice from './pages/PrivacyNotice';
+import EditEvent from './pages/EditEvent';
+import SurveyPreview from './pages/SurveyPreview';
 
 function App() {
   return (
@@ -21,9 +24,13 @@ function App() {
     <LanguageProvider>
     <AuthProvider>
       <BrowserRouter>
+        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
         <Routes>
           {/* Encuesta pública - sin navbar para experiencia limpia */}
           <Route path="/encuesta/:publicId" element={<PublicSurvey />} />
+
+          {/* Vista previa - sin navbar */}
+          <Route path="/admin/preview" element={<ProtectedRoute><SurveyPreview /></ProtectedRoute>} />
 
           {/* Rutas con navbar */}
           <Route path="/" element={<><Navbar /><PublicGallery /></>} />
@@ -33,6 +40,7 @@ function App() {
           <Route path="/admin/create" element={<><Navbar /><ProtectedRoute><CreateEvent /></ProtectedRoute></>} />
           <Route path="/admin/import" element={<><Navbar /><ProtectedRoute><ImportResults /></ProtectedRoute></>} />
           <Route path="/admin/events/:eventId" element={<><Navbar /><ProtectedRoute><EventDetails /></ProtectedRoute></>} />
+          <Route path="/admin/events/:eventId/edit" element={<><Navbar /><ProtectedRoute><EditEvent /></ProtectedRoute></>} />
           <Route path="/admin/settings" element={<><Navbar /><ProtectedRoute><Settings /></ProtectedRoute></>} />
           <Route path="/terms_of_use" element={<><Navbar /><TermsOfUse /></>} />
           <Route path="/privacy_notice" element={<><Navbar /><PrivacyNotice /></>} />
