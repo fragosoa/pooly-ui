@@ -33,7 +33,7 @@ const DisruptionBanner = () => (
       <line x1="12" y1="8" x2="12" y2="12" />
       <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
-    <span>Railway Service Disruption. We are investigating the incident.</span>
+    <span>Estamos teniendo problemas de interrupción de nuestro proveedor de infraestructura Railway. Estamos investigando el incidente.</span>
     <a
       href={STATUS_URL}
       target="_blank"
@@ -45,7 +45,7 @@ const DisruptionBanner = () => (
         fontWeight: 600,
       }}
     >
-      View details
+      Ver detalles
     </a>
   </div>
 );
