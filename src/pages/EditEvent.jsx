@@ -216,8 +216,9 @@ export default function EditEvent() {
                 completion_message: completionMessage.trim() || null,
             });
 
-            const cleanedQuestions = questions.map(q => ({
+            const cleanedQuestions = questions.map((q, idx) => ({
                 ...(q._isNew ? {} : { id: q.id }),
+                position: idx,
                 text: q.text.trim(),
                 type: q.type,
                 optional: q.optional,
