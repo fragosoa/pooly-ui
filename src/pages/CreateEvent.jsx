@@ -1,11 +1,39 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import api from '../services/api';
 import Modal from '../components/Modal';
 import MarkdownEditor from '../components/MarkdownEditor';
 import { useLanguage } from '../context/LanguageContext';
 
-const emptyQuestion = () => ({ text: '', optional: false, type: 'open', options: ['', ''] });
+let _qIdCounter = 0;
+const emptyQuestion = () => ({ text: '', optional: false, type: 'open', options: ['', ''], _dndId: String(++_qIdCounter) });
+
+function SortableQuestionRow({ id, children }) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 10 : undefined,
+        position: 'relative',
+    };
+    return (
+        <div ref={setNodeRef} style={style}>
+            <div style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', cursor: 'grab', color: 'var(--text-muted)', touchAction: 'none' }} {...attributes} {...listeners}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/>
+                    <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+                    <circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
+                </svg>
+            </div>
+            {children}
+        </div>
+    );
+}
 
 const TYPE_ICONS = { open: '💬', multiple: '☑️', numeric: '🔢', date: '📅' };
 const CAROUSEL_SLIDES = 3;
@@ -35,6 +63,20 @@ const CreateEvent = () => {
     const [showWelcomeEditor, setShowWelcomeEditor] = useState(false);
     const [showCompletionEditor, setShowCompletionEditor] = useState(false);
     const [hasEndDate, setHasEndDate] = useState(false);
+
+    // DnD sensors
+    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            setFormData(prev => {
+                const oldIndex = prev.questions.findIndex(q => q._dndId === active.id);
+                const newIndex = prev.questions.findIndex(q => q._dndId === over.id);
+                return { ...prev, questions: arrayMove(prev.questions, oldIndex, newIndex) };
+            });
+        }
+    };
 
     // Carousel auto-advance (only while on step 2)
     useEffect(() => {
@@ -101,6 +143,7 @@ const CreateEvent = () => {
                 questions: cleanedQuestions,
             };
             await api.post('/events/new', payload);
+            toast.success(t('create.successToast'));
             navigate('/admin');
         } catch (err) {
             setError(err.response?.data?.message || err.message || t('create.errorGeneric'));
@@ -340,11 +383,14 @@ const CreateEvent = () => {
                                 )}
 
                                 {/* Compact question rows */}
+                                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                <SortableContext items={formData.questions.map(q => q._dndId)} strategy={verticalListSortingStrategy}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1rem' }}>
                                     {formData.questions.map((q, idx) => (
-                                        <div key={idx} style={{
+                                        <SortableQuestionRow key={q._dndId} id={q._dndId}>
+                                        <div style={{
                                             display: 'flex', alignItems: 'center', gap: '0.75rem',
-                                            padding: '0.75rem 1rem', border: '1px solid var(--border)',
+                                            padding: '0.75rem 1rem 0.75rem 2.25rem', border: '1px solid var(--border)',
                                             background: 'var(--bg-white)',
                                         }}>
                                             {/* Number */}
@@ -423,8 +469,11 @@ const CreateEvent = () => {
                                                 )}
                                             </div>
                                         </div>
+                                        </SortableQuestionRow>
                                     ))}
                                 </div>
+                                </SortableContext>
+                                </DndContext>
 
                                 {/* Add question */}
                                 <button type="button" onClick={openAddModal}
@@ -487,13 +536,30 @@ const CreateEvent = () => {
                                 </div>
 
                                 {/* Nav */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
                                     <button type="button" onClick={() => setStep(1)} className="btn btn-secondary">
                                         {t('create.prev')}
                                     </button>
-                                    <button type="submit" className="btn btn-primary" disabled={isLoading}>
-                                        {isLoading ? t('create.submitting') : t('create.submit')}
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline"
+                                            onClick={() => {
+                                                sessionStorage.setItem('survey_preview', JSON.stringify({
+                                                    ...formData,
+                                                    welcome_message: welcomeMessage,
+                                                    completion_message: completionMessage,
+                                                }));
+                                                window.open('/admin/preview', '_blank');
+                                            }}
+                                            disabled={formData.questions.length === 0}
+                                        >
+                                            {t('create.preview')}
+                                        </button>
+                                        <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                                            {isLoading ? t('create.submitting') : t('create.submit')}
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         )}
