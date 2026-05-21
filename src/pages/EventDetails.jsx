@@ -60,12 +60,6 @@ export default function EventDetails() {
   // Tabs state
   const [activeTab, setActiveTab] = useState('responses');
 
-  // Edit questions state
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedQuestions, setEditedQuestions] = useState([]);
-  const [newQuestions, setNewQuestions] = useState(['']);
-  const [saveStatus, setSaveStatus] = useState(''); // 'success' | 'error' | ''
-  const [saving, setSaving] = useState(false);
 
   // Reports state
   const [reports, setReports] = useState([]);
@@ -232,51 +226,6 @@ export default function EventDetails() {
     }
   };
 
-  const handleEditClick = () => {
-    setEditedQuestions((event.questions || []).map(q => ({ id: q.id, text: q.text })));
-    setNewQuestions(['']);
-    setSaveStatus('');
-    setIsEditing(true);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setSaveStatus('');
-  };
-
-  const handleQuestionChange = (index, value) => {
-    setEditedQuestions(prev => prev.map((q, i) => i === index ? { ...q, text: value } : q));
-  };
-
-  const handleNewQuestionChange = (index, value) => {
-    setNewQuestions(prev => prev.map((q, i) => i === index ? value : q));
-  };
-
-  const handleAddNewQuestion = () => {
-    setNewQuestions(prev => [...prev, '']);
-  };
-
-  const handleSaveQuestions = async () => {
-    setSaving(true);
-    setSaveStatus('');
-    try {
-      const questions = [
-        ...editedQuestions,
-        ...newQuestions.filter(q => q.trim() !== '').map(text => ({ text })),
-      ];
-      await api.patch(`/events/${eventId}/questions`, { questions });
-      setSaveStatus('success');
-      setIsEditing(false);
-      try {
-        const response = await api.get(`/events/${eventId}/details`);
-        setEvent(response.data.data);
-      } catch (_) { /* keep current event data on refetch failure */ }
-    } catch (err) {
-      setSaveStatus('error');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const getSentimentLabel = (sentiment) => {
     if (sentiment >= 0.3)  return { text: t('sentiment.positive'), class: 'positive' };
@@ -981,109 +930,35 @@ export default function EventDetails() {
               {/* Toolbar */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <span />
-                {!isEditing ? (
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <button
-                      onClick={handleAnalyzeClick}
-                      disabled={analyzing}
-                      className="btn btn-primary"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-                    >
-                      {analyzing ? (
-                        <><span className="btn-spinner"></span>{t('eventDetails.analyzing')}</>
-                      ) : (
-                        <>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
-                            <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
-                          </svg>
-                          {t('eventDetails.analyzeTitle')}
-                        </>
-                      )}
-                    </button>
-                    {!isImported && (
-                      <button className="btn btn-secondary" onClick={handleEditClick}>
-                        ✏️ {t('editEvent.editBtn')}
-                      </button>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button
+                    onClick={handleAnalyzeClick}
+                    disabled={analyzing}
+                    className="btn btn-primary"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                  >
+                    {analyzing ? (
+                      <><span className="btn-spinner"></span>{t('eventDetails.analyzing')}</>
+                    ) : (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
+                          <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
+                        </svg>
+                        {t('eventDetails.analyzeTitle')}
+                      </>
                     )}
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button className="btn btn-secondary" onClick={handleCancelEdit} disabled={saving}>
-                      {t('editEvent.cancelBtn')}
-                    </button>
-                    <button className="btn btn-primary" onClick={handleSaveQuestions} disabled={saving}>
-                      {saving ? t('editEvent.saving') : t('editEvent.saveBtn')}
-                    </button>
-                  </div>
-                )}
+                  </button>
+                  {!isImported && (
+                    <Link to={`/admin/events/${eventId}/edit`} className="btn btn-secondary">
+                      ✏️ {t('editEvent.editBtn')}
+                    </Link>
+                  )}
+                </div>
               </div>
 
-              {/* Save status feedback */}
-              {saveStatus === 'success' && (
-                <div className="alert alert-success" style={{ marginBottom: '1.25rem' }}>
-                  {t('editEvent.saveSuccess')}
-                </div>
-              )}
-              {saveStatus === 'error' && (
-                <div className="alert alert-error" style={{ marginBottom: '1.25rem' }}>
-                  {t('editEvent.saveError')}
-                </div>
-              )}
-
-              {/* Questions list — view or edit mode */}
+              {/* Questions list */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                {isEditing ? (
-                  <>
-                    {/* Editable existing questions */}
-                    {editedQuestions.map((question, index) => (
-                      <div key={question.id} className="card" style={{ overflow: 'hidden', padding: 0 }}>
-                        <div style={{ padding: '1rem 1.25rem', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span style={{ color: 'var(--primary)', fontWeight: '600', flexShrink: 0 }}>{index + 1}.</span>
-                          <input
-                            type="text"
-                            className="input-field"
-                            value={question.text}
-                            onChange={e => handleQuestionChange(index, e.target.value)}
-                            style={{ margin: 0 }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* New questions section */}
-                    <div className="card" style={{ padding: '1.25rem' }}>
-                      <p style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                        {t('editEvent.newQuestionsLabel')}
-                      </p>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {newQuestions.map((q, index) => (
-                          <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ color: 'var(--text-muted)', fontWeight: '600', flexShrink: 0 }}>
-                              {editedQuestions.length + index + 1}.
-                            </span>
-                            <input
-                              type="text"
-                              className="input-field"
-                              placeholder={t('editEvent.questionPlaceholder', { num: editedQuestions.length + index + 1 })}
-                              value={q}
-                              onChange={e => handleNewQuestionChange(index, e.target.value)}
-                              style={{ margin: 0 }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                      <button
-                        className="btn btn-outline"
-                        onClick={handleAddNewQuestion}
-                        disabled={newQuestions[newQuestions.length - 1].trim() === ''}
-                        style={{ marginTop: '1rem' }}
-                      >
-                        {t('editEvent.addQuestion')}
-                      </button>
-                    </div>
-                  </>
-                ) : (
                   <>
                     {event.questions?.map((question, index) => (
                       <div key={question.id} className="card" style={{ overflow: 'hidden', padding: 0 }}>
@@ -1159,7 +1034,6 @@ export default function EventDetails() {
                       </div>
                     )}
                   </>
-                )}
               </div>
             </section>
           )}
