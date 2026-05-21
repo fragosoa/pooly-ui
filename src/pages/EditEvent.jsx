@@ -57,8 +57,9 @@ export default function EditEvent() {
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
 
-    // Metadata fields
+    // Metadata
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -68,10 +69,8 @@ export default function EditEvent() {
     const [showWelcomeEditor, setShowWelcomeEditor] = useState(false);
     const [showCompletionEditor, setShowCompletionEditor] = useState(false);
 
-    // Questions list (all questions, existing + new)
+    // Questions
     const [questions, setQuestions] = useState([]);
-
-    // Question modal
     const [showModal, setShowModal] = useState(false);
     const [editingIdx, setEditingIdx] = useState(null);
     const [modalData, setModalData] = useState(emptyQuestion());
@@ -84,6 +83,7 @@ export default function EditEvent() {
             try {
                 const res = await api.get(`/events/${eventId}/details`);
                 const ev = res.data.data;
+
                 const farFuture = new Date();
                 farFuture.setFullYear(farFuture.getFullYear() + 15);
                 const evEnd = new Date(ev.end || ev.end_date);
@@ -106,7 +106,7 @@ export default function EditEvent() {
                     _dndId: String(q.id ?? `q-${i}`),
                     _isNew: false,
                 })));
-            } catch (err) {
+            } catch {
                 toast.error(t('eventDetails.errorLoad'));
                 navigate(`/admin/events/${eventId}`);
             } finally {
@@ -116,7 +116,6 @@ export default function EditEvent() {
         fetchEvent();
     }, [eventId, navigate, t]);
 
-    // Close menu on outside click
     useEffect(() => {
         if (openMenuIdx === null) return;
         const close = () => setOpenMenuIdx(null);
@@ -187,10 +186,20 @@ export default function EditEvent() {
     };
 
     const handleSave = async () => {
-        if (!name.trim()) { toast.error(isES ? 'El nombre es requerido.' : 'Name is required.'); return; }
-        if (questions.length === 0) { toast.error(t('create.errorNoQuestions')); return; }
+        setError('');
+        if (!name.trim()) {
+            setError(isES ? 'El nombre es requerido.' : 'Name is required.');
+            return;
+        }
+        if (questions.length === 0) {
+            setError(t('create.errorNoQuestions'));
+            return;
+        }
         const badMultiple = questions.find(q => q.type === 'multiple' && q.options.filter(Boolean).length < 2);
-        if (badMultiple) { toast.error(t('create.errorMultipleOptions')); return; }
+        if (badMultiple) {
+            setError(t('create.errorMultipleOptions'));
+            return;
+        }
 
         setSaving(true);
         const toastId = toast.loading(t('editEvent.saving'));
@@ -199,7 +208,6 @@ export default function EditEvent() {
             const farFuture = new Date();
             farFuture.setFullYear(farFuture.getFullYear() + 20);
 
-            // Save metadata
             await api.patch(`/events/${eventId}`, {
                 name: name.trim(),
                 description: description.trim(),
@@ -208,7 +216,6 @@ export default function EditEvent() {
                 completion_message: completionMessage.trim() || null,
             });
 
-            // Save questions (order is implicit by array index)
             const cleanedQuestions = questions.map(q => ({
                 ...(q._isNew ? {} : { id: q.id }),
                 text: q.text.trim(),
@@ -221,10 +228,7 @@ export default function EditEvent() {
             toast.success(t('editEvent.saveSuccess'), { id: toastId });
             navigate(`/admin/events/${eventId}`);
         } catch (err) {
-            toast.error(
-                err.response?.data?.message || t('editEvent.saveError'),
-                { id: toastId }
-            );
+            toast.error(err.response?.data?.message || t('editEvent.saveError'), { id: toastId });
         } finally {
             setSaving(false);
         }
@@ -239,222 +243,272 @@ export default function EditEvent() {
     }
 
     return (
-        <div className="container" style={{ paddingTop: '7rem', paddingBottom: '4rem', maxWidth: '760px' }}>
-            {/* Header */}
-            <div style={{ marginBottom: '2rem' }}>
-                <Link to={`/admin/events/${eventId}`} style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>
+        <div className="container" style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+
+            {/* Page header */}
+            <header className="page-header" style={{ marginBottom: '2rem', maxWidth: '640px' }}>
+                <Link to={`/admin/events/${eventId}`} className="back-link" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>
                     {t('editEvent.back')}
                 </Link>
-                <h1 className="page-title" style={{ marginTop: '0.5rem', marginBottom: 0 }}>
-                    {t('editEvent.pageTitle')}
-                </h1>
-            </div>
+                <h1 className="page-title">{t('editEvent.pageTitle')}</h1>
+                <p className="page-subtitle" style={{ marginBottom: 0 }}>
+                    {isES ? 'Modifica los detalles y preguntas de tu encuesta.' : 'Modify the details and questions of your survey.'}
+                </p>
+            </header>
 
-            {/* Section: Info */}
-            <section className="edit-event-section">
-                <h2 className="edit-event-section-title">{t('editEvent.sectionInfo')}</h2>
-
-                <div className="form-group">
-                    <label className="input-label">{t('editEvent.name')} *</label>
-                    <input
-                        className="input"
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        placeholder={isES ? 'Nombre de la encuesta' : 'Survey name'}
-                        maxLength={120}
-                    />
+            {error && (
+                <div className="alert alert-error" style={{ maxWidth: '640px', marginBottom: '1.5rem' }}>
+                    {error}
                 </div>
+            )}
 
-                <div className="form-group">
-                    <label className="input-label">{t('editEvent.description')}</label>
-                    <textarea
-                        className="input"
-                        value={description}
-                        onChange={e => setDescription(e.target.value)}
-                        rows={3}
-                        placeholder={isES ? 'Descripción breve' : 'Brief description'}
-                        maxLength={500}
-                    />
-                </div>
+            <div style={{ maxWidth: '640px' }}>
 
-                <div className="form-group">
-                    <label className="input-label">{t('editEvent.endDate')}</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
-                            <input
-                                type="checkbox"
-                                checked={hasEndDate}
-                                onChange={e => setHasEndDate(e.target.checked)}
-                            />
-                            {isES ? 'Establecer fecha de cierre' : 'Set closing date'}
-                        </label>
+                {/* ── Card: General info ── */}
+                <div className="card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                    <h2 className="section-title" style={{ marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                        {t('editEvent.sectionInfo')}
+                    </h2>
+
+                    <div className="input-group">
+                        <label className="input-label">{t('editEvent.name')} *</label>
+                        <input
+                            type="text"
+                            className="input-field"
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            placeholder={isES ? 'Nombre de la encuesta' : 'Survey name'}
+                            maxLength={120}
+                        />
+                    </div>
+
+                    <div className="input-group">
+                        <label className="input-label">{t('editEvent.description')}</label>
+                        <textarea
+                            className="input-field"
+                            value={description}
+                            onChange={e => setDescription(e.target.value)}
+                            rows={3}
+                            placeholder={isES ? 'Descripción breve (opcional)' : 'Brief description (optional)'}
+                            maxLength={500}
+                        />
+                    </div>
+
+                    <div className="input-group">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: hasEndDate ? '0.75rem' : 0 }}>
+                            <button
+                                type="button"
+                                onClick={() => { setHasEndDate(v => !v); if (hasEndDate) setEndDate(''); }}
+                                style={{
+                                    width: '40px', height: '22px', borderRadius: '11px', position: 'relative',
+                                    background: hasEndDate ? 'var(--primary)' : 'var(--border)',
+                                    border: 'none', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0,
+                                }}
+                            >
+                                <span style={{
+                                    position: 'absolute', top: '2px',
+                                    left: hasEndDate ? '20px' : '2px',
+                                    width: '18px', height: '18px', borderRadius: '50%',
+                                    background: '#fff', transition: 'left 0.2s',
+                                }} />
+                            </button>
+                            <label
+                                className="input-label"
+                                style={{ margin: 0, cursor: 'pointer' }}
+                                onClick={() => { setHasEndDate(v => !v); if (hasEndDate) setEndDate(''); }}
+                            >
+                                {t('editEvent.endDate')}
+                            </label>
+                        </div>
                         {hasEndDate && (
                             <input
                                 type="date"
-                                className="input"
-                                style={{ width: 'auto', flex: 1, minWidth: '160px' }}
+                                className="input-field"
                                 value={endDate}
                                 onChange={e => setEndDate(e.target.value)}
+                                style={{ margin: 0 }}
+                                min={new Date().toISOString().split('T')[0]}
                             />
+                        )}
+                    </div>
+
+                    {/* Welcome screen */}
+                    <div className="screen-section">
+                        <div className="screen-section-header">
+                            <div>
+                                <span className="screen-section-badge">{isES ? 'Opcional' : 'Optional'}</span>
+                                <span className="screen-section-title">{t('editEvent.welcomeLabel')}</span>
+                            </div>
+                            <button
+                                type="button"
+                                className={`screen-section-toggle ${showWelcomeEditor ? 'is-active' : ''}`}
+                                onClick={() => {
+                                    if (showWelcomeEditor) setWelcomeMessage('');
+                                    setShowWelcomeEditor(v => !v);
+                                }}
+                            >
+                                {showWelcomeEditor ? (isES ? 'Quitar' : 'Remove') : (isES ? 'Agregar' : 'Add')}
+                            </button>
+                        </div>
+                        {showWelcomeEditor && (
+                            <div style={{ marginTop: '0.75rem' }}>
+                                <MarkdownEditor
+                                    value={welcomeMessage}
+                                    onChange={setWelcomeMessage}
+                                    placeholder={t('editEvent.welcomePlaceholder')}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Completion screen */}
+                    <div className="screen-section">
+                        <div className="screen-section-header">
+                            <div>
+                                <span className="screen-section-badge">{isES ? 'Opcional' : 'Optional'}</span>
+                                <span className="screen-section-title">{t('editEvent.completionLabel')}</span>
+                            </div>
+                            <button
+                                type="button"
+                                className={`screen-section-toggle ${showCompletionEditor ? 'is-active' : ''}`}
+                                onClick={() => {
+                                    if (showCompletionEditor) setCompletionMessage('');
+                                    setShowCompletionEditor(v => !v);
+                                }}
+                            >
+                                {showCompletionEditor ? (isES ? 'Quitar' : 'Remove') : (isES ? 'Agregar' : 'Add')}
+                            </button>
+                        </div>
+                        {showCompletionEditor && (
+                            <div style={{ marginTop: '0.75rem' }}>
+                                <MarkdownEditor
+                                    value={completionMessage}
+                                    onChange={setCompletionMessage}
+                                    placeholder={t('editEvent.completionPlaceholder')}
+                                />
+                            </div>
                         )}
                     </div>
                 </div>
 
-                {/* Welcome screen */}
-                <div className="screen-section">
-                    <div className="screen-section-header">
-                        <div>
-                            <span className="screen-section-badge">{isES ? 'Opcional' : 'Optional'}</span>
-                            <h3 className="screen-section-title">{t('editEvent.welcomeLabel')}</h3>
-                        </div>
-                        <button
-                            type="button"
-                            className={`screen-section-toggle ${showWelcomeEditor ? 'is-active' : ''}`}
-                            onClick={() => setShowWelcomeEditor(v => !v)}
-                        >
-                            {showWelcomeEditor ? (isES ? 'Quitar' : 'Remove') : (isES ? 'Agregar' : 'Add')}
-                        </button>
-                    </div>
-                    {showWelcomeEditor && (
-                        <div style={{ marginTop: '0.75rem' }}>
-                            <MarkdownEditor
-                                value={welcomeMessage}
-                                onChange={setWelcomeMessage}
-                                placeholder={t('editEvent.welcomePlaceholder')}
-                            />
-                        </div>
-                    )}
-                </div>
+                {/* ── Card: Questions ── */}
+                <div className="card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                    <h2 className="section-title" style={{ marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                        {t('editEvent.sectionQuestions')}
+                    </h2>
 
-                {/* Completion screen */}
-                <div className="screen-section">
-                    <div className="screen-section-header">
-                        <div>
-                            <span className="screen-section-badge">{isES ? 'Opcional' : 'Optional'}</span>
-                            <h3 className="screen-section-title">{t('editEvent.completionLabel')}</h3>
-                        </div>
-                        <button
-                            type="button"
-                            className={`screen-section-toggle ${showCompletionEditor ? 'is-active' : ''}`}
-                            onClick={() => setShowCompletionEditor(v => !v)}
-                        >
-                            {showCompletionEditor ? (isES ? 'Quitar' : 'Remove') : (isES ? 'Agregar' : 'Add')}
-                        </button>
-                    </div>
-                    {showCompletionEditor && (
-                        <div style={{ marginTop: '0.75rem' }}>
-                            <MarkdownEditor
-                                value={completionMessage}
-                                onChange={setCompletionMessage}
-                                placeholder={t('editEvent.completionPlaceholder')}
-                            />
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            {/* Section: Questions */}
-            <section className="edit-event-section">
-                <h2 className="edit-event-section-title">{t('editEvent.sectionQuestions')}</h2>
-
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={questions.map(q => q._dndId)} strategy={verticalListSortingStrategy}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1rem' }}>
-                    {questions.map((q, idx) => (
-                        <SortableQuestionRow key={q._dndId} id={q._dndId}>
+                    {questions.length === 0 && (
                         <div style={{
-                            display: 'flex', alignItems: 'center', gap: '0.75rem',
-                            padding: '0.75rem 1rem 0.75rem 2.25rem',
-                            border: '1px solid var(--border)',
-                            background: q._isNew ? 'var(--primary-50, #eff6ff)' : 'var(--bg-white)',
+                            padding: '2rem 1rem', textAlign: 'center', marginBottom: '1rem',
+                            border: '1px dashed var(--border)', background: 'var(--bg-secondary)',
                         }}>
-                            <span style={{
-                                width: '24px', height: '24px', flexShrink: 0,
-                                background: 'var(--primary-light)', color: 'var(--primary)',
-                                borderRadius: '50%', display: 'flex', alignItems: 'center',
-                                justifyContent: 'center', fontSize: '0.75rem', fontWeight: '700',
-                            }}>
-                                {idx + 1}
-                            </span>
-
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <p style={{
-                                    margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)',
-                                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                                }}>
-                                    {q.text || <em style={{ color: 'var(--text-muted)' }}>{isES ? 'Sin texto' : 'No text'}</em>}
-                                </p>
-                                <p style={{ margin: '0.15rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                                    {TYPE_ICONS[q.type]} {isES
-                                        ? { open: 'Texto libre', multiple: 'Opción múltiple', numeric: 'Numérico', date: 'Fecha' }[q.type]
-                                        : { open: 'Free text', multiple: 'Multiple choice', numeric: 'Numeric', date: 'Date' }[q.type]
-                                    }
-                                    {q.type === 'multiple' && q.options?.filter(Boolean).length > 0 && (
-                                        <span> · {q.options.filter(Boolean).length} {isES ? 'opciones' : 'options'}</span>
-                                    )}
-                                    {q._isNew && (
-                                        <span style={{ color: 'var(--primary)', fontWeight: 600, marginLeft: '0.4rem' }}>
-                                            {isES ? '• Nueva' : '• New'}
-                                        </span>
-                                    )}
-                                </p>
-                            </div>
-
-                            {/* Three-dot menu */}
-                            <div style={{ position: 'relative', flexShrink: 0 }}>
-                                <button
-                                    type="button"
-                                    onClick={e => { e.stopPropagation(); setOpenMenuIdx(openMenuIdx === idx ? null : idx); }}
-                                    style={{
-                                        background: 'none', border: 'none', cursor: 'pointer',
-                                        padding: '0.25rem 0.4rem', color: 'var(--text-secondary)',
-                                        fontSize: '1.1rem', letterSpacing: '0.05em', lineHeight: 1,
-                                    }}
-                                >
-                                    ···
-                                </button>
-                                {openMenuIdx === idx && (
-                                    <div style={{
-                                        position: 'absolute', right: 0, top: '100%', zIndex: 20,
-                                        background: '#fff', border: '1px solid var(--border)',
-                                        boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: '130px',
-                                    }}>
-                                        <button type="button" onClick={() => openEditModal(idx)}
-                                            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)' }}>
-                                            ✏️ {isES ? 'Editar' : 'Edit'}
-                                        </button>
-                                        {questions.length > 1 && (
-                                            <button type="button" onClick={() => removeQuestion(idx)}
-                                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)' }}>
-                                                🗑 {isES ? 'Eliminar' : 'Delete'}
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0 }}>
+                                {isES ? 'Comienza agregando preguntas.' : 'Start by adding questions.'}
+                            </p>
                         </div>
-                        </SortableQuestionRow>
-                    ))}
+                    )}
+
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={questions.map(q => q._dndId)} strategy={verticalListSortingStrategy}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1rem' }}>
+                        {questions.map((q, idx) => (
+                            <SortableQuestionRow key={q._dndId} id={q._dndId}>
+                            <div style={{
+                                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                                padding: '0.75rem 1rem 0.75rem 2.25rem',
+                                border: '1px solid var(--border)',
+                                background: q._isNew ? 'var(--bg-secondary)' : 'var(--bg-white)',
+                            }}>
+                                <span style={{
+                                    width: '24px', height: '24px', flexShrink: 0,
+                                    background: 'var(--primary-light)', color: 'var(--primary)',
+                                    borderRadius: '50%', display: 'flex', alignItems: 'center',
+                                    justifyContent: 'center', fontSize: '0.75rem', fontWeight: '700',
+                                }}>
+                                    {idx + 1}
+                                </span>
+
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{
+                                        margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)',
+                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                    }}>
+                                        {q.text || <em style={{ color: 'var(--text-muted)' }}>{isES ? 'Sin texto' : 'No text'}</em>}
+                                    </p>
+                                    <p style={{ margin: '0.15rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                                        {TYPE_ICONS[q.type]}{' '}
+                                        {t(`create.questionType${q.type.charAt(0).toUpperCase() + q.type.slice(1)}`)}
+                                        {q.type === 'multiple' && q.options?.filter(Boolean).length > 0 && (
+                                            <span> · {q.options.filter(Boolean).length} {isES ? 'opciones' : 'options'}</span>
+                                        )}
+                                        <span style={{ color: 'var(--border)', margin: '0 0.3rem' }}>·</span>
+                                        {q.optional ? t('create.questionOptional') : t('create.questionRequired')}
+                                        {q._isNew && (
+                                            <span style={{ color: 'var(--primary)', fontWeight: 600, marginLeft: '0.4rem' }}>
+                                                {isES ? '• Nueva' : '• New'}
+                                            </span>
+                                        )}
+                                    </p>
+                                </div>
+
+                                {/* Three-dot menu */}
+                                <div style={{ position: 'relative', flexShrink: 0 }}>
+                                    <button
+                                        type="button"
+                                        onClick={e => { e.stopPropagation(); setOpenMenuIdx(openMenuIdx === idx ? null : idx); }}
+                                        style={{
+                                            background: 'none', border: 'none', cursor: 'pointer',
+                                            padding: '0.25rem 0.4rem', color: 'var(--text-secondary)',
+                                            fontSize: '1.1rem', letterSpacing: '0.05em', lineHeight: 1,
+                                            borderRadius: '4px',
+                                        }}
+                                        title={isES ? 'Opciones' : 'Options'}
+                                    >
+                                        ···
+                                    </button>
+                                    {openMenuIdx === idx && (
+                                        <div style={{
+                                            position: 'absolute', right: 0, top: '100%', zIndex: 20,
+                                            background: 'var(--bg-white)', border: '1px solid var(--border)',
+                                            boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: '130px',
+                                        }}>
+                                            <button type="button" onClick={() => openEditModal(idx)}
+                                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)', fontFamily: 'inherit' }}>
+                                                ✏️ {isES ? 'Editar' : 'Edit'}
+                                            </button>
+                                            {questions.length > 1 && (
+                                                <button type="button" onClick={() => removeQuestion(idx)}
+                                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)', fontFamily: 'inherit' }}>
+                                                    🗑 {isES ? 'Eliminar' : 'Delete'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            </SortableQuestionRow>
+                        ))}
+                    </div>
+                    </SortableContext>
+                    </DndContext>
+
+                    <button type="button" onClick={openAddModal} className="btn btn-outline" style={{ width: '100%', borderStyle: 'dashed' }}>
+                        + {t('editEvent.addQuestion')}
+                    </button>
                 </div>
-                </SortableContext>
-                </DndContext>
 
-                <button type="button" onClick={openAddModal} className="btn btn-outline" style={{ width: '100%', borderStyle: 'dashed' }}>
-                    + {t('editEvent.addQuestion')}
-                </button>
-            </section>
-
-            {/* Footer actions */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1.5rem', borderTop: '1px solid var(--border)', marginTop: '2rem' }}>
-                <Link to={`/admin/events/${eventId}`} className="btn btn-secondary">
-                    {t('editEvent.cancelBtn')}
-                </Link>
-                <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-                    {saving ? t('editEvent.saving') : t('editEvent.saveBtn')}
-                </button>
+                {/* ── Footer actions ── */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Link to={`/admin/events/${eventId}`} className="btn btn-secondary">
+                        {t('editEvent.cancelBtn')}
+                    </Link>
+                    <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+                        {saving ? t('editEvent.saving') : t('editEvent.saveBtn')}
+                    </button>
+                </div>
             </div>
 
-            {/* Question edit modal */}
+            {/* ── Question edit/add modal ── */}
             <Modal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
@@ -477,81 +531,89 @@ export default function EditEvent() {
                     </div>
                 }
             >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div>
-                        <label className="input-label">{isES ? 'Pregunta' : 'Question'}</label>
-                        <input
-                            className="input"
-                            value={modalData.text}
-                            onChange={e => setModalData(p => ({ ...p, text: e.target.value }))}
-                            placeholder={isES ? 'Escribe la pregunta aquí' : 'Write question here'}
-                            autoFocus
-                        />
-                    </div>
+                <div className="input-group">
+                    <label className="input-label">{isES ? 'Pregunta' : 'Question'}</label>
+                    <input
+                        type="text"
+                        className="input-field"
+                        value={modalData.text}
+                        onChange={e => setModalData(p => ({ ...p, text: e.target.value }))}
+                        placeholder={isES ? 'Escribe la pregunta aquí' : 'Write question here'}
+                        autoFocus
+                    />
+                </div>
 
-                    <div>
-                        <label className="input-label">{isES ? 'Tipo de respuesta' : 'Response type'}</label>
-                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                            {QUESTION_TYPES.map(type => (
-                                <button
-                                    key={type}
-                                    type="button"
-                                    onClick={() => setModalData(p => ({
-                                        ...p, type,
-                                        options: type === 'multiple' ? (p.options.length >= 2 ? p.options : ['', '']) : p.options,
-                                    }))}
-                                    className={`btn ${modalData.type === type ? 'btn-primary' : 'btn-outline'}`}
-                                    style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
-                                >
-                                    {TYPE_ICONS[type]} {isES
-                                        ? { open: 'Texto', multiple: 'Múltiple', numeric: 'Número', date: 'Fecha' }[type]
-                                        : { open: 'Text', multiple: 'Multiple', numeric: 'Number', date: 'Date' }[type]
-                                    }
-                                </button>
+                <div className="input-group">
+                    <label className="input-label">{isES ? 'Tipo de respuesta' : 'Response type'}</label>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        {QUESTION_TYPES.map(type => (
+                            <button
+                                key={type}
+                                type="button"
+                                onClick={() => setModalData(p => ({
+                                    ...p, type,
+                                    options: type === 'multiple' ? (p.options.length >= 2 ? p.options : ['', '']) : p.options,
+                                }))}
+                                className={`btn ${modalData.type === type ? 'btn-primary' : 'btn-outline'}`}
+                                style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
+                            >
+                                {TYPE_ICONS[type]}{' '}
+                                {isES
+                                    ? { open: 'Texto', multiple: 'Múltiple', numeric: 'Número', date: 'Fecha' }[type]
+                                    : { open: 'Text', multiple: 'Multiple', numeric: 'Number', date: 'Date' }[type]
+                                }
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {modalData.type === 'multiple' && (
+                    <div className="input-group">
+                        <label className="input-label">{isES ? 'Opciones' : 'Options'}</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            {modalData.options.map((opt, oIdx) => (
+                                <div key={oIdx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        value={opt}
+                                        onChange={e => handleModalOptionChange(oIdx, e.target.value)}
+                                        placeholder={`${isES ? 'Opción' : 'Option'} ${oIdx + 1}`}
+                                        style={{ margin: 0 }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeModalOption(oIdx)}
+                                        disabled={modalData.options.length <= 2}
+                                        style={{
+                                            background: 'none', border: 'none', cursor: 'pointer',
+                                            color: 'var(--error)', fontSize: '1.2rem', padding: '0 0.25rem',
+                                            opacity: modalData.options.length <= 2 ? 0.3 : 1,
+                                            lineHeight: 1, flexShrink: 0,
+                                        }}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
                             ))}
+                            <button type="button" onClick={addModalOption} className="btn btn-outline" style={{ fontSize: '0.8rem', alignSelf: 'flex-start', marginTop: '0.25rem' }}>
+                                + {isES ? 'Añadir opción' : 'Add option'}
+                            </button>
                         </div>
                     </div>
+                )}
 
-                    {modalData.type === 'multiple' && (
-                        <div>
-                            <label className="input-label">{isES ? 'Opciones' : 'Options'}</label>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                {modalData.options.map((opt, oIdx) => (
-                                    <div key={oIdx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                        <input
-                                            className="input"
-                                            value={opt}
-                                            onChange={e => handleModalOptionChange(oIdx, e.target.value)}
-                                            placeholder={`${isES ? 'Opción' : 'Option'} ${oIdx + 1}`}
-                                            style={{ flex: 1 }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeModalOption(oIdx)}
-                                            disabled={modalData.options.length <= 2}
-                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', fontSize: '1rem', padding: '0.25rem', opacity: modalData.options.length <= 2 ? 0.3 : 1 }}
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                ))}
-                                <button type="button" onClick={addModalOption} className="btn btn-outline" style={{ fontSize: '0.8rem', alignSelf: 'flex-start' }}>
-                                    + {isES ? 'Añadir opción' : 'Add option'}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    <div>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
-                            <input
-                                type="checkbox"
-                                checked={modalData.optional}
-                                onChange={e => setModalData(p => ({ ...p, optional: e.target.checked }))}
-                            />
+                <div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                        <input
+                            type="checkbox"
+                            checked={modalData.optional}
+                            onChange={e => setModalData(p => ({ ...p, optional: e.target.checked }))}
+                        />
+                        <span className="input-label" style={{ margin: 0 }}>
                             {isES ? 'Respuesta opcional' : 'Optional response'}
-                        </label>
-                    </div>
+                        </span>
+                    </label>
                 </div>
             </Modal>
         </div>

@@ -3448,25 +3448,6 @@ textarea.input-field {
   white-space: nowrap;
 }
 
-/* ─── Edit Event Page ────────────────────────────────────────────────────── */
-.edit-event-section {
-  background: var(--bg-white);
-  border: 1px solid var(--border);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.edit-event-section-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-secondary);
-  margin: 0 0 1.25rem 0;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
-
 /* ─── Survey Welcome Screen ──────────────────────────────────────────────── */
 .survey-welcome {
   display: flex;
