@@ -24,7 +24,11 @@ function App() {
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
     <LanguageProvider>
     <AuthProvider>
+<<<<<<< task/KAN-56-frontend
       
+=======
+      <DisruptionBanner />
+>>>>>>> main
       <div style={{ paddingTop: '2.1rem' }}>
       <BrowserRouter>
         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
