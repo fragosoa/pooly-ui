@@ -76,6 +76,14 @@ export default function EditEvent() {
     const [modalData, setModalData] = useState(emptyQuestion());
     const [openMenuIdx, setOpenMenuIdx] = useState(null);
 
+    // Confirmation modal for editing questions with existing responses
+    const [showResponseWarning, setShowResponseWarning] = useState(false);
+    const [pendingEdit, setPendingEdit] = useState(null);
+
+    // Confirmation modal for deleting questions with existing responses
+    const [showDeleteWarning, setShowDeleteWarning] = useState(false);
+    const [pendingDeleteIdx, setPendingDeleteIdx] = useState(null);
+
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
     useEffect(() => {
@@ -158,17 +166,66 @@ export default function EditEvent() {
         if (cleaned.type === 'multiple' && cleaned.options.length < 2) return;
 
         if (editingIdx === null) {
+            // New question — no responses to worry about
             setQuestions(prev => [...prev, cleaned]);
-        } else {
-            setQuestions(prev => prev.map((q, i) => i === editingIdx ? cleaned : q));
+            setShowModal(false);
+            return;
         }
+
+        const existing = questions[editingIdx];
+        const responseCount = existing?.responses?.length ?? 0;
+
+        if (!existing._isNew && responseCount > 0) {
+            // Existing question with responses — ask for confirmation first
+            setPendingEdit({ cleaned, idx: editingIdx, responseCount });
+            setShowModal(false);
+            setShowResponseWarning(true);
+            return;
+        }
+
+        setQuestions(prev => prev.map((q, i) => i === editingIdx ? cleaned : q));
         setShowModal(false);
+    };
+
+    const handleWarningConfirm = () => {
+        if (!pendingEdit) return;
+        setQuestions(prev => prev.map((q, i) => i === pendingEdit.idx ? pendingEdit.cleaned : q));
+        setPendingEdit(null);
+        setShowResponseWarning(false);
+    };
+
+    const handleWarningCancel = () => {
+        // Re-open edit modal with the same data so the user can keep editing
+        setShowResponseWarning(false);
+        setShowModal(true);
     };
 
     const removeQuestion = (idx) => {
         if (questions.length <= 1) return;
-        setQuestions(prev => prev.filter((_, i) => i !== idx));
         setOpenMenuIdx(null);
+
+        const q = questions[idx];
+        const responseCount = q?.responses?.length ?? 0;
+
+        if (!q._isNew && responseCount > 0) {
+            setPendingDeleteIdx(idx);
+            setShowDeleteWarning(true);
+            return;
+        }
+
+        setQuestions(prev => prev.filter((_, i) => i !== idx));
+    };
+
+    const handleDeleteConfirm = () => {
+        if (pendingDeleteIdx === null) return;
+        setQuestions(prev => prev.filter((_, i) => i !== pendingDeleteIdx));
+        setPendingDeleteIdx(null);
+        setShowDeleteWarning(false);
+    };
+
+    const handleDeleteCancel = () => {
+        setPendingDeleteIdx(null);
+        setShowDeleteWarning(false);
     };
 
     const handleModalOptionChange = (oIdx, val) => {
@@ -216,8 +273,9 @@ export default function EditEvent() {
                 completion_message: completionMessage.trim() || null,
             });
 
-            const cleanedQuestions = questions.map(q => ({
+            const cleanedQuestions = questions.map((q, idx) => ({
                 ...(q._isNew ? {} : { id: q.id }),
+                position: idx,
                 text: q.text.trim(),
                 type: q.type,
                 optional: q.optional,
@@ -614,6 +672,88 @@ export default function EditEvent() {
                             {isES ? 'Respuesta opcional' : 'Optional response'}
                         </span>
                     </label>
+                </div>
+            </Modal>
+
+            {/* ── Delete question confirmation modal ── */}
+            <Modal
+                isOpen={showDeleteWarning}
+                onClose={handleDeleteCancel}
+                title={isES ? 'Eliminar pregunta' : 'Delete question'}
+                footer={
+                    <div className="modal-actions">
+                        <button className="btn btn-secondary" onClick={handleDeleteCancel}>
+                            {isES ? 'Cancelar' : 'Cancel'}
+                        </button>
+                        <button className="btn btn-danger" onClick={handleDeleteConfirm}>
+                            {isES ? 'Sí, eliminar' : 'Yes, delete'}
+                        </button>
+                    </div>
+                }
+            >
+                <div className="modal-confirm-content">
+                    <div className="modal-icon modal-icon-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                        </svg>
+                    </div>
+                    <p className="modal-message">
+                        {isES
+                            ? `"${questions[pendingDeleteIdx]?.text || (isES ? 'Esta pregunta' : 'This question')}"`
+                            : `"${questions[pendingDeleteIdx]?.text || 'This question'}"`
+                        }
+                    </p>
+                    <div className="modal-warning-box">
+                        <p>{isES ? 'Esta acción no se puede deshacer. Se eliminarán:' : 'This action cannot be undone. The following will be deleted:'}</p>
+                        <ul>
+                            <li>{isES ? 'La pregunta' : 'The question'}</li>
+                            <li>
+                                {isES
+                                    ? `${questions[pendingDeleteIdx]?.responses?.length ?? 0} respuestas guardadas`
+                                    : `${questions[pendingDeleteIdx]?.responses?.length ?? 0} saved responses`
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* ── Response warning confirmation modal ── */}
+            <Modal
+                isOpen={showResponseWarning}
+                onClose={handleWarningCancel}
+                title={isES ? 'Editar pregunta con respuestas' : 'Edit question with responses'}
+                footer={
+                    <div className="modal-actions">
+                        <button className="btn btn-secondary" onClick={handleWarningCancel}>
+                            {isES ? 'Cancelar' : 'Cancel'}
+                        </button>
+                        <button className="btn btn-danger" onClick={handleWarningConfirm}>
+                            {isES ? 'Sí, editar de todas formas' : 'Yes, edit anyway'}
+                        </button>
+                    </div>
+                }
+            >
+                <div className="modal-confirm-content">
+                    <div className="modal-icon modal-icon-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <p className="modal-message">
+                        {isES
+                            ? `Esta pregunta tiene ${pendingEdit?.responseCount} ${pendingEdit?.responseCount === 1 ? 'respuesta guardada' : 'respuestas guardadas'}.`
+                            : `This question has ${pendingEdit?.responseCount} saved ${pendingEdit?.responseCount === 1 ? 'response' : 'responses'}.`
+                        }
+                    </p>
+                    <div className="modal-warning-box">
+                        <p>
+                            {isES
+                                ? 'Si modificas esta pregunta, las respuestas existentes podrían quedar inconsistentes o ser eliminadas al guardar.'
+                                : 'Modifying this question may cause existing responses to become inconsistent or be deleted when saving.'
+                            }
+                        </p>
+                    </div>
                 </div>
             </Modal>
         </div>

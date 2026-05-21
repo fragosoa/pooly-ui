@@ -949,11 +949,6 @@ export default function EventDetails() {
                       </>
                     )}
                   </button>
-                  {!isImported && (
-                    <Link to={`/admin/events/${eventId}/edit`} className="btn btn-secondary">
-                      ✏️ {t('editEvent.editBtn')}
-                    </Link>
-                  )}
                 </div>
               </div>
 

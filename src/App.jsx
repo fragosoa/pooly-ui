@@ -19,6 +19,8 @@ import PrivacyNotice from './pages/PrivacyNotice';
 import EditEvent from './pages/EditEvent';
 import SurveyPreview from './pages/SurveyPreview';
 
+// removed disruption banner
+
 function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
