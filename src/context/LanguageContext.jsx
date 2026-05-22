@@ -129,6 +129,7 @@ const translations = {
     // Event Details
     'eventDetails.loading': 'Cargando detalles del evento...',
     'eventDetails.back': '← Volver al panel',
+    'eventDetails.refresh': 'Actualizar respuestas',
     'eventDetails.endDate': 'Finaliza: {{date}}',
     'eventDetails.totalResponses': '{{count}} respuestas totales',
     'eventDetails.analyzeTitle': 'Analizar con IA',
@@ -658,6 +659,7 @@ const translations = {
     // Event Details
     'eventDetails.loading': 'Loading event details...',
     'eventDetails.back': '← Back to dashboard',
+    'eventDetails.refresh': 'Refresh responses',
     'eventDetails.endDate': 'Ends: {{date}}',
     'eventDetails.totalResponses': '{{count}} total responses',
     'eventDetails.analyzeTitle': 'Analyze with AI',

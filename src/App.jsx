@@ -5,7 +5,6 @@ import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './layout/Navbar';
-import DisruptionBanner from './components/DisruptionBanner';
 import PublicGallery from './pages/PublicGallery';
 import Auth from './pages/Auth';
 import AdminDashboard from './pages/AdminDashboard';
@@ -19,15 +18,11 @@ import PrivacyNotice from './pages/PrivacyNotice';
 import EditEvent from './pages/EditEvent';
 import SurveyPreview from './pages/SurveyPreview';
 
-// removed disruption banner
-
 function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
     <LanguageProvider>
     <AuthProvider>
-      
-      <div style={{ paddingTop: '2.1rem' }}>
       <BrowserRouter>
         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
         <Routes>
@@ -51,7 +46,6 @@ function App() {
           <Route path="/privacy_notice" element={<><Navbar /><PrivacyNotice /></>} />
         </Routes>
       </BrowserRouter>
-      </div>
     </AuthProvider>
     </LanguageProvider>
     </GoogleOAuthProvider>
