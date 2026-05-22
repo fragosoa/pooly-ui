@@ -50,6 +50,7 @@ export default function EventDetails() {
   const [error, setError] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisStatus, setAnalysisStatus] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
@@ -192,6 +193,18 @@ export default function EventDetails() {
   };
 
   const handleAnalyzeClick = () => setShowAnalyzeModal(true);
+
+  const handleRefreshResponses = async () => {
+    setRefreshing(true);
+    try {
+      const response = await api.get(`/events/${eventId}/details`);
+      setEvent(response.data.data);
+    } catch {
+      // silently fail — existing data stays visible
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const toggleQuestion = (id) => {
     setExpandedQuestions(prev => {
@@ -938,6 +951,23 @@ export default function EventDetails() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <span />
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button
+                    onClick={handleRefreshResponses}
+                    disabled={refreshing}
+                    className="btn btn-secondary"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                    title={t('eventDetails.refresh')}
+                  >
+                    <svg
+                      width="15" height="15" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                      style={{ transition: 'transform 0.5s', transform: refreshing ? 'rotate(360deg)' : 'none' }}
+                    >
+                      <path d="M23 4v6h-6" />
+                      <path d="M1 20v-6h6" />
+                      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                    </svg>
+                  </button>
                   <button
                     onClick={handleAnalyzeClick}
                     disabled={analyzing}
