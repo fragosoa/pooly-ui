@@ -292,6 +292,16 @@ export default function EditEvent() {
         }
     };
 
+    const filledOptions = modalData.type === 'multiple'
+        ? modalData.options.map(o => o.trim()).filter(Boolean)
+        : [];
+    const optionsError = modalData.type !== 'multiple' ? null
+        : filledOptions.length < 2
+            ? (isES ? 'Agrega al menos 2 opciones.' : 'Add at least 2 options.')
+            : new Set(filledOptions).size !== filledOptions.length
+                ? (isES ? 'Las opciones deben ser diferentes entre sí.' : 'Options must be unique.')
+                : null;
+
     if (loading) {
         return (
             <div className="container" style={{ paddingTop: '7rem', textAlign: 'center' }}>
@@ -579,10 +589,7 @@ export default function EditEvent() {
                         <button
                             className="btn btn-primary"
                             onClick={handleModalSave}
-                            disabled={
-                                !modalData.text.trim() ||
-                                (modalData.type === 'multiple' && modalData.options.filter(o => o.trim()).length < 2)
-                            }
+                            disabled={!modalData.text.trim() || !!optionsError}
                         >
                             {editingIdx === null ? (isES ? 'Agregar' : 'Add') : (isES ? 'Guardar' : 'Save')}
                         </button>
@@ -658,6 +665,11 @@ export default function EditEvent() {
                                 + {isES ? 'Añadir opción' : 'Add option'}
                             </button>
                         </div>
+                        {optionsError && (
+                            <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: 'var(--error)', fontWeight: 500 }}>
+                                {optionsError}
+                            </p>
+                        )}
                     </div>
                 )}
 
