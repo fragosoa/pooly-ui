@@ -158,9 +158,9 @@ const AdminDashboard = () => {
         setOpenMenuId(null);
         const toastId = toast.loading(t('admin.duplicate') + '...');
         try {
-            const response = await api.post(`/events/${event.id}/duplicate`);
-            const newEvent = response.data.event || response.data;
-            setEvents(prev => [newEvent, ...prev]);
+            await api.post(`/events/${event.id}/duplicate`);
+            const refreshed = await api.get('/events');
+            setEvents(refreshed.data.events || []);
             toast.success(t('admin.duplicateSuccess'), { id: toastId });
         } catch (err) {
             toast.error(t('admin.duplicateError'), { id: toastId });
