@@ -292,6 +292,9 @@ export default function EditEvent() {
         }
     };
 
+    const titleError = !modalData.text.trim()
+        ? (isES ? 'La pregunta debe tener un título.' : 'Question must have a title.')
+        : null;
     const filledOptions = modalData.type === 'multiple'
         ? modalData.options.map(o => o.trim()).filter(Boolean)
         : [];
@@ -589,7 +592,7 @@ export default function EditEvent() {
                         <button
                             className="btn btn-primary"
                             onClick={handleModalSave}
-                            disabled={!modalData.text.trim() || !!optionsError}
+                            disabled={!!titleError || !!optionsError}
                         >
                             {editingIdx === null ? (isES ? 'Agregar' : 'Add') : (isES ? 'Guardar' : 'Save')}
                         </button>
@@ -604,8 +607,14 @@ export default function EditEvent() {
                         value={modalData.text}
                         onChange={e => setModalData(p => ({ ...p, text: e.target.value }))}
                         placeholder={isES ? 'Escribe la pregunta aquí' : 'Write question here'}
+                        style={{ borderColor: titleError ? 'var(--error)' : undefined }}
                         autoFocus
                     />
+                    {titleError && (
+                        <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: 'var(--error)', fontWeight: 500 }}>
+                            {titleError}
+                        </p>
+                    )}
                 </div>
 
                 <div className="input-group">

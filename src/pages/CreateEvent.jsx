@@ -231,6 +231,9 @@ const CreateEvent = () => {
         },
     ];
 
+    const titleError = !modalData.text.trim()
+        ? (isES ? 'La pregunta debe tener un título.' : 'Question must have a title.')
+        : null;
     const filledOptions = modalData.type === 'multiple'
         ? modalData.options.map(o => o.trim()).filter(Boolean)
         : [];
@@ -695,7 +698,7 @@ const CreateEvent = () => {
                         <button
                             className="btn btn-primary"
                             onClick={handleModalSave}
-                            disabled={!modalData.text.trim() || !!optionsError}
+                            disabled={!!titleError || !!optionsError}
                         >
                             {isES ? 'Guardar' : 'Save'}
                         </button>
@@ -711,9 +714,14 @@ const CreateEvent = () => {
                         value={modalData.text}
                         onChange={e => setModalData(prev => ({ ...prev, text: e.target.value }))}
                         placeholder={isES ? 'ej. ¿Qué opinas sobre...?' : 'e.g. What do you think about...?'}
-                        style={{ margin: 0 }}
+                        style={{ margin: 0, borderColor: titleError ? 'var(--error)' : undefined }}
                         autoFocus
                     />
+                    {titleError && (
+                        <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: 'var(--error)', fontWeight: 500 }}>
+                            {titleError}
+                        </p>
+                    )}
                 </div>
 
                 {/* Type select */}
