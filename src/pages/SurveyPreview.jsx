@@ -9,6 +9,7 @@ export default function SurveyPreview() {
   const [event, setEvent] = useState(null);
   const [responses, setResponses] = useState({});
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem('survey_preview');
@@ -55,6 +56,36 @@ export default function SurveyPreview() {
       </button>
     </div>
   );
+
+  if (showSuccess) {
+    const completionMsg = event.completion_message;
+    return (
+      <div className="survey-page survey-preview-page">
+        <PreviewBanner />
+        <div className="survey-success">
+          <div className="survey-success-icon">✓</div>
+          {completionMsg ? (
+            <div className="survey-success-markdown">
+              <ReactMarkdown>{completionMsg}</ReactMarkdown>
+            </div>
+          ) : (
+            <>
+              <h1>{t('survey.successTitle')}</h1>
+              <p>{t('survey.successDesc')}</p>
+              <p className="survey-success-note">{t('survey.successNote')}</p>
+            </>
+          )}
+          <button
+            className="btn btn-outline"
+            style={{ marginTop: '1.5rem' }}
+            onClick={() => setShowSuccess(false)}
+          >
+            {t('survey.previewClose')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (showWelcome && event.welcome_message) {
     return (
@@ -172,9 +203,8 @@ export default function SurveyPreview() {
           </div>
           <button
             type="button"
-            className="btn btn-secondary btn-large survey-submit"
-            disabled
-            title={t('survey.previewSubmitDisabled')}
+            className="btn btn-primary btn-large survey-submit"
+            onClick={() => setShowSuccess(true)}
           >
             {t('survey.submit')}
           </button>
