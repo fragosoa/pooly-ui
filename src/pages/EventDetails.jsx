@@ -719,9 +719,16 @@ export default function EventDetails() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <span className={`survey-card-source-badge survey-card-source-${eventSource}`} style={{ marginBottom: '0.75rem' }}>
-              {isImported ? t('source.imported') : t('source.online')}
-            </span>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+              <span className={`survey-card-source-badge survey-card-source-${eventSource}`}>
+                {isImported ? t('source.imported') : t('source.online')}
+              </span>
+              {!isImported && (
+                <span className={`survey-card-status survey-card-status-${event.is_paused ? 'paused' : 'active'}`}>
+                  {event.is_paused ? t('admin.paused') : t('status.active')}
+                </span>
+              )}
+            </div>
             <h1 className="page-title">{event.name}</h1>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>{event.description}</p>
             <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
