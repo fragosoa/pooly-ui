@@ -3,6 +3,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './layout/Navbar';
 import PublicGallery from './pages/PublicGallery';
@@ -21,6 +22,7 @@ import SurveyPreview from './pages/SurveyPreview';
 function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+    <ThemeProvider>
     <LanguageProvider>
     <AuthProvider>
       <BrowserRouter>
@@ -48,6 +50,7 @@ function App() {
       </BrowserRouter>
     </AuthProvider>
     </LanguageProvider>
+    </ThemeProvider>
     </GoogleOAuthProvider>
   );
 }

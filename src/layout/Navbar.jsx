@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import ThemeSwitcher from '../components/ThemeSwitcher';
 
 const NAV_LINKS = (t) => [
   { label: t('landing.nav.product'), href: '/#features' },
@@ -70,6 +71,7 @@ const Navbar = () => {
 
       {/* Right actions — desktop */}
       <div className="navbar-links navbar-desktop-actions">
+        <ThemeSwitcher />
         {user ? (
           <>
             <LanguageSwitcher />
@@ -146,6 +148,9 @@ const Navbar = () => {
             </ul>
           )}
           <div className="navbar-mobile-actions">
+            <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)' }}>
+              <ThemeSwitcher />
+            </div>
             {user ? (
               <>
                 <Link to="/admin" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>
