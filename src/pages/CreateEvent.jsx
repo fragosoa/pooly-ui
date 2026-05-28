@@ -817,7 +817,7 @@ const CreateEvent = () => {
                         {modalData.multiSelect && (
                             <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: 'var(--warning, #b45309)', lineHeight: 1.5 }}>
                                 {isES
-                                    ? '⚠ No uses comas en las opciones — las comas se usan internamente para separar las respuestas seleccionadas.'
+                                    ? '⚠ Evita usar signos de puntuacion en las opciones tales como comas, guiones o barras'
                                     : '⚠ Avoid commas in option text — commas are used internally to separate selected answers.'}
                             </p>
                         )}
