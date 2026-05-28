@@ -60,7 +60,9 @@ export default function PublicSurvey() {
     setError('');
 
     try {
-      const answeredQuestions = Object.entries(responses).filter(([_, text]) => text.trim() !== '');
+      const answeredQuestions = Object.entries(responses).filter(([_, val]) =>
+        Array.isArray(val) ? val.length > 0 : val.trim() !== ''
+      );
 
       if (answeredQuestions.length === 0) {
         throw new Error(t('survey.errorAtLeastOne'));
@@ -79,8 +81,8 @@ export default function PublicSurvey() {
 
       const payload = {
         public_id: publicId,
-        responses: answeredQuestions.map(([questionId, text]) => ({
-          text: text.trim(),
+        responses: answeredQuestions.map(([questionId, val]) => ({
+          text: Array.isArray(val) ? val.join(', ') : val.trim(),
           question_id: parseInt(questionId)
         }))
       };
@@ -99,7 +101,9 @@ export default function PublicSurvey() {
     }
   };
 
-  const answeredCount = Object.values(responses).filter(r => r.trim() !== '').length;
+  const answeredCount = Object.values(responses).filter(r =>
+    Array.isArray(r) ? r.length > 0 : r.trim() !== ''
+  ).length;
   const totalQuestions = event?.questions?.length || 0;
 
   if (loading) {
@@ -250,23 +254,39 @@ export default function PublicSurvey() {
                   {question.type === 'multiple' && question.options?.length > 0 ? (
                     <div className="chat-options">
                       {question.options.map((option, oIdx) => {
-                        const isSelected = responses[question.id] === option;
+                        const isMulti = question.multi_select;
+                        const current = responses[question.id];
+                        const isSelected = isMulti
+                          ? (Array.isArray(current) ? current.includes(option) : false)
+                          : current === option;
                         return (
                           <label key={oIdx} className={`chat-option ${isSelected ? 'is-selected' : ''}`}>
                             <input
-                              type="radio"
+                              type={isMulti ? 'checkbox' : 'radio'}
                               name={`q-${question.id}`}
                               value={option}
                               checked={isSelected}
-                              onChange={() => handleResponseChange(question.id, option)}
+                              onChange={() => {
+                                if (isMulti) {
+                                  setResponses(prev => {
+                                    const arr = Array.isArray(prev[question.id]) ? prev[question.id] : [];
+                                    const next = arr.includes(option)
+                                      ? arr.filter(o => o !== option)
+                                      : [...arr, option];
+                                    return { ...prev, [question.id]: next };
+                                  });
+                                } else {
+                                  handleResponseChange(question.id, option);
+                                }
+                              }}
                               style={{ display: 'none' }}
                             />
-                            <span className="chat-option-dot" />
+                            <span className={isMulti ? 'chat-option-check' : 'chat-option-dot'} />
                             <span className="chat-option-text">{option}</span>
                           </label>
                         );
                       })}
-                      {responses[question.id] && (
+                      {(Array.isArray(responses[question.id]) ? responses[question.id].length > 0 : responses[question.id]) && (
                         <div className="chat-options-done"><span>✓</span></div>
                       )}
                     </div>

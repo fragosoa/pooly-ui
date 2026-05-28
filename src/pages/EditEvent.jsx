@@ -13,7 +13,7 @@ const TYPE_ICONS = { open: '💬', multiple: '☑️', numeric: '🔢', date: '�
 const QUESTION_TYPES = ['open', 'multiple', 'numeric', 'date'];
 
 const emptyQuestion = () => ({
-    text: '', optional: false, type: 'open', options: ['', ''],
+    text: '', optional: false, type: 'open', options: ['', ''], multiSelect: false,
     _isNew: true,
     _dndId: `new-${Date.now()}-${Math.random()}`,
 });
@@ -111,6 +111,7 @@ export default function EditEvent() {
                     options: q.options || [],
                     optional: q.optional || false,
                     type: q.type || 'open',
+                    multiSelect: q.multi_select || false,
                     _dndId: String(q.id ?? `q-${i}`),
                     _isNew: false,
                 })));
@@ -231,7 +232,7 @@ export default function EditEvent() {
     const handleModalOptionChange = (oIdx, val) => {
         setModalData(prev => {
             const opts = [...prev.options];
-            opts[oIdx] = val;
+            opts[oIdx] = prev.multiSelect ? val.replace(/,/g, '') : val;
             return { ...prev, options: opts };
         });
     };
@@ -280,6 +281,7 @@ export default function EditEvent() {
                 type: q.type,
                 optional: q.optional,
                 options: q.type === 'multiple' ? q.options.filter(Boolean) : [],
+                multi_select: q.type === 'multiple' ? (q.multiSelect || false) : false,
             }));
             await api.patch(`/events/${eventId}/questions`, { questions: cleanedQuestions });
 
@@ -674,6 +676,34 @@ export default function EditEvent() {
                                 + {isES ? 'Añadir opción' : 'Add option'}
                             </button>
                         </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.75rem' }}>
+                            <button
+                                type="button"
+                                onClick={() => setModalData(prev => ({ ...prev, multiSelect: !prev.multiSelect }))}
+                                style={{
+                                    width: '36px', height: '20px', borderRadius: '10px', position: 'relative',
+                                    background: modalData.multiSelect ? 'var(--primary)' : 'var(--border)',
+                                    border: 'none', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0,
+                                }}
+                            >
+                                <span style={{
+                                    position: 'absolute', top: '2px',
+                                    left: modalData.multiSelect ? '18px' : '2px',
+                                    width: '16px', height: '16px', borderRadius: '50%',
+                                    background: '#fff', transition: 'left 0.2s',
+                                }} />
+                            </button>
+                            <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                                {isES ? 'Permitir selección múltiple' : 'Allow multiple selections'}
+                            </span>
+                        </div>
+                        {modalData.multiSelect && (
+                            <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: 'var(--warning, #b45309)', lineHeight: 1.5 }}>
+                                {isES
+                                    ? '⚠ Evita usar signos de puntuacion en las opciones tales como comas, guiones o barras'
+                                    : '⚠ Avoid commas in option text — commas are used internally to separate selected answers.'}
+                            </p>
+                        )}
                         {optionsError && (
                             <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: 'var(--error)', fontWeight: 500 }}>
                                 {optionsError}

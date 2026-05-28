@@ -144,18 +144,34 @@ export default function SurveyPreview() {
                 {question.type === 'multiple' && question.options?.length > 0 ? (
                   <div className="chat-options">
                     {question.options.filter(o => o.trim()).map((option, oIdx) => {
-                      const isSelected = responses[question.id] === option;
+                      const isMulti = question.multi_select;
+                      const current = responses[question.id];
+                      const isSelected = isMulti
+                        ? (Array.isArray(current) ? current.includes(option) : false)
+                        : current === option;
                       return (
                         <label key={oIdx} className={`chat-option ${isSelected ? 'is-selected' : ''}`}>
                           <input
-                            type="radio"
+                            type={isMulti ? 'checkbox' : 'radio'}
                             name={`q-${question.id}`}
                             value={option}
                             checked={isSelected}
-                            onChange={() => handleResponseChange(question.id, option)}
+                            onChange={() => {
+                              if (isMulti) {
+                                setResponses(prev => {
+                                  const arr = Array.isArray(prev[question.id]) ? prev[question.id] : [];
+                                  const next = arr.includes(option)
+                                    ? arr.filter(o => o !== option)
+                                    : [...arr, option];
+                                  return { ...prev, [question.id]: next };
+                                });
+                              } else {
+                                handleResponseChange(question.id, option);
+                              }
+                            }}
                             style={{ display: 'none' }}
                           />
-                          <span className="chat-option-dot" />
+                          <span className={isMulti ? 'chat-option-check' : 'chat-option-dot'} />
                           <span className="chat-option-text">{option}</span>
                         </label>
                       );

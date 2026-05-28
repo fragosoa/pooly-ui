@@ -6,6 +6,7 @@ import {
   PieChart, Pie, Legend, ReferenceLine,
 } from 'recharts';
 import { jsPDF } from 'jspdf';
+import * as XLSX from 'xlsx';
 import api from '../services/api';
 import Modal from '../components/Modal';
 import { useLanguage } from '../context/LanguageContext';
@@ -697,6 +698,25 @@ export default function EventDetails() {
     }
   };
 
+  const exportToExcel = () => {
+    if (!event?.questions?.length) return;
+    const questions = event.questions;
+    const headers = questions.map((q, i) => `${i + 1}. ${q.text}`);
+    const maxRows = Math.max(...questions.map(q => q.responses?.length || 0));
+    const rows = Array.from({ length: maxRows }, (_, i) => {
+      const row = {};
+      questions.forEach((q, qIdx) => {
+        row[headers[qIdx]] = q.responses?.[i]?.text ?? '';
+      });
+      return row;
+    });
+    const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, locale === 'es-MX' ? 'Respuestas' : 'Responses');
+    const safeName = (event.name || 'survey').replace(/[^a-z0-9\-_]/gi, '_').slice(0, 40);
+    XLSX.writeFile(wb, `${safeName}_responses.xlsx`);
+  };
+
   const totalResponses = event?.questions?.reduce(
     (sum, q) => sum + (q.responses?.length || 0), 0
   ) || event?.response_count || event?.import_summary?.response_count || 0;
@@ -951,6 +971,22 @@ export default function EventDetails() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <span />
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button
+                    onClick={exportToExcel}
+                    disabled={!event?.questions?.some(q => q.responses?.length > 0)}
+                    className="btn btn-secondary"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                    title={locale === 'es-MX' ? 'Exportar a Excel' : 'Export to Excel'}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="8" y1="13" x2="16" y2="13"/>
+                      <line x1="8" y1="17" x2="16" y2="17"/>
+                      <line x1="10" y1="9" x2="8" y2="9"/>
+                    </svg>
+                    {locale === 'es-MX' ? 'Exportar Excel' : 'Export Excel'}
+                  </button>
                   <button
                     onClick={handleRefreshResponses}
                     disabled={refreshing}
