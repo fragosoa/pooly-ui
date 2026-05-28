@@ -1209,6 +1209,33 @@ textarea.input-field {
   background: white;
 }
 
+.chat-option-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-option.is-selected .chat-option-check {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.chat-option.is-selected .chat-option-check::after {
+  content: '';
+  width: 5px;
+  height: 9px;
+  border: 2px solid white;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg) translateY(-1px);
+}
+
 .chat-option-text {
   font-size: 0.95rem;
   color: var(--text-primary);

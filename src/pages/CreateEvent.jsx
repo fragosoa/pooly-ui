@@ -10,7 +10,7 @@ import MarkdownEditor from '../components/MarkdownEditor';
 import { useLanguage } from '../context/LanguageContext';
 
 let _qIdCounter = 0;
-const emptyQuestion = () => ({ text: '', optional: false, type: 'open', options: ['', ''], _dndId: String(++_qIdCounter) });
+const emptyQuestion = () => ({ text: '', optional: false, type: 'open', options: ['', ''], multiSelect: false, _dndId: String(++_qIdCounter) });
 
 function SortableQuestionRow({ id, children }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -128,6 +128,7 @@ const CreateEvent = () => {
                     optional: q.optional,
                     type: q.type,
                     options: q.type === 'multiple' ? q.options.map(o => o.trim()).filter(Boolean) : [],
+                    multi_select: q.type === 'multiple' ? (q.multiSelect || false) : false,
                 }));
             if (cleanedQuestions.length === 0) throw new Error(t('create.errorNoQuestions'));
             const badMultiple = cleanedQuestions.find(q => q.type === 'multiple' && q.options.length < 2);
@@ -757,7 +758,8 @@ const CreateEvent = () => {
                                 <div key={oIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                     <span style={{
                                         width: '16px', height: '16px', flexShrink: 0,
-                                        border: '2px solid var(--border)', borderRadius: '50%',
+                                        border: '2px solid var(--border)',
+                                        borderRadius: modalData.multiSelect ? '3px' : '50%',
                                     }} />
                                     <input
                                         type="text"
@@ -789,6 +791,27 @@ const CreateEvent = () => {
                                 }}>
                                 {t('create.addOption')}
                             </button>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.75rem' }}>
+                            <button
+                                type="button"
+                                onClick={() => setModalData(prev => ({ ...prev, multiSelect: !prev.multiSelect }))}
+                                style={{
+                                    width: '36px', height: '20px', borderRadius: '10px', position: 'relative',
+                                    background: modalData.multiSelect ? 'var(--primary)' : 'var(--border)',
+                                    border: 'none', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0,
+                                }}
+                            >
+                                <span style={{
+                                    position: 'absolute', top: '2px',
+                                    left: modalData.multiSelect ? '18px' : '2px',
+                                    width: '16px', height: '16px', borderRadius: '50%',
+                                    background: '#fff', transition: 'left 0.2s',
+                                }} />
+                            </button>
+                            <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                                {isES ? 'Permitir selección múltiple' : 'Allow multiple selections'}
+                            </span>
                         </div>
                         {optionsError && (
                             <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: 'var(--error)', fontWeight: 500 }}>
