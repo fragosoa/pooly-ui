@@ -232,7 +232,7 @@ export default function EditEvent() {
     const handleModalOptionChange = (oIdx, val) => {
         setModalData(prev => {
             const opts = [...prev.options];
-            opts[oIdx] = val;
+            opts[oIdx] = prev.multiSelect ? val.replace(/,/g, '') : val;
             return { ...prev, options: opts };
         });
     };
@@ -697,6 +697,13 @@ export default function EditEvent() {
                                 {isES ? 'Permitir selección múltiple' : 'Allow multiple selections'}
                             </span>
                         </div>
+                        {modalData.multiSelect && (
+                            <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: 'var(--warning, #b45309)', lineHeight: 1.5 }}>
+                                {isES
+                                    ? '⚠ Evita usar signos de puntuacion en las opciones tales como comas, guiones o barras'
+                                    : '⚠ Avoid commas in option text — commas are used internally to separate selected answers.'}
+                            </p>
+                        )}
                         {optionsError && (
                             <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: 'var(--error)', fontWeight: 500 }}>
                                 {optionsError}

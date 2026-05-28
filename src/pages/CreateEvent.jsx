@@ -186,7 +186,8 @@ const CreateEvent = () => {
     };
 
     const handleModalOptionChange = (oIdx, val) => {
-        setModalData(prev => ({ ...prev, options: prev.options.map((o, i) => i === oIdx ? val : o) }));
+        const clean = modalData.multiSelect ? val.replace(/,/g, '') : val;
+        setModalData(prev => ({ ...prev, options: prev.options.map((o, i) => i === oIdx ? clean : o) }));
     };
     const addModalOption = () => setModalData(prev => ({ ...prev, options: [...prev.options, ''] }));
     const removeModalOption = (oIdx) => {
@@ -813,6 +814,13 @@ const CreateEvent = () => {
                                 {isES ? 'Permitir selección múltiple' : 'Allow multiple selections'}
                             </span>
                         </div>
+                        {modalData.multiSelect && (
+                            <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: 'var(--warning, #b45309)', lineHeight: 1.5 }}>
+                                {isES
+                                    ? '⚠ No uses comas en las opciones — las comas se usan internamente para separar las respuestas seleccionadas.'
+                                    : '⚠ Avoid commas in option text — commas are used internally to separate selected answers.'}
+                            </p>
+                        )}
                         {optionsError && (
                             <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: 'var(--error)', fontWeight: 500 }}>
                                 {optionsError}
