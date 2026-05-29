@@ -9,6 +9,8 @@ import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 import api from '../services/api';
 import Modal from '../components/Modal';
+import OverviewTab from '../components/OverviewTab';
+import TrendsTab from '../components/TrendsTab';
 import { useLanguage } from '../context/LanguageContext';
 
 const MultiLineTick = ({ x, y, payload }) => {
@@ -60,7 +62,7 @@ export default function EventDetails() {
   const [distModal, setDistModal] = useState(null);
 
   // Tabs state
-  const [activeTab, setActiveTab] = useState('responses');
+  const [activeTab, setActiveTab] = useState('overview');
 
 
   // Reports state
@@ -68,6 +70,10 @@ export default function EventDetails() {
   const [reportsLoading, setReportsLoading] = useState(false);
   const [reportsError, setReportsError] = useState('');
   const [selectedTimestamp, setSelectedTimestamp] = useState(null);
+
+  // Recommendations state
+  const [recommendations, setRecommendations] = useState([]);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(false);
 
   const [isExporting, setIsExporting] = useState(false);
   const [expandedQuestions, setExpandedQuestions] = useState(new Set());
@@ -148,8 +154,27 @@ export default function EventDetails() {
   };
 
   useEffect(() => {
-    if ((activeTab === 'reports' || activeTab === 'charts') && reports.length === 0 && !reportsLoading) {
+    if (activeTab === 'insights' && reports.length === 0 && !reportsLoading) {
       fetchReports();
+    }
+  }, [activeTab]);
+
+  const fetchRecommendations = async () => {
+    setRecommendationsLoading(true);
+    try {
+      const response = await api.get(`/events/${eventId}/recommendations`);
+      setRecommendations(response.data?.recommendations || response.data || []);
+    } catch {
+      setRecommendations([]);
+    } finally {
+      setRecommendationsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'overview' && recommendations.length === 0 && !recommendationsLoading) {
+      fetchRecommendations();
+      if (reports.length === 0 && !reportsLoading) fetchReports();
     }
   }, [activeTab]);
 
@@ -240,6 +265,34 @@ export default function EventDetails() {
     }
   };
 
+
+  const handleRecommendationFeedback = async (recId, helpful) => {
+    setRecommendations(prev =>
+      prev.map(r => r.id === recId
+        ? {
+            ...r,
+            helpful_votes: helpful ? r.helpful_votes + 1 : r.helpful_votes,
+            not_helpful_votes: !helpful ? r.not_helpful_votes + 1 : r.not_helpful_votes,
+          }
+        : r
+      )
+    );
+    try {
+      await api.post(`/events/${eventId}/recommendations/${recId}/feedback`, { helpful });
+    } catch {
+      // revert optimistic update on failure
+      setRecommendations(prev =>
+        prev.map(r => r.id === recId
+          ? {
+              ...r,
+              helpful_votes: helpful ? r.helpful_votes - 1 : r.helpful_votes,
+              not_helpful_votes: !helpful ? r.not_helpful_votes - 1 : r.not_helpful_votes,
+            }
+          : r
+        )
+      );
+    }
+  };
 
   const getSentimentLabel = (sentiment) => {
     if (sentiment >= 0.3)  return { text: t('sentiment.positive'), class: 'positive' };
@@ -896,18 +949,25 @@ export default function EventDetails() {
           marginBottom: '1.5rem',
         }}>
         <div className="tabs-nav" style={{ borderBottom: 'none', marginBottom: 0 }}>
+          <button className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
+            <span className="tab-icon">⚡</span>
+            {t('eventDetails.tabOverview')}
+            {recommendations.filter(r => r.impact_level === 'high').length > 0 && (
+              <span className="tab-badge running">{recommendations.filter(r => r.impact_level === 'high').length}</span>
+            )}
+          </button>
+          <button className={`tab-btn ${activeTab === 'insights' ? 'active' : ''}`} onClick={() => setActiveTab('insights')}>
+            <span className="tab-icon">📊</span>
+            {t('eventDetails.tabInsights')}
+            {reports.length > 0 && <span className="tab-badge">{reports.length}</span>}
+          </button>
+          <button className={`tab-btn ${activeTab === 'trends' ? 'active' : ''}`} onClick={() => setActiveTab('trends')}>
+            <span className="tab-icon">📈</span>
+            {t('eventDetails.tabTrends')}
+          </button>
           <button className={`tab-btn ${activeTab === 'responses' ? 'active' : ''}`} onClick={() => setActiveTab('responses')}>
             <span className="tab-icon">💬</span>
             {t('eventDetails.tabResponses')}
-          </button>
-          <button className={`tab-btn ${activeTab === 'reports' ? 'active' : ''}`} onClick={() => setActiveTab('reports')}>
-            <span className="tab-icon">📊</span>
-            {t('eventDetails.tabReports')}
-            {reports.length > 0 && <span className="tab-badge">{reports.length}</span>}
-          </button>
-          <button className={`tab-btn ${activeTab === 'charts' ? 'active' : ''}`} onClick={() => setActiveTab('charts')}>
-            <span className="tab-icon">📈</span>
-            {t('eventDetails.tabCharts')}
           </button>
           <button className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`} onClick={() => setActiveTab('status')}>
             <span className="tab-icon">⚙️</span>
@@ -964,6 +1024,24 @@ export default function EventDetails() {
         </div>{/* end flex wrapper */}
 
         <div className="tab-content">
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <OverviewTab
+              recommendations={recommendations}
+              recommendationsLoading={recommendationsLoading}
+              reports={selectedReports}
+              locale={locale}
+              onFeedback={handleRecommendationFeedback}
+              onAnalyzeClick={handleAnalyzeClick}
+              analyzing={analyzing}
+            />
+          )}
+
+          {/* Trends Tab */}
+          {activeTab === 'trends' && (
+            <TrendsTab reports={reports} locale={locale} />
+          )}
+
           {/* Responses Tab */}
           {activeTab === 'responses' && (
             <section>
@@ -1106,8 +1184,8 @@ export default function EventDetails() {
             </section>
           )}
 
-          {/* Reports Tab */}
-          {activeTab === 'reports' && (
+          {/* Insights Tab (Reports + Charts merged) */}
+          {activeTab === 'insights' && (
             <section>
               <div className="reports-header">
                 <div>
@@ -1466,12 +1544,9 @@ export default function EventDetails() {
                   )}
                 </>
               )}
-            </section>
-          )}
 
-          {/* Charts Tab */}
-          {activeTab === 'charts' && (
-            <section>
+              {/* ── Charts section ── */}
+              <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '2px solid var(--border)' }}>
               <div className="reports-header">
                 <div>
                   <h3 className="reports-title">{t('charts.title')}</h3>
@@ -1717,6 +1792,7 @@ export default function EventDetails() {
                   )}
                 </div>
               )}
+              </div>{/* end Charts section */}
             </section>
           )}
 
