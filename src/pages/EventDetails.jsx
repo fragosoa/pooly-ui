@@ -271,6 +271,7 @@ export default function EventDetails() {
       prev.map(r => r.id === recId
         ? {
             ...r,
+            user_vote: helpful ? 'helpful' : 'not_helpful',
             helpful_votes: helpful ? r.helpful_votes + 1 : r.helpful_votes,
             not_helpful_votes: !helpful ? r.not_helpful_votes + 1 : r.not_helpful_votes,
           }
@@ -280,11 +281,11 @@ export default function EventDetails() {
     try {
       await api.post(`/events/${eventId}/recommendations/${recId}/feedback`, { helpful });
     } catch {
-      // revert optimistic update on failure
       setRecommendations(prev =>
         prev.map(r => r.id === recId
           ? {
               ...r,
+              user_vote: null,
               helpful_votes: helpful ? r.helpful_votes - 1 : r.helpful_votes,
               not_helpful_votes: !helpful ? r.not_helpful_votes - 1 : r.not_helpful_votes,
             }

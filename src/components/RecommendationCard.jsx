@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 const IMPACT = {
   high:   { icon: '🔴', labelES: 'Alto',       labelEN: 'High',        bg: '#FEF2F2', color: '#DC2626' },
   medium: { icon: '🟡', labelES: 'Medio',      labelEN: 'Medium',      bg: '#FFFBEB', color: '#D97706' },
@@ -14,14 +12,13 @@ const URGENCY = {
 
 export default function RecommendationCard({ recommendation, onFeedback, locale }) {
   const isES = locale === 'es-MX';
-  const [feedbackGiven, setFeedbackGiven] = useState(null);
+  const userVote = recommendation.user_vote ?? null;
 
   const impact = IMPACT[recommendation.impact_level] || IMPACT.medium;
   const urgency = URGENCY[recommendation.urgency_level] || URGENCY.monitor;
 
   const handleFeedback = (helpful) => {
-    if (feedbackGiven !== null) return;
-    setFeedbackGiven(helpful);
+    if (userVote !== null) return;
     onFeedback(recommendation.id, helpful);
   };
 
@@ -89,43 +86,37 @@ export default function RecommendationCard({ recommendation, onFeedback, locale 
         </span>
         <button
           onClick={() => handleFeedback(true)}
-          disabled={feedbackGiven !== null}
+          disabled={userVote !== null}
           style={{
-            background: feedbackGiven === true ? 'var(--primary-light)' : 'none',
-            border: `1px solid ${feedbackGiven === true ? 'var(--primary)' : 'var(--border)'}`,
+            background: userVote === 'helpful' ? 'var(--primary-light)' : 'none',
+            border: `1px solid ${userVote === 'helpful' ? 'var(--primary)' : 'var(--border)'}`,
             borderRadius: '0.375rem',
             padding: '0.25rem 0.6rem',
-            cursor: feedbackGiven !== null ? 'default' : 'pointer',
+            cursor: userVote !== null ? 'default' : 'pointer',
             fontSize: '0.8rem',
             display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-            color: feedbackGiven === true ? 'var(--primary)' : 'var(--text-secondary)',
+            color: userVote === 'helpful' ? 'var(--primary)' : 'var(--text-secondary)',
             transition: 'all 0.15s',
           }}
         >
-          👍{' '}
-          {(recommendation.helpful_votes + (feedbackGiven === true ? 1 : 0)) > 0
-            ? recommendation.helpful_votes + (feedbackGiven === true ? 1 : 0)
-            : ''}
+          👍{' '}{recommendation.helpful_votes > 0 ? recommendation.helpful_votes : ''}
         </button>
         <button
           onClick={() => handleFeedback(false)}
-          disabled={feedbackGiven !== null}
+          disabled={userVote !== null}
           style={{
-            background: feedbackGiven === false ? '#FEF2F2' : 'none',
-            border: `1px solid ${feedbackGiven === false ? '#DC2626' : 'var(--border)'}`,
+            background: userVote === 'not_helpful' ? '#FEF2F2' : 'none',
+            border: `1px solid ${userVote === 'not_helpful' ? '#DC2626' : 'var(--border)'}`,
             borderRadius: '0.375rem',
             padding: '0.25rem 0.6rem',
-            cursor: feedbackGiven !== null ? 'default' : 'pointer',
+            cursor: userVote !== null ? 'default' : 'pointer',
             fontSize: '0.8rem',
             display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-            color: feedbackGiven === false ? '#DC2626' : 'var(--text-secondary)',
+            color: userVote === 'not_helpful' ? '#DC2626' : 'var(--text-secondary)',
             transition: 'all 0.15s',
           }}
         >
-          👎{' '}
-          {(recommendation.not_helpful_votes + (feedbackGiven === false ? 1 : 0)) > 0
-            ? recommendation.not_helpful_votes + (feedbackGiven === false ? 1 : 0)
-            : ''}
+          👎{' '}{recommendation.not_helpful_votes > 0 ? recommendation.not_helpful_votes : ''}
         </button>
       </div>
     </div>
