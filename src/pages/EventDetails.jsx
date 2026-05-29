@@ -1308,55 +1308,75 @@ export default function EventDetails() {
                   )}
 
                   {/* ── open: NLP clusters ── */}
-                  {reportsByType.open.length > 0 && (
-                    <div className="report-type-section">
-                      <div className="report-type-section-title">
-                        <span>💬</span>
-                        <span>{locale === 'es-MX' ? 'Análisis de texto libre' : 'Free text analysis'}</span>
-                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-                        <span style={{ fontWeight: 400 }}>({reportsByType.open.length})</span>
-                      </div>
-                      <div className="reports-grid">
-                        {reportsByType.open.map(report => {
-                          const sentiment = getSentimentLabel(report.sentiment);
-                          const urgency = getUrgencyLabel(report.urgency);
-                          return (
-                            <div key={report.id} className="report-card">
-                              <div className="report-card-header">
-                                <h4 className="report-category">{report.category}</h4>
-                                <div className="report-badges">
-                                  <span className={`report-badge sentiment-${sentiment.class}`}>{sentiment.text}</span>
-                                  <span className={`report-badge urgency-${urgency.class}`}>{t('urgency.label', { level: urgency.text })}</span>
-                                </div>
+                  {reportsByType.open.length > 0 && (() => {
+                    const openByQuestion = Object.values(
+                      reportsByType.open.reduce((acc, r) => {
+                        const key = r.question_id ?? 'default';
+                        if (!acc[key]) acc[key] = { label: r.question_text || (locale === 'es-MX' ? 'Texto libre' : 'Free text'), reports: [] };
+                        acc[key].reports.push(r);
+                        return acc;
+                      }, {})
+                    );
+                    const multipleQuestions = openByQuestion.length > 1;
+                    return (
+                      <div className="report-type-section">
+                        <div className="report-type-section-title">
+                          <span>💬</span>
+                          <span>{locale === 'es-MX' ? 'Análisis de texto libre' : 'Free text analysis'}</span>
+                          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                          <span style={{ fontWeight: 400 }}>({reportsByType.open.length})</span>
+                        </div>
+                        {openByQuestion.map(({ label, reports: qReports }) => (
+                          <div key={label}>
+                            {multipleQuestions && (
+                              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', margin: '0.75rem 0 0.5rem', padding: '0 0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                {label}
                               </div>
-                              <div className="report-stats">
-                                <div className="report-stat">
-                                  <span className="report-stat-value">{report.volume}</span>
-                                  <span className="report-stat-label">{t('reports.mentions')}</span>
-                                </div>
-                                <div className="report-stat">
-                                  <span className="report-stat-value">{report.percentage.toFixed(1)}%</span>
-                                  <span className="report-stat-label">{t('reports.ofTotal')}</span>
-                                </div>
-                              </div>
-                              <p className="report-summary">{report.summary}</p>
-                              {report.examples?.length > 0 && (
-                                <div className="report-examples">
-                                  <span className="report-examples-label">{t('reports.examples')}</span>
-                                  <ul className="report-examples-list">
-                                    {report.examples.map((ex, i) => <li key={i}>"{ex}"</li>)}
-                                  </ul>
-                                </div>
-                              )}
-                              <div className="report-timestamp">
-                                {t('reports.generated', { date: new Date(report.timestamp).toLocaleString(locale) })}
-                              </div>
+                            )}
+                            <div className="reports-grid">
+                              {qReports.map(report => {
+                                const sentiment = getSentimentLabel(report.sentiment);
+                                const urgency = getUrgencyLabel(report.urgency);
+                                return (
+                                  <div key={report.id} className="report-card">
+                                    <div className="report-card-header">
+                                      <h4 className="report-category">{report.category}</h4>
+                                      <div className="report-badges">
+                                        <span className={`report-badge sentiment-${sentiment.class}`}>{sentiment.text}</span>
+                                        <span className={`report-badge urgency-${urgency.class}`}>{t('urgency.label', { level: urgency.text })}</span>
+                                      </div>
+                                    </div>
+                                    <div className="report-stats">
+                                      <div className="report-stat">
+                                        <span className="report-stat-value">{report.volume}</span>
+                                        <span className="report-stat-label">{t('reports.mentions')}</span>
+                                      </div>
+                                      <div className="report-stat">
+                                        <span className="report-stat-value">{report.percentage.toFixed(1)}%</span>
+                                        <span className="report-stat-label">{t('reports.ofTotal')}</span>
+                                      </div>
+                                    </div>
+                                    <p className="report-summary">{report.summary}</p>
+                                    {report.examples?.length > 0 && (
+                                      <div className="report-examples">
+                                        <span className="report-examples-label">{t('reports.examples')}</span>
+                                        <ul className="report-examples-list">
+                                          {report.examples.map((ex, i) => <li key={i}>"{ex}"</li>)}
+                                        </ul>
+                                      </div>
+                                    )}
+                                    <div className="report-timestamp">
+                                      {t('reports.generated', { date: new Date(report.timestamp).toLocaleString(locale) })}
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
-                          );
-                        })}
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* ── multiple: distribution ── */}
                   {reportsByType.multiple.length > 0 && (
@@ -1632,54 +1652,74 @@ export default function EventDetails() {
                     </div>
                   )}
 
-                  {/* ── open: category bar + sentiment pie ── */}
+                  {/* ── open: category bar + sentiment pie, grouped by question ── */}
                   {reportsByType.open.length > 0 && (() => {
                     const barColors = ['#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'];
-                    const barData = reportsByType.open.map(r => ({ name: r.category, value: parseFloat(r.percentage.toFixed(1)), volume: r.volume }));
-                    let pos = 0, neg = 0, neu = 0;
-                    reportsByType.open.forEach(r => {
-                      if (r.sentiment >= 0.3) pos += r.volume;
-                      else if (r.sentiment <= -0.3) neg += r.volume;
-                      else neu += r.volume;
-                    });
-                    const pieData = [
-                      { name: t('sentiment.positive'), value: pos, fill: '#10B981' },
-                      { name: t('sentiment.negative'), value: neg, fill: '#EF4444' },
-                      { name: t('sentiment.neutral'),  value: neu, fill: '#6366F1' },
-                    ].filter(d => d.value > 0);
+                    const openByQuestion = Object.values(
+                      reportsByType.open.reduce((acc, r) => {
+                        const key = r.question_id ?? 'default';
+                        if (!acc[key]) acc[key] = { label: r.question_text || (locale === 'es-MX' ? 'Texto libre' : 'Free text'), reports: [] };
+                        acc[key].reports.push(r);
+                        return acc;
+                      }, {})
+                    );
+                    const multipleQuestions = openByQuestion.length > 1;
                     return (
                       <>
                         <div className="report-type-section-title">
                           <span>💬</span><span>{locale === 'es-MX' ? 'Texto libre' : 'Free text'}</span>
                           <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                         </div>
-                        <div className="card" style={{ padding: '1.5rem' }}>
-                          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{t('charts.barTitle')}</h4>
-                          <ResponsiveContainer width="100%" height={barData.length * 64 + 40}>
-                            <BarChart data={barData} layout="vertical" margin={{ top: 0, right: 40, left: 8, bottom: 0 }}>
-                              <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
-                              <YAxis type="category" dataKey="name" width={190} tick={<MultiLineTick />} axisLine={false} tickLine={false} />
-                              <Tooltip formatter={(v, _, p) => [`${v}% (${p.payload.volume} ${t('reports.mentions')})`, t('charts.percentage')]} contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }} />
-                              <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={28}>
-                                {barData.map((_, i) => <Cell key={i} fill={barColors[i % barColors.length]} />)}
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                        {pieData.length > 0 && (
-                          <div className="card" style={{ padding: '1.5rem' }}>
-                            <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{t('charts.pieTitle')}</h4>
-                            <ResponsiveContainer width="100%" height={320}>
-                              <PieChart>
-                                <Pie data={pieData} cx="50%" cy="46%" outerRadius={85} dataKey="value" label={({ percent }) => `${(percent * 100).toFixed(0)}%`} labelLine>
-                                  {pieData.map((e, i) => <Cell key={i} fill={e.fill} />)}
-                                </Pie>
-                                <Legend formatter={v => <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{v}</span>} />
-                                <Tooltip formatter={(v, n) => [`${v} ${t('reports.mentions')}`, n]} contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }} />
-                              </PieChart>
-                            </ResponsiveContainer>
-                          </div>
-                        )}
+                        {openByQuestion.map(({ label, reports: qReports }) => {
+                          const barData = qReports.map(r => ({ name: r.category, value: parseFloat(r.percentage.toFixed(1)), volume: r.volume }));
+                          let pos = 0, neg = 0, neu = 0;
+                          qReports.forEach(r => {
+                            if (r.sentiment >= 0.3) pos += r.volume;
+                            else if (r.sentiment <= -0.3) neg += r.volume;
+                            else neu += r.volume;
+                          });
+                          const pieData = [
+                            { name: t('sentiment.positive'), value: pos, fill: '#10B981' },
+                            { name: t('sentiment.negative'), value: neg, fill: '#EF4444' },
+                            { name: t('sentiment.neutral'),  value: neu, fill: '#6366F1' },
+                          ].filter(d => d.value > 0);
+                          return (
+                            <div key={label}>
+                              {multipleQuestions && (
+                                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', margin: '1rem 0 0.5rem', padding: '0 0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                  {label}
+                                </div>
+                              )}
+                              <div className="card" style={{ padding: '1.5rem' }}>
+                                <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{t('charts.barTitle')}</h4>
+                                <ResponsiveContainer width="100%" height={barData.length * 64 + 40}>
+                                  <BarChart data={barData} layout="vertical" margin={{ top: 0, right: 40, left: 8, bottom: 0 }}>
+                                    <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                                    <YAxis type="category" dataKey="name" width={190} tick={<MultiLineTick />} axisLine={false} tickLine={false} />
+                                    <Tooltip formatter={(v, _, p) => [`${v}% (${p.payload.volume} ${t('reports.mentions')})`, t('charts.percentage')]} contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }} />
+                                    <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={28}>
+                                      {barData.map((_, i) => <Cell key={i} fill={barColors[i % barColors.length]} />)}
+                                    </Bar>
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </div>
+                              {pieData.length > 0 && (
+                                <div className="card" style={{ padding: '1.5rem' }}>
+                                  <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{t('charts.pieTitle')}</h4>
+                                  <ResponsiveContainer width="100%" height={320}>
+                                    <PieChart>
+                                      <Pie data={pieData} cx="50%" cy="46%" outerRadius={85} dataKey="value" label={({ percent }) => `${(percent * 100).toFixed(0)}%`} labelLine>
+                                        {pieData.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                                      </Pie>
+                                      <Legend formatter={v => <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{v}</span>} />
+                                      <Tooltip formatter={(v, n) => [`${v} ${t('reports.mentions')}`, n]} contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }} />
+                                    </PieChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </>
                     );
                   })()}
