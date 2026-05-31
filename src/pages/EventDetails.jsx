@@ -1352,66 +1352,32 @@ export default function EventDetails() {
                               )}
                               <div className="reports-grid">
                                 {Object.entries(byCategory).map(([category, catReports]) => {
-                                  if (catReports.length === 1) {
-                                    const report = catReports[0];
-                                    const sentiment = getSentimentLabel(report.sentiment);
-                                    const urgency = getUrgencyLabel(report.urgency);
-                                    return (
-                                      <div key={report.id} className="report-card">
-                                        <div className="report-card-header">
-                                          <h4 className="report-category">{report.category}</h4>
-                                          <div className="report-badges">
-                                            <span className={`report-badge sentiment-${sentiment.class}`}>{sentiment.text}</span>
-                                            <span className={`report-badge urgency-${urgency.class}`}>{t('urgency.label', { level: urgency.text })}</span>
-                                          </div>
-                                        </div>
-                                        <div className="report-stats">
-                                          <div className="report-stat">
-                                            <span className="report-stat-value">{report.volume}</span>
-                                            <span className="report-stat-label">{t('reports.mentions')}</span>
-                                          </div>
-                                          <div className="report-stat">
-                                            <span className="report-stat-value">{report.percentage.toFixed(1)}%</span>
-                                            <span className="report-stat-label">{t('reports.ofTotal')}</span>
-                                          </div>
-                                        </div>
-                                        <p className="report-summary">{report.summary}</p>
-                                        {report.examples?.length > 0 && (
-                                          <div className="report-examples">
-                                            <span className="report-examples-label">{t('reports.examples')}</span>
-                                            <ul className="report-examples-list">
-                                              {report.examples.map((ex, i) => <li key={i}>"{ex}"</li>)}
-                                            </ul>
-                                          </div>
-                                        )}
-                                        <div className="report-timestamp">
-                                          {t('reports.generated', { date: new Date(report.timestamp).toLocaleString(locale) })}
-                                        </div>
-                                      </div>
-                                    );
-                                  }
-
-                                  // Consolidated card for multiple perspectives of the same category
-                                  const expandKey = `${qKey}-${category}`;
-                                  const isExpanded = expandedCategories.has(expandKey);
+                                  const isMulti = catReports.length > 1;
                                   const totalVol = catReports.reduce((s, r) => s + (r.volume || 0), 0);
                                   const avgUrgency = totalVol > 0
                                     ? catReports.reduce((s, r) => s + (r.urgency || 0) * (r.volume || 0), 0) / totalVol
                                     : 0;
                                   return (
-                                    <div key={category} className="report-card" style={{ gridColumn: '1 / -1' }}>
+                                    <div
+                                      key={category}
+                                      className="report-card"
+                                      style={isMulti ? { gridColumn: '1 / -1' } : {}}
+                                    >
+                                      {/* Header */}
                                       <div className="report-card-header">
                                         <h4 className="report-category">{category}</h4>
-                                        <span style={{
-                                          fontSize: '0.72rem', padding: '0.15rem 0.55rem',
-                                          background: 'var(--primary-light)', color: 'var(--primary)',
-                                          borderRadius: '999px', fontWeight: '600', whiteSpace: 'nowrap',
-                                        }}>
-                                          {catReports.length} {isES ? 'perspectivas' : 'perspectives'}
-                                        </span>
+                                        {isMulti && (
+                                          <span style={{
+                                            fontSize: '0.72rem', padding: '0.15rem 0.55rem',
+                                            background: 'var(--primary-light)', color: 'var(--primary)',
+                                            borderRadius: '999px', fontWeight: '600', whiteSpace: 'nowrap',
+                                          }}>
+                                            {catReports.length} {isES ? 'perspectivas' : 'perspectives'}
+                                          </span>
+                                        )}
                                       </div>
 
-                                      {/* Sentiment distribution bar */}
+                                      {/* Sentiment distribution bar + legend */}
                                       <div style={{ padding: '0 1.25rem 0.75rem' }}>
                                         <div style={{ display: 'flex', height: '6px', borderRadius: '3px', overflow: 'hidden', gap: '2px', marginBottom: '0.5rem' }}>
                                           {catReports.map((r, i) => (
@@ -1443,48 +1409,49 @@ export default function EventDetails() {
                                         </div>
                                       </div>
 
-                                      {/* Toggle button */}
-                                      <div style={{ padding: '0.25rem 1.25rem 0.75rem' }}>
-                                        <button
-                                          type="button"
-                                          onClick={() => toggleCategory(expandKey)}
-                                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontSize: '0.8rem', fontWeight: '600', padding: 0 }}
-                                        >
-                                          {isExpanded
-                                            ? (isES ? '▲ Ocultar perspectivas' : '▲ Hide perspectives')
-                                            : (isES ? `▼ Ver ${catReports.length} perspectivas` : `▼ View ${catReports.length} perspectives`)}
-                                        </button>
+                                      {/* Perspectives — always visible */}
+                                      <div style={{ borderTop: '1px solid var(--border)', padding: '0.75rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                        {catReports.map((r, i) => {
+                                          const s = getSentimentLabel(r.sentiment);
+                                          const col = sentColor(r.sentiment);
+                                          return (
+                                            <div key={i}>
+                                              {/* Perspective header: badge + mentions + prominent % */}
+                                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                                                <span className={`report-badge sentiment-${s.class}`}>{s.text}</span>
+                                                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                                                  {r.volume} {isES ? 'menciones' : 'mentions'}
+                                                </span>
+                                                {r.percentage != null && (
+                                                  <span style={{ fontSize: '1rem', fontWeight: '700', color: col, marginLeft: 'auto' }}>
+                                                    {r.percentage.toFixed(1)}%
+                                                  </span>
+                                                )}
+                                              </div>
+                                              {/* Description */}
+                                              {r.summary && (
+                                                <p style={{ fontSize: '0.85rem', color: 'var(--text-primary)', margin: '0 0 0.5rem', lineHeight: 1.5 }}>
+                                                  {r.summary}
+                                                </p>
+                                              )}
+                                              {/* Example quotes */}
+                                              {r.examples?.slice(0, 2).map((ex, j) => (
+                                                <div key={j} style={{
+                                                  fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic',
+                                                  paddingLeft: '0.75rem', borderLeft: `2px solid ${col}`,
+                                                  marginBottom: '0.25rem',
+                                                }}>
+                                                  "{ex}"
+                                                </div>
+                                              ))}
+                                            </div>
+                                          );
+                                        })}
                                       </div>
 
-                                      {/* Compact perspectives — quotes only */}
-                                      {isExpanded && (
-                                        <div style={{ borderTop: '1px solid var(--border)', padding: '0.75rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                          {catReports.map((r, i) => {
-                                            const s = getSentimentLabel(r.sentiment);
-                                            const col = sentColor(r.sentiment);
-                                            return (
-                                              <div key={i}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
-                                                  <span className={`report-badge sentiment-${s.class}`}>{s.text}</span>
-                                                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                                                    {r.volume} {isES ? 'menciones' : 'mentions'}
-                                                    {r.percentage != null ? ` · ${r.percentage.toFixed(1)}% ${isES ? 'del total' : 'of total'}` : ''}
-                                                  </span>
-                                                </div>
-                                                {r.examples?.slice(0, 2).map((ex, j) => (
-                                                  <div key={j} style={{
-                                                    fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic',
-                                                    paddingLeft: '0.75rem', borderLeft: `2px solid ${col}`,
-                                                    marginBottom: '0.25rem',
-                                                  }}>
-                                                    "{ex}"
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      )}
+                                      <div className="report-timestamp" style={{ padding: '0.5rem 1.25rem' }}>
+                                        {t('reports.generated', { date: new Date(catReports[0].timestamp).toLocaleString(locale) })}
+                                      </div>
                                     </div>
                                   );
                                 })}
