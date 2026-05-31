@@ -9,6 +9,8 @@ import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 import api from '../services/api';
 import Modal from '../components/Modal';
+import OverviewTab from '../components/OverviewTab';
+import TrendsTab from '../components/TrendsTab';
 import { useLanguage } from '../context/LanguageContext';
 
 const MultiLineTick = ({ x, y, payload }) => {
@@ -60,7 +62,7 @@ export default function EventDetails() {
   const [distModal, setDistModal] = useState(null);
 
   // Tabs state
-  const [activeTab, setActiveTab] = useState('responses');
+  const [activeTab, setActiveTab] = useState('overview');
 
 
   // Reports state
@@ -69,8 +71,18 @@ export default function EventDetails() {
   const [reportsError, setReportsError] = useState('');
   const [selectedTimestamp, setSelectedTimestamp] = useState(null);
 
+  // Recommendations state
+  const [recommendations, setRecommendations] = useState([]);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(false);
+
+  // Global summary state
+  const [summaryMode, setSummaryMode] = useState('run');   // 'run' | 'global'
+  const [globalSummary, setGlobalSummary] = useState([]);
+  const [globalSummaryLoading, setGlobalSummaryLoading] = useState(false);
+
   const [isExporting, setIsExporting] = useState(false);
   const [expandedQuestions, setExpandedQuestions] = useState(new Set());
+  const [expandedCategories, setExpandedCategories] = useState(new Set());
   const RESPONSE_PREVIEW = 5;
 
   // Jobs state
@@ -148,10 +160,61 @@ export default function EventDetails() {
   };
 
   useEffect(() => {
-    if ((activeTab === 'reports' || activeTab === 'charts') && reports.length === 0 && !reportsLoading) {
+    if ((activeTab === 'insights' || activeTab === 'overview') && reports.length === 0 && !reportsLoading) {
       fetchReports();
     }
   }, [activeTab]);
+
+  const fetchRecommendations = async (ts = null) => {
+    setRecommendationsLoading(true);
+    try {
+      const url = ts
+        ? `/events/${eventId}/recommendations?timestamp=${encodeURIComponent(ts)}`
+        : `/events/${eventId}/recommendations`;
+      const response = await api.get(url);
+      setRecommendations(response.data?.recommendations || response.data || []);
+    } catch {
+      setRecommendations([]);
+    } finally {
+      setRecommendationsLoading(false);
+    }
+  };
+
+  const fetchGlobalSummary = async () => {
+    setGlobalSummaryLoading(true);
+    try {
+      const response = await api.get(`/events/${eventId}/global-summary`);
+      setGlobalSummary(response.data?.recommendations || []);
+    } catch {
+      setGlobalSummary([]);
+    } finally {
+      setGlobalSummaryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'overview' && !recommendationsLoading) {
+      // Always re-fetch on tab activation so post-analysis data is current.
+      // selectedTimestamp may still be null on first load; fetchRecommendations
+      // handles that by falling back to the latest-timestamp endpoint.
+      fetchRecommendations(selectedTimestamp || null);
+    }
+  }, [activeTab]);
+
+  // Re-fetch run-specific recommendations when the selected timestamp changes
+  // (e.g. user picks a different run from the date selector in OverviewTab).
+  useEffect(() => {
+    if (activeTab === 'overview' && selectedTimestamp && summaryMode === 'run' && !recommendationsLoading) {
+      fetchRecommendations(selectedTimestamp);
+    }
+  }, [selectedTimestamp]);
+
+  // Auto-fetch global summary when the user switches to global mode.
+  useEffect(() => {
+    if (summaryMode === 'global' && globalSummary.length === 0 && !globalSummaryLoading) {
+      fetchGlobalSummary();
+    }
+  }, [summaryMode]);
 
   // Fetch jobs
   const fetchJobs = async () => {
@@ -215,6 +278,14 @@ export default function EventDetails() {
     });
   };
 
+  const toggleCategory = (key) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  };
+
   const handleAnalyzeConfirm = async () => {
     setShowAnalyzeModal(false);
     setAnalyzing(true);
@@ -240,6 +311,35 @@ export default function EventDetails() {
     }
   };
 
+
+  const handleRecommendationFeedback = async (recId, helpful) => {
+    setRecommendations(prev =>
+      prev.map(r => r.id === recId
+        ? {
+            ...r,
+            user_vote: helpful ? 'helpful' : 'not_helpful',
+            helpful_votes: helpful ? r.helpful_votes + 1 : r.helpful_votes,
+            not_helpful_votes: !helpful ? r.not_helpful_votes + 1 : r.not_helpful_votes,
+          }
+        : r
+      )
+    );
+    try {
+      await api.post(`/events/${eventId}/recommendations/${recId}/feedback`, { helpful });
+    } catch {
+      setRecommendations(prev =>
+        prev.map(r => r.id === recId
+          ? {
+              ...r,
+              user_vote: null,
+              helpful_votes: helpful ? r.helpful_votes - 1 : r.helpful_votes,
+              not_helpful_votes: !helpful ? r.not_helpful_votes - 1 : r.not_helpful_votes,
+            }
+          : r
+        )
+      );
+    }
+  };
 
   const getSentimentLabel = (sentiment) => {
     if (sentiment >= 0.3)  return { text: t('sentiment.positive'), class: 'positive' };
@@ -896,18 +996,27 @@ export default function EventDetails() {
           marginBottom: '1.5rem',
         }}>
         <div className="tabs-nav" style={{ borderBottom: 'none', marginBottom: 0 }}>
+          <button className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
+            <span className="tab-icon">⚡</span>
+            {t('eventDetails.tabOverview')}
+            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: '#F59E0B', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
+            {recommendations.filter(r => r.impact_level === 'high').length > 0 && (
+              <span className="tab-badge running">{recommendations.filter(r => r.impact_level === 'high').length}</span>
+            )}
+          </button>
+          <button className={`tab-btn ${activeTab === 'insights' ? 'active' : ''}`} onClick={() => setActiveTab('insights')}>
+            <span className="tab-icon">📊</span>
+            {t('eventDetails.tabInsights')}
+            {reports.length > 0 && <span className="tab-badge">{reports.length}</span>}
+          </button>
+          <button className={`tab-btn ${activeTab === 'trends' ? 'active' : ''}`} onClick={() => setActiveTab('trends')}>
+            <span className="tab-icon">📈</span>
+            {t('eventDetails.tabTrends')}
+            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: '#F59E0B', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
+          </button>
           <button className={`tab-btn ${activeTab === 'responses' ? 'active' : ''}`} onClick={() => setActiveTab('responses')}>
             <span className="tab-icon">💬</span>
             {t('eventDetails.tabResponses')}
-          </button>
-          <button className={`tab-btn ${activeTab === 'reports' ? 'active' : ''}`} onClick={() => setActiveTab('reports')}>
-            <span className="tab-icon">📊</span>
-            {t('eventDetails.tabReports')}
-            {reports.length > 0 && <span className="tab-badge">{reports.length}</span>}
-          </button>
-          <button className={`tab-btn ${activeTab === 'charts' ? 'active' : ''}`} onClick={() => setActiveTab('charts')}>
-            <span className="tab-icon">📈</span>
-            {t('eventDetails.tabCharts')}
           </button>
           <button className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`} onClick={() => setActiveTab('status')}>
             <span className="tab-icon">⚙️</span>
@@ -964,6 +1073,32 @@ export default function EventDetails() {
         </div>{/* end flex wrapper */}
 
         <div className="tab-content">
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <OverviewTab
+              recommendations={recommendations}
+              recommendationsLoading={recommendationsLoading}
+              reports={selectedReports}
+              locale={locale}
+              onFeedback={handleRecommendationFeedback}
+              onAnalyzeClick={handleAnalyzeClick}
+              analyzing={analyzing}
+              summaryMode={summaryMode}
+              onSummaryModeChange={setSummaryMode}
+              selectedTimestamp={selectedTimestamp}
+              runTimestamps={runTimestamps}
+              onTimestampChange={setSelectedTimestamp}
+              globalSummary={globalSummary}
+              globalSummaryLoading={globalSummaryLoading}
+              onFetchGlobalSummary={fetchGlobalSummary}
+            />
+          )}
+
+          {/* Trends Tab */}
+          {activeTab === 'trends' && (
+            <TrendsTab reports={reports} locale={locale} />
+          )}
+
           {/* Responses Tab */}
           {activeTab === 'responses' && (
             <section>
@@ -1106,8 +1241,8 @@ export default function EventDetails() {
             </section>
           )}
 
-          {/* Reports Tab */}
-          {activeTab === 'reports' && (
+          {/* Insights Tab (Reports + Charts merged) */}
+          {activeTab === 'insights' && (
             <section>
               <div className="reports-header">
                 <div>
@@ -1229,55 +1364,151 @@ export default function EventDetails() {
                   )}
 
                   {/* ── open: NLP clusters ── */}
-                  {reportsByType.open.length > 0 && (
-                    <div className="report-type-section">
-                      <div className="report-type-section-title">
-                        <span>💬</span>
-                        <span>{locale === 'es-MX' ? 'Análisis de texto libre' : 'Free text analysis'}</span>
-                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-                        <span style={{ fontWeight: 400 }}>({reportsByType.open.length})</span>
-                      </div>
-                      <div className="reports-grid">
-                        {reportsByType.open.map(report => {
-                          const sentiment = getSentimentLabel(report.sentiment);
-                          const urgency = getUrgencyLabel(report.urgency);
+                  {reportsByType.open.length > 0 && (() => {
+                    const openByQuestion = Object.entries(
+                      reportsByType.open.reduce((acc, r) => {
+                        const key = r.question_id ?? 'default';
+                        if (!acc[key]) acc[key] = { label: r.question_text || (locale === 'es-MX' ? 'Texto libre' : 'Free text'), reports: [] };
+                        acc[key].reports.push(r);
+                        return acc;
+                      }, {})
+                    ).map(([qKey, val]) => ({ ...val, qKey }));
+                    const multipleQuestions = openByQuestion.length > 1;
+                    const sentColor = (s) => s >= 0.3 ? '#10B981' : s <= -0.3 ? '#EF4444' : '#6366F1';
+                    const isES = locale === 'es-MX';
+                    return (
+                      <div className="report-type-section">
+                        <div className="report-type-section-title">
+                          <span>💬</span>
+                          <span>{isES ? 'Análisis de texto libre' : 'Free text analysis'}</span>
+                          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                          <span style={{ fontWeight: 400 }}>({reportsByType.open.length})</span>
+                        </div>
+                        {openByQuestion.map(({ label, reports: qReports, qKey }) => {
+                          const byCategory = qReports.reduce((acc, r) => {
+                            if (!acc[r.category]) acc[r.category] = [];
+                            acc[r.category].push(r);
+                            return acc;
+                          }, {});
                           return (
-                            <div key={report.id} className="report-card">
-                              <div className="report-card-header">
-                                <h4 className="report-category">{report.category}</h4>
-                                <div className="report-badges">
-                                  <span className={`report-badge sentiment-${sentiment.class}`}>{sentiment.text}</span>
-                                  <span className={`report-badge urgency-${urgency.class}`}>{t('urgency.label', { level: urgency.text })}</span>
-                                </div>
-                              </div>
-                              <div className="report-stats">
-                                <div className="report-stat">
-                                  <span className="report-stat-value">{report.volume}</span>
-                                  <span className="report-stat-label">{t('reports.mentions')}</span>
-                                </div>
-                                <div className="report-stat">
-                                  <span className="report-stat-value">{report.percentage.toFixed(1)}%</span>
-                                  <span className="report-stat-label">{t('reports.ofTotal')}</span>
-                                </div>
-                              </div>
-                              <p className="report-summary">{report.summary}</p>
-                              {report.examples?.length > 0 && (
-                                <div className="report-examples">
-                                  <span className="report-examples-label">{t('reports.examples')}</span>
-                                  <ul className="report-examples-list">
-                                    {report.examples.map((ex, i) => <li key={i}>"{ex}"</li>)}
-                                  </ul>
+                            <div key={qKey}>
+                              {multipleQuestions && (
+                                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', margin: '0.75rem 0 0.5rem', padding: '0 0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                  {label}
                                 </div>
                               )}
-                              <div className="report-timestamp">
-                                {t('reports.generated', { date: new Date(report.timestamp).toLocaleString(locale) })}
+                              <div className="reports-grid">
+                                {Object.entries(byCategory).map(([category, catReports]) => {
+                                  const isMulti = catReports.length > 1;
+                                  const totalVol = catReports.reduce((s, r) => s + (r.volume || 0), 0);
+                                  const avgUrgency = totalVol > 0
+                                    ? catReports.reduce((s, r) => s + (r.urgency || 0) * (r.volume || 0), 0) / totalVol
+                                    : 0;
+                                  return (
+                                    <div
+                                      key={category}
+                                      className="report-card"
+                                      style={isMulti ? { gridColumn: '1 / -1' } : {}}
+                                    >
+                                      {/* Header */}
+                                      <div className="report-card-header">
+                                        <h4 className="report-category">{category}</h4>
+                                        {isMulti && (
+                                          <span style={{
+                                            fontSize: '0.72rem', padding: '0.15rem 0.55rem',
+                                            background: 'var(--primary-light)', color: 'var(--primary)',
+                                            borderRadius: '999px', fontWeight: '600', whiteSpace: 'nowrap',
+                                          }}>
+                                            {catReports.length} {isES ? 'perspectivas' : 'perspectives'}
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      {/* Sentiment distribution bar + legend */}
+                                      <div style={{ padding: '0 1.25rem 0.75rem' }}>
+                                        <div style={{ display: 'flex', height: '6px', borderRadius: '3px', overflow: 'hidden', gap: '2px', marginBottom: '0.5rem' }}>
+                                          {catReports.map((r, i) => (
+                                            <div key={i} style={{ flex: r.volume || 1, background: sentColor(r.sentiment), minWidth: '6px' }} />
+                                          ))}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                          {catReports.map((r, i) => {
+                                            const s = getSentimentLabel(r.sentiment);
+                                            return (
+                                              <span key={i} style={{ fontSize: '0.75rem', color: sentColor(r.sentiment), fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: sentColor(r.sentiment), display: 'inline-block', flexShrink: 0 }} />
+                                                {s.text} · {r.volume} {isES ? 'mencs.' : 'ment.'}
+                                              </span>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+
+                                      {/* Aggregated stats */}
+                                      <div className="report-stats">
+                                        <div className="report-stat">
+                                          <span className="report-stat-value">{totalVol}</span>
+                                          <span className="report-stat-label">{isES ? 'menciones totales' : 'total mentions'}</span>
+                                        </div>
+                                        <div className="report-stat">
+                                          <span className="report-stat-value">{avgUrgency.toFixed(1)}/10</span>
+                                          <span className="report-stat-label">{isES ? 'urgencia promedio' : 'avg urgency'}</span>
+                                        </div>
+                                      </div>
+
+                                      {/* Perspectives — always visible */}
+                                      <div style={{ borderTop: '1px solid var(--border)', padding: '0.75rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                        {catReports.map((r, i) => {
+                                          const s = getSentimentLabel(r.sentiment);
+                                          const col = sentColor(r.sentiment);
+                                          return (
+                                            <div key={i}>
+                                              {/* Perspective header: badge + mentions + prominent % */}
+                                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                                                <span className={`report-badge sentiment-${s.class}`}>{s.text}</span>
+                                                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                                                  {r.volume} {isES ? 'menciones' : 'mentions'}
+                                                </span>
+                                                {r.percentage != null && (
+                                                  <span style={{ fontSize: '1rem', fontWeight: '700', color: col, marginLeft: 'auto' }}>
+                                                    {r.percentage.toFixed(1)}%
+                                                  </span>
+                                                )}
+                                              </div>
+                                              {/* Description */}
+                                              {r.summary && (
+                                                <p style={{ fontSize: '0.85rem', color: 'var(--text-primary)', margin: '0 0 0.5rem', lineHeight: 1.5 }}>
+                                                  {r.summary}
+                                                </p>
+                                              )}
+                                              {/* Example quotes */}
+                                              {r.examples?.slice(0, 2).map((ex, j) => (
+                                                <div key={j} style={{
+                                                  fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic',
+                                                  paddingLeft: '0.75rem', borderLeft: `2px solid ${col}`,
+                                                  marginBottom: '0.25rem',
+                                                }}>
+                                                  "{ex}"
+                                                </div>
+                                              ))}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+
+                                      <div className="report-timestamp" style={{ padding: '0.5rem 1.25rem' }}>
+                                        {t('reports.generated', { date: new Date(catReports[0].timestamp).toLocaleString(locale) })}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           );
                         })}
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* ── multiple: distribution ── */}
                   {reportsByType.multiple.length > 0 && (
@@ -1466,12 +1697,9 @@ export default function EventDetails() {
                   )}
                 </>
               )}
-            </section>
-          )}
 
-          {/* Charts Tab */}
-          {activeTab === 'charts' && (
-            <section>
+              {/* ── Charts section ── */}
+              <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '2px solid var(--border)' }}>
               <div className="reports-header">
                 <div>
                   <h3 className="reports-title">{t('charts.title')}</h3>
@@ -1556,54 +1784,74 @@ export default function EventDetails() {
                     </div>
                   )}
 
-                  {/* ── open: category bar + sentiment pie ── */}
+                  {/* ── open: category bar + sentiment pie, grouped by question ── */}
                   {reportsByType.open.length > 0 && (() => {
                     const barColors = ['#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE', '#E0E7FF'];
-                    const barData = reportsByType.open.map(r => ({ name: r.category, value: parseFloat(r.percentage.toFixed(1)), volume: r.volume }));
-                    let pos = 0, neg = 0, neu = 0;
-                    reportsByType.open.forEach(r => {
-                      if (r.sentiment >= 0.3) pos += r.volume;
-                      else if (r.sentiment <= -0.3) neg += r.volume;
-                      else neu += r.volume;
-                    });
-                    const pieData = [
-                      { name: t('sentiment.positive'), value: pos, fill: '#10B981' },
-                      { name: t('sentiment.negative'), value: neg, fill: '#EF4444' },
-                      { name: t('sentiment.neutral'),  value: neu, fill: '#6366F1' },
-                    ].filter(d => d.value > 0);
+                    const openByQuestion = Object.values(
+                      reportsByType.open.reduce((acc, r) => {
+                        const key = r.question_id ?? 'default';
+                        if (!acc[key]) acc[key] = { label: r.question_text || (locale === 'es-MX' ? 'Texto libre' : 'Free text'), reports: [] };
+                        acc[key].reports.push(r);
+                        return acc;
+                      }, {})
+                    );
+                    const multipleQuestions = openByQuestion.length > 1;
                     return (
                       <>
                         <div className="report-type-section-title">
                           <span>💬</span><span>{locale === 'es-MX' ? 'Texto libre' : 'Free text'}</span>
                           <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                         </div>
-                        <div className="card" style={{ padding: '1.5rem' }}>
-                          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{t('charts.barTitle')}</h4>
-                          <ResponsiveContainer width="100%" height={barData.length * 64 + 40}>
-                            <BarChart data={barData} layout="vertical" margin={{ top: 0, right: 40, left: 8, bottom: 0 }}>
-                              <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
-                              <YAxis type="category" dataKey="name" width={190} tick={<MultiLineTick />} axisLine={false} tickLine={false} />
-                              <Tooltip formatter={(v, _, p) => [`${v}% (${p.payload.volume} ${t('reports.mentions')})`, t('charts.percentage')]} contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }} />
-                              <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={28}>
-                                {barData.map((_, i) => <Cell key={i} fill={barColors[i % barColors.length]} />)}
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                        {pieData.length > 0 && (
-                          <div className="card" style={{ padding: '1.5rem' }}>
-                            <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{t('charts.pieTitle')}</h4>
-                            <ResponsiveContainer width="100%" height={320}>
-                              <PieChart>
-                                <Pie data={pieData} cx="50%" cy="46%" outerRadius={85} dataKey="value" label={({ percent }) => `${(percent * 100).toFixed(0)}%`} labelLine>
-                                  {pieData.map((e, i) => <Cell key={i} fill={e.fill} />)}
-                                </Pie>
-                                <Legend formatter={v => <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{v}</span>} />
-                                <Tooltip formatter={(v, n) => [`${v} ${t('reports.mentions')}`, n]} contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }} />
-                              </PieChart>
-                            </ResponsiveContainer>
-                          </div>
-                        )}
+                        {openByQuestion.map(({ label, reports: qReports }) => {
+                          const barData = qReports.map(r => ({ name: r.category, value: parseFloat(r.percentage.toFixed(1)), volume: r.volume }));
+                          let pos = 0, neg = 0, neu = 0;
+                          qReports.forEach(r => {
+                            if (r.sentiment >= 0.3) pos += r.volume;
+                            else if (r.sentiment <= -0.3) neg += r.volume;
+                            else neu += r.volume;
+                          });
+                          const pieData = [
+                            { name: t('sentiment.positive'), value: pos, fill: '#10B981' },
+                            { name: t('sentiment.negative'), value: neg, fill: '#EF4444' },
+                            { name: t('sentiment.neutral'),  value: neu, fill: '#6366F1' },
+                          ].filter(d => d.value > 0);
+                          return (
+                            <div key={label}>
+                              {multipleQuestions && (
+                                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', margin: '1rem 0 0.5rem', padding: '0 0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                  {label}
+                                </div>
+                              )}
+                              <div className="card" style={{ padding: '1.5rem' }}>
+                                <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{t('charts.barTitle')}</h4>
+                                <ResponsiveContainer width="100%" height={barData.length * 64 + 40}>
+                                  <BarChart data={barData} layout="vertical" margin={{ top: 0, right: 40, left: 8, bottom: 0 }}>
+                                    <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                                    <YAxis type="category" dataKey="name" width={190} tick={<MultiLineTick />} axisLine={false} tickLine={false} />
+                                    <Tooltip formatter={(v, _, p) => [`${v}% (${p.payload.volume} ${t('reports.mentions')})`, t('charts.percentage')]} contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }} />
+                                    <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={28}>
+                                      {barData.map((_, i) => <Cell key={i} fill={barColors[i % barColors.length]} />)}
+                                    </Bar>
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </div>
+                              {pieData.length > 0 && (
+                                <div className="card" style={{ padding: '1.5rem' }}>
+                                  <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>{t('charts.pieTitle')}</h4>
+                                  <ResponsiveContainer width="100%" height={320}>
+                                    <PieChart>
+                                      <Pie data={pieData} cx="50%" cy="46%" outerRadius={85} dataKey="value" label={({ percent }) => `${(percent * 100).toFixed(0)}%`} labelLine>
+                                        {pieData.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                                      </Pie>
+                                      <Legend formatter={v => <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{v}</span>} />
+                                      <Tooltip formatter={(v, n) => [`${v} ${t('reports.mentions')}`, n]} contentStyle={{ borderRadius: '0.5rem', fontSize: '0.85rem' }} />
+                                    </PieChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </>
                     );
                   })()}
@@ -1717,6 +1965,7 @@ export default function EventDetails() {
                   )}
                 </div>
               )}
+              </div>{/* end Charts section */}
             </section>
           )}
 
