@@ -75,6 +75,11 @@ export default function EventDetails() {
   const [recommendations, setRecommendations] = useState([]);
   const [recommendationsLoading, setRecommendationsLoading] = useState(false);
 
+  // Global summary state
+  const [summaryMode, setSummaryMode] = useState('run');   // 'run' | 'global'
+  const [globalSummary, setGlobalSummary] = useState([]);
+  const [globalSummaryLoading, setGlobalSummaryLoading] = useState(false);
+
   const [isExporting, setIsExporting] = useState(false);
   const [expandedQuestions, setExpandedQuestions] = useState(new Set());
   const [expandedCategories, setExpandedCategories] = useState(new Set());
@@ -155,15 +160,18 @@ export default function EventDetails() {
   };
 
   useEffect(() => {
-    if (activeTab === 'insights' && reports.length === 0 && !reportsLoading) {
+    if ((activeTab === 'insights' || activeTab === 'overview') && reports.length === 0 && !reportsLoading) {
       fetchReports();
     }
   }, [activeTab]);
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = async (ts = null) => {
     setRecommendationsLoading(true);
     try {
-      const response = await api.get(`/events/${eventId}/recommendations`);
+      const url = ts
+        ? `/events/${eventId}/recommendations?timestamp=${encodeURIComponent(ts)}`
+        : `/events/${eventId}/recommendations`;
+      const response = await api.get(url);
       setRecommendations(response.data?.recommendations || response.data || []);
     } catch {
       setRecommendations([]);
@@ -172,12 +180,30 @@ export default function EventDetails() {
     }
   };
 
+  const fetchGlobalSummary = async () => {
+    setGlobalSummaryLoading(true);
+    try {
+      const response = await api.get(`/events/${eventId}/global-summary`);
+      setGlobalSummary(response.data?.recommendations || []);
+    } catch {
+      setGlobalSummary([]);
+    } finally {
+      setGlobalSummaryLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'overview' && recommendations.length === 0 && !recommendationsLoading) {
       fetchRecommendations();
-      if (reports.length === 0 && !reportsLoading) fetchReports();
     }
   }, [activeTab]);
+
+  // Re-fetch run-specific recommendations when the selected timestamp changes
+  useEffect(() => {
+    if (activeTab === 'overview' && selectedTimestamp && summaryMode === 'run') {
+      fetchRecommendations(selectedTimestamp);
+    }
+  }, [selectedTimestamp]);
 
   // Fetch jobs
   const fetchJobs = async () => {
@@ -1044,6 +1070,14 @@ export default function EventDetails() {
               onFeedback={handleRecommendationFeedback}
               onAnalyzeClick={handleAnalyzeClick}
               analyzing={analyzing}
+              summaryMode={summaryMode}
+              onSummaryModeChange={setSummaryMode}
+              selectedTimestamp={selectedTimestamp}
+              runTimestamps={runTimestamps}
+              onTimestampChange={setSelectedTimestamp}
+              globalSummary={globalSummary}
+              globalSummaryLoading={globalSummaryLoading}
+              onFetchGlobalSummary={fetchGlobalSummary}
             />
           )}
 

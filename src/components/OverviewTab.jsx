@@ -9,9 +9,18 @@ export default function OverviewTab({
   onFeedback,
   onAnalyzeClick,
   analyzing,
+  summaryMode,
+  onSummaryModeChange,
+  selectedTimestamp,
+  runTimestamps,
+  onTimestampChange,
+  globalSummary,
+  globalSummaryLoading,
+  onFetchGlobalSummary,
 }) {
   const isES = locale === 'es-MX';
   const [showAllRecs, setShowAllRecs] = useState(false);
+  const [showAllGlobal, setShowAllGlobal] = useState(false);
 
   const openReports = reports.filter(r => !r.question_type || r.question_type === 'open');
   const totalVolume = openReports.reduce((sum, r) => sum + (r.volume || 0), 0);
@@ -26,6 +35,7 @@ export default function OverviewTab({
   const highAlerts = recommendations.filter(r => r.impact_level === 'high').length;
   const topRec = recommendations.find(r => r.impact_level === 'high') || recommendations[0];
   const displayRecs = showAllRecs ? recommendations : recommendations.slice(0, 6);
+  const displayGlobal = showAllGlobal ? globalSummary : globalSummary.slice(0, 6);
 
   const getSentimentDisplay = (s) => {
     if (s === null) return { text: '—', color: 'var(--text-muted)' };
@@ -34,8 +44,176 @@ export default function OverviewTab({
     return { text: 'Neutral', color: '#6366F1' };
   };
 
+  const selectedLabel = selectedTimestamp
+    ? new Date(selectedTimestamp).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })
+    : null;
+
+  // ── Mode toggle buttons (top-right) ──────────────────────────────────────
+  const modeToggle = (
+    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+      <button
+        onClick={() => onSummaryModeChange('global')}
+        style={{
+          padding: '0.4rem 0.9rem', borderRadius: '999px', fontSize: '0.82rem', fontWeight: '600',
+          border: '1.5px solid var(--primary)',
+          background: summaryMode === 'global' ? 'var(--primary)' : 'transparent',
+          color: summaryMode === 'global' ? 'white' : 'var(--primary)',
+          cursor: 'pointer', transition: 'all 0.15s',
+        }}
+      >
+        {isES ? 'Resumen global' : 'Global summary'}
+      </button>
+      <button
+        onClick={() => onSummaryModeChange('run')}
+        style={{
+          padding: '0.4rem 0.9rem', borderRadius: '999px', fontSize: '0.82rem', fontWeight: '600',
+          border: '1.5px solid var(--primary)',
+          background: summaryMode === 'run' ? 'var(--primary)' : 'transparent',
+          color: summaryMode === 'run' ? 'white' : 'var(--primary)',
+          cursor: 'pointer', transition: 'all 0.15s',
+        }}
+      >
+        {isES ? 'Por fecha' : 'By date'}
+      </button>
+    </div>
+  );
+
+  // ── Global summary mode ───────────────────────────────────────────────────
+  if (summaryMode === 'global') {
+    return (
+      <section style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', margin: 0 }}>
+              {isES ? 'Resumen global' : 'Global summary'}
+            </h3>
+            {(runTimestamps || []).length > 1 && (
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.2rem 0 0' }}>
+                {isES
+                  ? `Basado en la evolución entre ${(runTimestamps || []).length} análisis`
+                  : `Based on evolution across ${(runTimestamps || []).length} analyses`}
+              </p>
+            )}
+          </div>
+          {modeToggle}
+        </div>
+
+        {/* No data yet */}
+        {!globalSummaryLoading && globalSummary.length === 0 && (
+          <div className="reports-empty">
+            <div style={{
+              width: '4rem', height: '4rem', background: 'var(--primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 1.25rem',
+            }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
+                <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5Z"/>
+                <path d="M20 2L20.5 4.5L23 5L20.5 5.5L20 8L19.5 5.5L17 5L19.5 4.5Z"/>
+              </svg>
+            </div>
+            <h4>{isES ? 'Sin resumen global aún' : 'No global summary yet'}</h4>
+            <p style={{ maxWidth: '28rem' }}>
+              {(runTimestamps || []).length < 2
+                ? (isES ? 'Ejecuta al menos 2 análisis para generar un resumen global de tendencias.' : 'Run at least 2 analyses to generate a global trend summary.')
+                : (isES ? 'El resumen global se generará automáticamente en el próximo análisis.' : 'The global summary will be generated automatically on the next analysis run.')}
+            </p>
+          </div>
+        )}
+
+        {globalSummaryLoading && (
+          <div className="reports-loading">
+            <div className="reports-spinner" />
+            <p>{isES ? 'Cargando resumen global...' : 'Loading global summary...'}</p>
+          </div>
+        )}
+
+        {!globalSummaryLoading && globalSummary.length > 0 && (
+          <>
+            {/* High-impact alerts banner */}
+            {globalSummary.some(r => r.impact_level === 'high') && (
+              <div style={{
+                padding: '0.75rem 1rem',
+                background: '#FEF2F2', border: '1px solid #FCA5A5',
+                fontSize: '0.85rem', color: '#991B1B',
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+              }}>
+                <span style={{ fontSize: '1.1rem' }}>⚠️</span>
+                <span>
+                  {globalSummary.filter(r => r.impact_level === 'high').length}{' '}
+                  {isES ? 'alerta(s) de alto impacto detectada(s) en las tendencias.' : 'high-impact alert(s) detected in trends.'}
+                </span>
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+              {displayGlobal.map(rec => (
+                <RecommendationCard
+                  key={rec.id}
+                  recommendation={rec}
+                  onFeedback={onFeedback}
+                  locale={locale}
+                />
+              ))}
+            </div>
+            {globalSummary.length > 6 && (
+              <button
+                onClick={() => setShowAllGlobal(prev => !prev)}
+                style={{ marginTop: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontSize: '0.875rem', fontWeight: '600', padding: 0 }}
+              >
+                {showAllGlobal
+                  ? (isES ? '▲ Ver menos' : '▲ Show less')
+                  : (isES ? `▼ Ver todas (${globalSummary.length})` : `▼ View all (${globalSummary.length})`)}
+              </button>
+            )}
+          </>
+        )}
+      </section>
+    );
+  }
+
+  // ── Per-run mode ──────────────────────────────────────────────────────────
   return (
     <section style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+
+      {/* Header: date selector + mode toggle */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div>
+          {/* Date indicator */}
+          {selectedLabel && (
+            <div style={{
+              fontSize: '0.82rem', color: 'var(--text-secondary)',
+              padding: '0.35rem 0.75rem',
+              background: 'var(--bg-secondary)', border: '1px solid var(--border)',
+              borderRadius: '0.375rem', marginBottom: '0.5rem',
+              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+            }}>
+              <span>📋</span>
+              <span>
+                {isES ? 'Análisis del' : 'Analysis from'}{' '}
+                <strong>{selectedLabel}</strong>
+              </span>
+            </div>
+          )}
+          {/* Date selector */}
+          {(runTimestamps || []).length > 1 && (
+            <div>
+              <select
+                value={selectedTimestamp || ''}
+                onChange={e => onTimestampChange(e.target.value)}
+                className="input-field"
+                style={{ padding: '0.3rem 0.6rem', fontSize: '0.82rem', width: 'auto', margin: 0 }}
+              >
+                {(runTimestamps || []).map(ts => (
+                  <option key={ts} value={ts}>
+                    {new Date(ts).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+        {modeToggle}
+      </div>
 
       {/* A. Hero Summary */}
       {topRec && !recommendationsLoading && (
