@@ -1,6 +1,38 @@
+import { useState } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
+
+function InfoTooltip({ text }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
+      <span
+        onMouseEnter={() => setVisible(true)}
+        onMouseLeave={() => setVisible(false)}
+        style={{
+          width: '17px', height: '17px', borderRadius: '50%',
+          background: '#F59E0B', color: 'white',
+          fontSize: '0.6rem', fontWeight: '800',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'default', userSelect: 'none', flexShrink: 0,
+        }}
+      >i</span>
+      {visible && (
+        <div style={{
+          position: 'absolute', top: '22px', right: 0,
+          background: '#1F2937', color: 'white',
+          fontSize: '0.75rem', lineHeight: 1.45,
+          padding: '0.45rem 0.65rem', borderRadius: '0.375rem',
+          whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+          zIndex: 50, pointerEvents: 'none',
+        }}>
+          {text}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function TrendsTab({ reports, locale }) {
   const isES = locale === 'es-MX';
@@ -97,8 +129,15 @@ export default function TrendsTab({ reports, locale }) {
     return 'var(--text-secondary)';
   };
 
+  const infoText = isES
+    ? 'Nuevo: Evolución histórica del sentimiento y comparativa entre análisis'
+    : 'New: Historical sentiment evolution and cross-analysis comparison';
+
   return (
-    <section style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <section style={{ display: 'flex', flexDirection: 'column', gap: '2rem', position: 'relative' }}>
+      <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 5 }}>
+        <InfoTooltip text={infoText} />
+      </div>
 
       {/* ── Open questions section ── */}
       {hasOpenTrends && (

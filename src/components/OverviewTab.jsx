@@ -1,6 +1,37 @@
 import { useState } from 'react';
 import RecommendationCard from './RecommendationCard';
 
+function InfoTooltip({ text }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div style={{ position: 'relative', display: 'inline-flex', flexShrink: 0, alignSelf: 'center' }}>
+      <span
+        onMouseEnter={() => setVisible(true)}
+        onMouseLeave={() => setVisible(false)}
+        style={{
+          width: '17px', height: '17px', borderRadius: '50%',
+          background: '#F59E0B', color: 'white',
+          fontSize: '0.6rem', fontWeight: '800',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'default', userSelect: 'none', flexShrink: 0,
+        }}
+      >i</span>
+      {visible && (
+        <div style={{
+          position: 'absolute', top: '22px', right: 0,
+          background: '#1F2937', color: 'white',
+          fontSize: '0.75rem', lineHeight: 1.45,
+          padding: '0.45rem 0.65rem', borderRadius: '0.375rem',
+          whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+          zIndex: 50, pointerEvents: 'none',
+        }}>
+          {text}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function OverviewTab({
   recommendations,
   recommendationsLoading,
@@ -48,9 +79,14 @@ export default function OverviewTab({
     ? new Date(selectedTimestamp).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })
     : null;
 
+  const infoText = isES
+    ? 'Nuevo: Resumen por fecha con IA · alertas de tendencias globales'
+    : 'New: Per-date AI summary · global trend alerts';
+
   // ── Mode toggle buttons (top-right) ──────────────────────────────────────
   const modeToggle = (
-    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+      <InfoTooltip text={infoText} />
       <button
         onClick={() => onSummaryModeChange('global')}
         style={{
