@@ -77,6 +77,7 @@ export default function EventDetails() {
 
   const [isExporting, setIsExporting] = useState(false);
   const [expandedQuestions, setExpandedQuestions] = useState(new Set());
+  const [expandedCategories, setExpandedCategories] = useState(new Set());
   const RESPONSE_PREVIEW = 5;
 
   // Jobs state
@@ -236,6 +237,14 @@ export default function EventDetails() {
     setExpandedQuestions(prev => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleCategory = (key) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
   };
@@ -1309,71 +1318,180 @@ export default function EventDetails() {
 
                   {/* ── open: NLP clusters ── */}
                   {reportsByType.open.length > 0 && (() => {
-                    const openByQuestion = Object.values(
+                    const openByQuestion = Object.entries(
                       reportsByType.open.reduce((acc, r) => {
                         const key = r.question_id ?? 'default';
                         if (!acc[key]) acc[key] = { label: r.question_text || (locale === 'es-MX' ? 'Texto libre' : 'Free text'), reports: [] };
                         acc[key].reports.push(r);
                         return acc;
                       }, {})
-                    );
+                    ).map(([qKey, val]) => ({ ...val, qKey }));
                     const multipleQuestions = openByQuestion.length > 1;
+                    const sentColor = (s) => s >= 0.3 ? '#10B981' : s <= -0.3 ? '#EF4444' : '#6366F1';
+                    const isES = locale === 'es-MX';
                     return (
                       <div className="report-type-section">
                         <div className="report-type-section-title">
                           <span>💬</span>
-                          <span>{locale === 'es-MX' ? 'Análisis de texto libre' : 'Free text analysis'}</span>
+                          <span>{isES ? 'Análisis de texto libre' : 'Free text analysis'}</span>
                           <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                           <span style={{ fontWeight: 400 }}>({reportsByType.open.length})</span>
                         </div>
-                        {openByQuestion.map(({ label, reports: qReports }) => (
-                          <div key={label}>
-                            {multipleQuestions && (
-                              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', margin: '0.75rem 0 0.5rem', padding: '0 0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                                {label}
+                        {openByQuestion.map(({ label, reports: qReports, qKey }) => {
+                          const byCategory = qReports.reduce((acc, r) => {
+                            if (!acc[r.category]) acc[r.category] = [];
+                            acc[r.category].push(r);
+                            return acc;
+                          }, {});
+                          return (
+                            <div key={qKey}>
+                              {multipleQuestions && (
+                                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', margin: '0.75rem 0 0.5rem', padding: '0 0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                  {label}
+                                </div>
+                              )}
+                              <div className="reports-grid">
+                                {Object.entries(byCategory).map(([category, catReports]) => {
+                                  if (catReports.length === 1) {
+                                    const report = catReports[0];
+                                    const sentiment = getSentimentLabel(report.sentiment);
+                                    const urgency = getUrgencyLabel(report.urgency);
+                                    return (
+                                      <div key={report.id} className="report-card">
+                                        <div className="report-card-header">
+                                          <h4 className="report-category">{report.category}</h4>
+                                          <div className="report-badges">
+                                            <span className={`report-badge sentiment-${sentiment.class}`}>{sentiment.text}</span>
+                                            <span className={`report-badge urgency-${urgency.class}`}>{t('urgency.label', { level: urgency.text })}</span>
+                                          </div>
+                                        </div>
+                                        <div className="report-stats">
+                                          <div className="report-stat">
+                                            <span className="report-stat-value">{report.volume}</span>
+                                            <span className="report-stat-label">{t('reports.mentions')}</span>
+                                          </div>
+                                          <div className="report-stat">
+                                            <span className="report-stat-value">{report.percentage.toFixed(1)}%</span>
+                                            <span className="report-stat-label">{t('reports.ofTotal')}</span>
+                                          </div>
+                                        </div>
+                                        <p className="report-summary">{report.summary}</p>
+                                        {report.examples?.length > 0 && (
+                                          <div className="report-examples">
+                                            <span className="report-examples-label">{t('reports.examples')}</span>
+                                            <ul className="report-examples-list">
+                                              {report.examples.map((ex, i) => <li key={i}>"{ex}"</li>)}
+                                            </ul>
+                                          </div>
+                                        )}
+                                        <div className="report-timestamp">
+                                          {t('reports.generated', { date: new Date(report.timestamp).toLocaleString(locale) })}
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+
+                                  // Consolidated card for multiple perspectives of the same category
+                                  const expandKey = `${qKey}-${category}`;
+                                  const isExpanded = expandedCategories.has(expandKey);
+                                  const totalVol = catReports.reduce((s, r) => s + (r.volume || 0), 0);
+                                  const avgUrgency = totalVol > 0
+                                    ? catReports.reduce((s, r) => s + (r.urgency || 0) * (r.volume || 0), 0) / totalVol
+                                    : 0;
+                                  return (
+                                    <div key={category} className="report-card" style={{ gridColumn: '1 / -1' }}>
+                                      <div className="report-card-header">
+                                        <h4 className="report-category">{category}</h4>
+                                        <span style={{
+                                          fontSize: '0.72rem', padding: '0.15rem 0.55rem',
+                                          background: 'var(--primary-light)', color: 'var(--primary)',
+                                          borderRadius: '999px', fontWeight: '600', whiteSpace: 'nowrap',
+                                        }}>
+                                          {catReports.length} {isES ? 'perspectivas' : 'perspectives'}
+                                        </span>
+                                      </div>
+
+                                      {/* Sentiment distribution bar */}
+                                      <div style={{ padding: '0 1.25rem 0.75rem' }}>
+                                        <div style={{ display: 'flex', height: '6px', borderRadius: '3px', overflow: 'hidden', gap: '2px', marginBottom: '0.5rem' }}>
+                                          {catReports.map((r, i) => (
+                                            <div key={i} style={{ flex: r.volume || 1, background: sentColor(r.sentiment), minWidth: '6px' }} />
+                                          ))}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                          {catReports.map((r, i) => {
+                                            const s = getSentimentLabel(r.sentiment);
+                                            return (
+                                              <span key={i} style={{ fontSize: '0.75rem', color: sentColor(r.sentiment), fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: sentColor(r.sentiment), display: 'inline-block', flexShrink: 0 }} />
+                                                {s.text} · {r.volume} {isES ? 'mencs.' : 'ment.'}
+                                              </span>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+
+                                      {/* Aggregated stats */}
+                                      <div className="report-stats">
+                                        <div className="report-stat">
+                                          <span className="report-stat-value">{totalVol}</span>
+                                          <span className="report-stat-label">{isES ? 'menciones totales' : 'total mentions'}</span>
+                                        </div>
+                                        <div className="report-stat">
+                                          <span className="report-stat-value">{avgUrgency.toFixed(1)}/10</span>
+                                          <span className="report-stat-label">{isES ? 'urgencia promedio' : 'avg urgency'}</span>
+                                        </div>
+                                      </div>
+
+                                      {/* Toggle button */}
+                                      <div style={{ padding: '0.25rem 1.25rem 0.75rem' }}>
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleCategory(expandKey)}
+                                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontSize: '0.8rem', fontWeight: '600', padding: 0 }}
+                                        >
+                                          {isExpanded
+                                            ? (isES ? '▲ Ocultar perspectivas' : '▲ Hide perspectives')
+                                            : (isES ? `▼ Ver ${catReports.length} perspectivas` : `▼ View ${catReports.length} perspectives`)}
+                                        </button>
+                                      </div>
+
+                                      {/* Compact perspectives — quotes only */}
+                                      {isExpanded && (
+                                        <div style={{ borderTop: '1px solid var(--border)', padding: '0.75rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                          {catReports.map((r, i) => {
+                                            const s = getSentimentLabel(r.sentiment);
+                                            const col = sentColor(r.sentiment);
+                                            return (
+                                              <div key={i}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+                                                  <span className={`report-badge sentiment-${s.class}`}>{s.text}</span>
+                                                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                                                    {r.volume} {isES ? 'menciones' : 'mentions'}
+                                                    {r.percentage != null ? ` · ${r.percentage.toFixed(1)}% ${isES ? 'del total' : 'of total'}` : ''}
+                                                  </span>
+                                                </div>
+                                                {r.examples?.slice(0, 2).map((ex, j) => (
+                                                  <div key={j} style={{
+                                                    fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic',
+                                                    paddingLeft: '0.75rem', borderLeft: `2px solid ${col}`,
+                                                    marginBottom: '0.25rem',
+                                                  }}>
+                                                    "{ex}"
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </div>
-                            )}
-                            <div className="reports-grid">
-                              {qReports.map(report => {
-                                const sentiment = getSentimentLabel(report.sentiment);
-                                const urgency = getUrgencyLabel(report.urgency);
-                                return (
-                                  <div key={report.id} className="report-card">
-                                    <div className="report-card-header">
-                                      <h4 className="report-category">{report.category}</h4>
-                                      <div className="report-badges">
-                                        <span className={`report-badge sentiment-${sentiment.class}`}>{sentiment.text}</span>
-                                        <span className={`report-badge urgency-${urgency.class}`}>{t('urgency.label', { level: urgency.text })}</span>
-                                      </div>
-                                    </div>
-                                    <div className="report-stats">
-                                      <div className="report-stat">
-                                        <span className="report-stat-value">{report.volume}</span>
-                                        <span className="report-stat-label">{t('reports.mentions')}</span>
-                                      </div>
-                                      <div className="report-stat">
-                                        <span className="report-stat-value">{report.percentage.toFixed(1)}%</span>
-                                        <span className="report-stat-label">{t('reports.ofTotal')}</span>
-                                      </div>
-                                    </div>
-                                    <p className="report-summary">{report.summary}</p>
-                                    {report.examples?.length > 0 && (
-                                      <div className="report-examples">
-                                        <span className="report-examples-label">{t('reports.examples')}</span>
-                                        <ul className="report-examples-list">
-                                          {report.examples.map((ex, i) => <li key={i}>"{ex}"</li>)}
-                                        </ul>
-                                      </div>
-                                    )}
-                                    <div className="report-timestamp">
-                                      {t('reports.generated', { date: new Date(report.timestamp).toLocaleString(locale) })}
-                                    </div>
-                                  </div>
-                                );
-                              })}
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     );
                   })()}
