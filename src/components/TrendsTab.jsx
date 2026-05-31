@@ -118,7 +118,7 @@ export default function TrendsTab({ reports, locale }) {
           </div>
 
           {/* Sentiment evolution chart */}
-          <div className="card" style={{ padding: '1.5rem' }}>
+          <div className="card" style={{ padding: '1.5rem', overflow: 'visible' }}>
             <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
               {isES ? 'Evolución del sentimiento (preguntas abiertas)' : 'Sentiment evolution (open questions)'}
             </h4>
@@ -396,7 +396,7 @@ function NumericTrend({ question, runs, hasMultipleRuns, isES, locale }) {
   const maxY = allMeans.length > 0 ? Math.ceil(Math.max(...allMeans) + 0.5) : 10;
 
   return (
-    <div className="card" style={{ padding: '1.25rem' }}>
+    <div className="card" style={{ padding: '1.25rem', overflow: 'visible' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', borderRadius: '999px', fontWeight: '600', border: '1px solid var(--border)' }}>
           🔢 {isES ? 'Numérica' : 'Numeric'}
