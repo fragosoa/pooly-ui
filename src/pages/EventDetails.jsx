@@ -209,6 +209,13 @@ export default function EventDetails() {
     }
   }, [selectedTimestamp]);
 
+  // Auto-fetch global summary when the user switches to global mode.
+  useEffect(() => {
+    if (summaryMode === 'global' && globalSummary.length === 0 && !globalSummaryLoading) {
+      fetchGlobalSummary();
+    }
+  }, [summaryMode]);
+
   // Fetch jobs
   const fetchJobs = async () => {
     setJobsLoading(true);
