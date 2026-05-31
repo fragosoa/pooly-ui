@@ -136,14 +136,16 @@ export default function TrendsTab({ reports, locale }) {
                   axisLine={false} tickLine={false}
                 />
                 <Tooltip
-                  formatter={v => [v, isES ? 'Sentimiento' : 'Sentiment']}
-                  contentStyle={{ fontSize: '0.8rem', borderRadius: '0.375rem' }}
+                  formatter={v => [v.toFixed(2), isES ? 'Sentimiento' : 'Sentiment']}
+                  labelFormatter={label => label}
+                  contentStyle={{ fontSize: '0.8rem', borderRadius: '0.375rem', border: '1px solid var(--border)', background: 'white' }}
+                  wrapperStyle={{ zIndex: 10 }}
                 />
                 <Line
                   type="monotone" dataKey="sentiment"
                   stroke="#6366F1" strokeWidth={2}
                   dot={{ fill: '#6366F1', r: 4 }}
-                  activeDot={{ r: 6 }}
+                  activeDot={{ r: 7, stroke: '#6366F1', strokeWidth: 2, fill: 'white' }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -416,8 +418,10 @@ function NumericTrend({ question, runs, hasMultipleRuns, isES, locale }) {
             <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
             <YAxis domain={[minY, maxY]} tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
             <Tooltip
-              formatter={(v, name) => [v, name === 'mean' ? (isES ? 'Promedio' : 'Mean') : (isES ? 'Mediana' : 'Median')]}
-              contentStyle={{ fontSize: '0.8rem', borderRadius: '0.375rem' }}
+              formatter={(v, name) => [v?.toFixed(2), name === 'mean' ? (isES ? 'Promedio' : 'Mean') : (isES ? 'Mediana' : 'Median')]}
+              labelFormatter={label => label}
+              contentStyle={{ fontSize: '0.8rem', borderRadius: '0.375rem', border: '1px solid var(--border)', background: 'white' }}
+              wrapperStyle={{ zIndex: 10 }}
             />
             <Line type="monotone" dataKey="mean" stroke="#6366F1" strokeWidth={2} dot={{ fill: '#6366F1', r: 4 }} activeDot={{ r: 6 }} />
             <Line type="monotone" dataKey="median" stroke="#A5B4FC" strokeWidth={1.5} strokeDasharray="4 2" dot={false} />

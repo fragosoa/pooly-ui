@@ -999,6 +999,7 @@ export default function EventDetails() {
           <button className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
             <span className="tab-icon">⚡</span>
             {t('eventDetails.tabOverview')}
+            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: '#F59E0B', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
             {recommendations.filter(r => r.impact_level === 'high').length > 0 && (
               <span className="tab-badge running">{recommendations.filter(r => r.impact_level === 'high').length}</span>
             )}
@@ -1011,6 +1012,7 @@ export default function EventDetails() {
           <button className={`tab-btn ${activeTab === 'trends' ? 'active' : ''}`} onClick={() => setActiveTab('trends')}>
             <span className="tab-icon">📈</span>
             {t('eventDetails.tabTrends')}
+            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: '#F59E0B', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
           </button>
           <button className={`tab-btn ${activeTab === 'responses' ? 'active' : ''}`} onClick={() => setActiveTab('responses')}>
             <span className="tab-icon">💬</span>
