@@ -193,14 +193,18 @@ export default function EventDetails() {
   };
 
   useEffect(() => {
-    if (activeTab === 'overview' && recommendations.length === 0 && !recommendationsLoading) {
-      fetchRecommendations();
+    if (activeTab === 'overview' && !recommendationsLoading) {
+      // Always re-fetch on tab activation so post-analysis data is current.
+      // selectedTimestamp may still be null on first load; fetchRecommendations
+      // handles that by falling back to the latest-timestamp endpoint.
+      fetchRecommendations(selectedTimestamp || null);
     }
   }, [activeTab]);
 
   // Re-fetch run-specific recommendations when the selected timestamp changes
+  // (e.g. user picks a different run from the date selector in OverviewTab).
   useEffect(() => {
-    if (activeTab === 'overview' && selectedTimestamp && summaryMode === 'run') {
+    if (activeTab === 'overview' && selectedTimestamp && summaryMode === 'run' && !recommendationsLoading) {
       fetchRecommendations(selectedTimestamp);
     }
   }, [selectedTimestamp]);
