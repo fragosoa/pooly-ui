@@ -398,7 +398,7 @@ export default function OverviewTab({
             </div>
             <h4>{isES ? 'Sin recomendaciones aún' : 'No recommendations yet'}</h4>
             <p>{isES
-              ? 'Genera un análisis con IA para obtener recomendaciones accionables.'
+              ? 'Las recomendaciones se generan una vez hay problemas localizados'
               : 'Generate an AI analysis to get actionable recommendations.'}
             </p>
           </div>
