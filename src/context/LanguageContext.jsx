@@ -27,8 +27,8 @@ const translations = {
     // Login
     'login.title': 'Bienvenido de nuevo',
     'login.subtitle': 'Inicia sesión para gestionar tus encuestas',
-    'login.username': 'Usuario',
-    'login.usernamePlaceholder': 'Tu nombre de usuario',
+    'login.email': 'Correo electrónico',
+    'login.emailPlaceholder': 'tu@correo.com',
     'login.password': 'Contraseña',
     'login.forgotPassword': '¿Olvidaste tu contraseña?',
     'login.submit': 'Iniciar sesión',
@@ -50,8 +50,8 @@ const translations = {
     // Register
     'register.title': 'Crear cuenta',
     'register.subtitle': 'Únete a Pooly y comienza a crear encuestas',
-    'register.username': 'Usuario',
-    'register.usernamePlaceholder': 'Elige un nombre de usuario',
+    'register.name': 'Nombre',
+    'register.namePlaceholder': 'Tu nombre',
     'register.email': 'Correo electrónico',
     'register.emailPlaceholder': 'tu@correo.com',
     'register.password': 'Contraseña',
@@ -571,8 +571,8 @@ const translations = {
     // Login
     'login.title': 'Welcome back',
     'login.subtitle': 'Sign in to manage your surveys',
-    'login.username': 'Username',
-    'login.usernamePlaceholder': 'Your username',
+    'login.email': 'Email address',
+    'login.emailPlaceholder': 'you@email.com',
     'login.password': 'Password',
     'login.forgotPassword': 'Forgot your password?',
     'login.submit': 'Sign in',
@@ -594,8 +594,8 @@ const translations = {
     // Register
     'register.title': 'Create account',
     'register.subtitle': 'Join Pooly and start creating surveys',
-    'register.username': 'Username',
-    'register.usernamePlaceholder': 'Choose a username',
+    'register.name': 'Name',
+    'register.namePlaceholder': 'Your name',
     'register.email': 'Email address',
     'register.emailPlaceholder': 'you@email.com',
     'register.password': 'Password',
