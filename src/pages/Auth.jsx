@@ -121,7 +121,7 @@ const Auth = () => {
     setIsLoading(true);
     setError('');
     try {
-      await login(username, password);
+      await login(email, password);
       navigate('/admin');
     } catch (err) {
       setError(err.response?.data?.msg || err.response?.data?.message || t('login.error'));
@@ -172,7 +172,7 @@ const Auth = () => {
       return;
     }
     try {
-      await login(username, password);
+      await login(verifiedEmail, password);
       updateUser({ allow_notifications: allowNotifications });
       navigate('/admin');
     } catch (err) {
@@ -266,14 +266,14 @@ const Auth = () => {
         {!isRegister && (
           <form onSubmit={handleLoginSubmit}>
             <div className="input-group">
-              <label className="input-label">{t('login.username')}</label>
+              <label className="input-label">{t('login.email')}</label>
               <input
-                type="text"
+                type="email"
                 className="input-field"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder={t('login.usernamePlaceholder')}
+                placeholder={t('login.emailPlaceholder')}
               />
             </div>
             <div className="input-group">
@@ -329,14 +329,14 @@ const Auth = () => {
                   />
                 </div>
                 <div className="input-group">
-                  <label className="input-label">{t('register.username')}</label>
+                  <label className="input-label">{t('register.name')}</label>
                   <input
                     type="text"
                     className="input-field"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    placeholder={t('register.usernamePlaceholder')}
+                    placeholder={t('register.namePlaceholder')}
                     autoFocus
                   />
                 </div>
