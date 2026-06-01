@@ -381,7 +381,7 @@ export default function EventDetails() {
       const isES = locale === 'es-MX';
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pageW = 210, mg = 20, cW = pageW - mg * 2;
-      let y = 0;
+      let y = 0, cx = mg;
 
       const C = {
         primary:  [99, 102, 241], light:    [238, 239, 253],
@@ -595,7 +595,7 @@ export default function EventDetails() {
         const col4 = [cW*0.42, cW*0.18, cW*0.2, cW*0.2];
         const hdr4 = [isES?'Fecha del análisis':'Analysis date', isES?'Sentimiento':'Sentiment', isES?'Categorías':'Categories', isES?'Respuestas':'Responses'];
         checkPage(10); fill(C.border); doc.rect(mg,y,cW,7,'F');
-        let cx=mg; hdr4.forEach((h,i) => { txt(C.textMain); f(7,true); doc.text(h,cx+2,y+5); cx+=col4[i]; }); y+=7;
+        cx=mg; hdr4.forEach((h,i) => { txt(C.textMain); f(7,true); doc.text(h,cx+2,y+5); cx+=col4[i]; }); y+=7;
         allRunsAsc.forEach((ts, idx) => {
           const tsOpen=openByRun(ts); const vol=tsOpen.reduce((s,r)=>s+(r.volume||0),0);
           const avg=vol>0?tsOpen.reduce((s,r)=>s+r.sentiment*(r.volume||0),0)/vol:null;
