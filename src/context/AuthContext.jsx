@@ -45,8 +45,23 @@ export function AuthProvider({ children }) {
     return userData;
   };
 
-  const register = async (username, password, email, allowNotifications = true) => {
-    await api.post('/create_user', { username, password, email, allow_notifications: allowNotifications });
+  const requestEmailVerification = async (email) => {
+    await api.post('/auth/request-verification', { email });
+  };
+
+  const verifyEmailToken = async (token) => {
+    const res = await api.post('/auth/verify-email-token', { token });
+    return res.data.email;
+  };
+
+  const register = async (username, password, email, allowNotifications = true, verificationToken) => {
+    await api.post('/create_user', {
+      username,
+      password,
+      email,
+      allow_notifications: allowNotifications,
+      verification_token: verificationToken,
+    });
   };
 
   const updateUser = (updates) => {
@@ -93,7 +108,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout, updateUser, requestEmailVerification, verifyEmailToken }}>
       {children}
     </AuthContext.Provider>
   );
