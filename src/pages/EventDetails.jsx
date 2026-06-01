@@ -580,7 +580,7 @@ export default function EventDetails() {
         latestNumeric.forEach(r => {
           checkPage(22); f(8,true); txt(C.textMain); const qL=doc.splitTextToSize(r.question_text,cW); doc.text(qL,mg,y); y+=qL.length*4.5+3;
           const s=r.stats||{}; txt(C.textGrey); f(7.5,false);
-          doc.text([`${isES?'Media':'Mean'}: ${s.mean?.toFixed(2)?'—'}`,`${isES?'Mediana':'Median'}: ${s.median?.toFixed(2)?'—'}`,`Min: ${s.min??'—'}`,`Max: ${s.max??'—'}`,`N: ${s.count??'—'}`].join('  ·  '),mg,y); y+=8;
+          doc.text([`${isES?'Media':'Mean'}: ${s.mean?.toFixed(2)??'—'}`,`${isES?'Mediana':'Median'}: ${s.median?.toFixed(2)??'—'}`,`Min: ${s.min??'—'}`,`Max: ${s.max??'—'}`,`N: ${s.count??'—'}`].join('  ·  '),mg,y); y+=8;
         });
       }
 
