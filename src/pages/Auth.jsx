@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -62,6 +62,7 @@ const ForgotPasswordModal = ({ onClose }) => {
 
 const Auth = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const isRegister = location.pathname === '/register';
 
   const [username, setUsername] = useState('');
@@ -73,9 +74,35 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const { login, register, loginWithGoogle, updateUser } = useAuth();
+  // Registration flow state
+  const [emailSent, setEmailSent] = useState(false);
+  const [verifiedEmail, setVerifiedEmail] = useState(null);
+  const [verificationToken, setVerificationToken] = useState(null);
+  const [tokenLoading, setTokenLoading] = useState(false);
+
+  const { login, register, loginWithGoogle, updateUser, requestEmailVerification, verifyEmailToken } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+
+  // When landing on /register?token=XXX, verify the token and get the email back
+  useEffect(() => {
+    if (!isRegister) return;
+    const token = searchParams.get('token');
+    if (!token) return;
+
+    setVerificationToken(token);
+    setTokenLoading(true);
+    verifyEmailToken(token)
+      .then((resolvedEmail) => {
+        setVerifiedEmail(resolvedEmail);
+        setError('');
+      })
+      .catch((err) => {
+        const errorType = err.response?.data?.error;
+        setError(errorType === 'expired' ? t('register.token_expired') : t('register.token_invalid'));
+      })
+      .finally(() => setTokenLoading(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const switchTab = (tab) => {
     setError('');
@@ -83,6 +110,9 @@ const Auth = () => {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setEmailSent(false);
+    setVerifiedEmail(null);
+    setVerificationToken(null);
     navigate(tab === 'login' ? '/login' : '/register');
   };
 
@@ -100,6 +130,26 @@ const Auth = () => {
     }
   };
 
+  // Step 1: user submits just their email to receive the verification link
+  const handleRequestVerification = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    try {
+      await requestEmailVerification(email);
+      setEmailSent(true);
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setError(t('register.errorEmailExists'));
+      } else {
+        setError(err.response?.data?.message || t('register.errorGeneric'));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 2: user completes registration after email is verified
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (password.length < 8) {
@@ -111,7 +161,7 @@ const Auth = () => {
     setIsLoading(true);
     setError('');
     try {
-      await register(username, password, email, allowNotifications);
+      await register(username, password, verifiedEmail, allowNotifications, verificationToken);
     } catch (err) {
       if (err.response?.status === 409) {
         setError(t('register.errorUserExists'));
@@ -257,80 +307,140 @@ const Auth = () => {
           </form>
         )}
 
-        {/* Register form */}
+        {/* Register section */}
         {isRegister && (
-          <form onSubmit={handleRegisterSubmit}>
-            <div className="input-group">
-              <label className="input-label">{t('register.username')}</label>
-              <input
-                type="text"
-                className="input-field"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                placeholder={t('register.usernamePlaceholder')}
-              />
-            </div>
-            <div className="input-group">
-              <label className="input-label">{t('register.email')}</label>
-              <input
-                type="email"
-                className="input-field"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder={t('register.emailPlaceholder')}
-              />
-            </div>
-            <div className="input-group">
-              <label className="input-label">{t('register.password')}</label>
-              <input
-                type="password"
-                className="input-field"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-              />
-            </div>
-            <div className="input-group">
-              <label className="input-label">{t('register.confirmPassword')}</label>
-              <input
-                type="password"
-                className="input-field"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-              />
-            </div>
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', margin: '1rem 0 0.25rem', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={allowNotifications}
-                onChange={(e) => setAllowNotifications(e.target.checked)}
-                style={{ marginTop: '0.15rem', flexShrink: 0, accentColor: 'var(--primary)' }}
-              />
-              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                {t('register.notifications')}
-              </span>
-            </label>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              style={{ width: '100%', marginTop: '0.75rem' }}
-              disabled={isLoading}
-            >
-              {isLoading ? t('register.submitting') : t('register.submit')}
-            </button>
-            <p className="auth-legal" style={{ marginTop: '1rem' }}>
-              {t('register.legalPrefix')}{' '}
-              <Link to="/terms_of_use">{t('register.termsLink')}</Link>
-              {' '}{t('register.legalAnd')}{' '}
-              <Link to="/privacy_notice">{t('register.privacyLink')}</Link>
-              {t('register.legalSuffix')}
-            </p>
-          </form>
+          <>
+            {tokenLoading ? (
+              /* Verifying token from URL */
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                {t('register.token_verifying')}
+              </p>
+            ) : verifiedEmail ? (
+              /* Step 2: Complete registration */
+              <form onSubmit={handleRegisterSubmit}>
+                <div className="input-group">
+                  <label className="input-label">{t('register.verified_email_label')}</label>
+                  <input
+                    type="email"
+                    className="input-field"
+                    value={verifiedEmail}
+                    readOnly
+                    style={{ background: 'var(--bg-secondary, #F9FAFB)', cursor: 'default', color: 'var(--text-secondary)' }}
+                  />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">{t('register.username')}</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    placeholder={t('register.usernamePlaceholder')}
+                    autoFocus
+                  />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">{t('register.password')}</label>
+                  <input
+                    type="password"
+                    className="input-field"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">{t('register.confirmPassword')}</label>
+                  <input
+                    type="password"
+                    className="input-field"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                  />
+                </div>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', margin: '1rem 0 0.25rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={allowNotifications}
+                    onChange={(e) => setAllowNotifications(e.target.checked)}
+                    style={{ marginTop: '0.15rem', flexShrink: 0, accentColor: 'var(--primary)' }}
+                  />
+                  <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                    {t('register.notifications')}
+                  </span>
+                </label>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ width: '100%', marginTop: '0.75rem' }}
+                  disabled={isLoading}
+                >
+                  {isLoading ? t('register.submitting') : t('register.submit')}
+                </button>
+                <p className="auth-legal" style={{ marginTop: '1rem' }}>
+                  {t('register.legalPrefix')}{' '}
+                  <Link to="/terms_of_use">{t('register.termsLink')}</Link>
+                  {' '}{t('register.legalAnd')}{' '}
+                  <Link to="/privacy_notice">{t('register.privacyLink')}</Link>
+                  {t('register.legalSuffix')}
+                </p>
+              </form>
+            ) : emailSent ? (
+              /* Confirmation: email was sent */
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: '50%',
+                  background: 'var(--primary, #6366F1)', color: '#fff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '1.5rem', margin: '0 auto 1.25rem',
+                }}>
+                  ✓
+                </div>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1rem' }}>
+                  {t('register.check_email_sent_to', { email })}
+                </p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.6 }}>
+                  {t('register.check_email')}
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ marginTop: '1.5rem', width: '100%' }}
+                  onClick={() => { setEmailSent(false); setEmail(''); setError(''); }}
+                >
+                  {t('register.request_new_link')}
+                </button>
+              </div>
+            ) : (
+              /* Step 1: email input */
+              <form onSubmit={handleRequestVerification}>
+                <div className="input-group">
+                  <label className="input-label">{t('register.email')}</label>
+                  <input
+                    type="email"
+                    className="input-field"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder={t('register.emailPlaceholder')}
+                    autoFocus
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ width: '100%', marginTop: '0.5rem' }}
+                  disabled={isLoading}
+                >
+                  {isLoading ? t('register.send_verification_submitting') : t('register.send_verification')}
+                </button>
+              </form>
+            )}
+          </>
         )}
 
       </div>
