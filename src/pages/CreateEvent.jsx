@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -11,6 +11,8 @@ import { useLanguage } from '../context/LanguageContext';
 
 let _qIdCounter = 0;
 const emptyQuestion = () => ({ text: '', optional: false, type: 'open', options: ['', ''], multiSelect: false, _dndId: String(++_qIdCounter) });
+
+const DRAFT_KEY = 'pooly_create_survey_draft';
 
 function SortableQuestionRow({ id, children }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -54,6 +56,11 @@ const CreateEvent = () => {
     const [welcomeMessage, setWelcomeMessage] = useState('');
     const [completionMessage, setCompletionMessage] = useState('');
 
+    // ── Draft state ───────────────────────────────────────────────────────────
+    const [draftBanner, setDraftBanner] = useState(false);
+    const [draftSavedAt, setDraftSavedAt] = useState(null);
+    const draftTimerRef = useRef(null);
+
     // ── UI-only state ─────────────────────────────────────────────────────────
     const [showQuestionModal, setShowQuestionModal] = useState(false);
     const [editingIndex, setEditingIndex] = useState(null); // null = new question
@@ -66,6 +73,56 @@ const CreateEvent = () => {
 
     // DnD sensors
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+    // Restore draft on mount
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(DRAFT_KEY);
+            if (!raw) return;
+            const draft = JSON.parse(raw);
+            const hasContent = draft.formData?.name || draft.formData?.questions?.length > 0;
+            if (!hasContent) return;
+            const maxId = Math.max(0, ...(draft.formData.questions || []).map(q => Number(q._dndId) || 0));
+            _qIdCounter = maxId;
+            setFormData(draft.formData);
+            setWelcomeMessage(draft.welcomeMessage || '');
+            setCompletionMessage(draft.completionMessage || '');
+            setStep(draft.step || 1);
+            setHasEndDate(draft.hasEndDate || false);
+            setShowWelcomeEditor(!!draft.welcomeMessage);
+            setShowCompletionEditor(!!draft.completionMessage);
+            setDraftBanner(true);
+        } catch (_) {
+            localStorage.removeItem(DRAFT_KEY);
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Auto-save draft (debounced 1.5s after last change)
+    useEffect(() => {
+        const hasContent = formData.name || formData.description || formData.questions.length > 0 || welcomeMessage || completionMessage;
+        if (!hasContent) return;
+        clearTimeout(draftTimerRef.current);
+        draftTimerRef.current = setTimeout(() => {
+            try {
+                localStorage.setItem(DRAFT_KEY, JSON.stringify({ formData, welcomeMessage, completionMessage, step, hasEndDate }));
+                setDraftSavedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            } catch (_) {}
+        }, 1500);
+        return () => clearTimeout(draftTimerRef.current);
+    }, [formData, welcomeMessage, completionMessage, step, hasEndDate]);
+
+    const discardDraft = () => {
+        localStorage.removeItem(DRAFT_KEY);
+        setDraftBanner(false);
+        setDraftSavedAt(null);
+        setFormData({ name: '', description: '', end_date: '', questions: [] });
+        setWelcomeMessage('');
+        setCompletionMessage('');
+        setStep(1);
+        setHasEndDate(false);
+        setShowWelcomeEditor(false);
+        setShowCompletionEditor(false);
+    };
 
     const handleDragEnd = (event) => {
         const { active, over } = event;
@@ -144,6 +201,7 @@ const CreateEvent = () => {
                 questions: cleanedQuestions,
             };
             await api.post('/events/new', payload);
+            localStorage.removeItem(DRAFT_KEY);
             toast.success(t('create.successToast'));
             navigate('/admin');
         } catch (err) {
@@ -255,6 +313,11 @@ const CreateEvent = () => {
                 <h1 className="page-title">{t('create.title')}</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>
                     {t('create.step', { step })}: {step === 1 ? t('create.step1Label') : t('create.step2Label')}
+                    {draftSavedAt && (
+                        <span style={{ marginLeft: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            · 💾 {t('create.draftSaved')} {draftSavedAt}
+                        </span>
+                    )}
                 </p>
             </header>
 
@@ -263,6 +326,40 @@ const CreateEvent = () => {
                 <div style={{ flex: 1, height: '4px', background: 'var(--primary)' }} />
                 <div style={{ flex: 1, height: '4px', background: step === 2 ? 'var(--primary)' : 'var(--border)' }} />
             </div>
+
+            {draftBanner && (
+                <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '0.75rem 1rem', marginBottom: '1.25rem', maxWidth: '900px',
+                    background: 'var(--primary-light)', border: '1px solid var(--primary)', borderRadius: '6px',
+                }}>
+                    <span style={{ fontSize: '0.875rem', color: 'var(--primary)' }}>
+                        💾 {t('create.draftRestoredBanner')}
+                    </span>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, marginLeft: '1rem' }}>
+                        <button
+                            type="button"
+                            onClick={discardDraft}
+                            style={{
+                                background: 'none', border: '1px solid var(--primary)', borderRadius: '4px',
+                                color: 'var(--primary)', fontSize: '0.8rem', padding: '0.25rem 0.6rem', cursor: 'pointer',
+                            }}
+                        >
+                            {t('create.draftDiscard')}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setDraftBanner(false)}
+                            style={{
+                                background: 'none', border: 'none', color: 'var(--primary)',
+                                fontSize: '1.1rem', cursor: 'pointer', padding: '0 0.2rem', lineHeight: 1,
+                            }}
+                        >
+                            ×
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {error && <div className="alert alert-error" style={{ maxWidth: '900px' }}>{error}</div>}
 
