@@ -13,9 +13,14 @@ const TYPE_ICONS = { open: '💬', multiple: '☑️', numeric: '🔢', date: '�
 const QUESTION_TYPES = ['open', 'multiple', 'numeric', 'date'];
 
 const emptyQuestion = () => ({
-    text: '', optional: false, type: 'open', options: ['', ''], multiSelect: false,
+    _kind: 'question', text: '', optional: false, type: 'open', options: ['', ''], multiSelect: false,
     _isNew: true,
     _dndId: `new-${Date.now()}-${Math.random()}`,
+});
+const emptyTextBlock = () => ({
+    _kind: 'text_block', content: '',
+    _isNew: true,
+    _dndId: `tb-new-${Date.now()}-${Math.random()}`,
 });
 
 function SortableQuestionRow({ id, children }) {
@@ -69,7 +74,7 @@ export default function EditEvent() {
     const [showWelcomeEditor, setShowWelcomeEditor] = useState(false);
     const [showCompletionEditor, setShowCompletionEditor] = useState(false);
 
-    // Questions
+    // Items (questions + text blocks merged)
     const [questions, setQuestions] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [editingIdx, setEditingIdx] = useState(null);
@@ -106,15 +111,25 @@ export default function EditEvent() {
                 if (ev.welcome_message) setShowWelcomeEditor(true);
                 if (ev.completion_message) setShowCompletionEditor(true);
 
-                setQuestions((ev.questions || []).map((q, i) => ({
+                const questionItems = (ev.questions || []).map((q, i) => ({
                     ...q,
+                    _kind: 'question',
                     options: q.options || [],
                     optional: q.optional || false,
                     type: q.type || 'open',
                     multiSelect: q.multi_select || false,
                     _dndId: String(q.id ?? `q-${i}`),
                     _isNew: false,
-                })));
+                }));
+                const textBlockItems = (ev.text_blocks || []).map((tb, i) => ({
+                    ...tb,
+                    _kind: 'text_block',
+                    _dndId: `tb-${tb.id ?? i}`,
+                    _isNew: false,
+                }));
+                const allItems = [...questionItems, ...textBlockItems]
+                    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+                setQuestions(allItems);
             } catch {
                 toast.error(t('eventDetails.errorLoad'));
                 navigate(`/admin/events/${eventId}`);
@@ -148,14 +163,37 @@ export default function EditEvent() {
         setShowModal(true);
     };
 
+    const openAddTextBlock = () => {
+        setEditingIdx(null);
+        setModalData(emptyTextBlock());
+        setShowModal(true);
+    };
+
     const openEditModal = (idx) => {
         setEditingIdx(idx);
-        setModalData({ ...questions[idx] });
+        const item = questions[idx];
+        if (item._kind === 'text_block') {
+            setModalData({ ...item });
+        } else {
+            setModalData({ ...item, options: [...(item.options || [])] });
+        }
         setOpenMenuIdx(null);
         setShowModal(true);
     };
 
     const handleModalSave = () => {
+        if (modalData._kind === 'text_block') {
+            if (!modalData.content?.trim()) return;
+            const tb = { ...modalData, content: modalData.content.trim() };
+            if (editingIdx === null) {
+                setQuestions(prev => [...prev, tb]);
+            } else {
+                setQuestions(prev => prev.map((item, i) => i === editingIdx ? tb : item));
+            }
+            setShowModal(false);
+            return;
+        }
+
         const cleaned = {
             ...modalData,
             text: modalData.text.trim(),
@@ -167,7 +205,6 @@ export default function EditEvent() {
         if (cleaned.type === 'multiple' && cleaned.options.length < 2) return;
 
         if (editingIdx === null) {
-            // New question — no responses to worry about
             setQuestions(prev => [...prev, cleaned]);
             setShowModal(false);
             return;
@@ -177,7 +214,6 @@ export default function EditEvent() {
         const responseCount = existing?.responses?.length ?? 0;
 
         if (!existing._isNew && responseCount > 0) {
-            // Existing question with responses — ask for confirmation first
             setPendingEdit({ cleaned, idx: editingIdx, responseCount });
             setShowModal(false);
             setShowResponseWarning(true);
@@ -202,16 +238,19 @@ export default function EditEvent() {
     };
 
     const removeQuestion = (idx) => {
-        if (questions.length <= 1) return;
+        const item = questions[idx];
+        const isQuestion = item?._kind === 'question';
+        const questionCount = questions.filter(i => i._kind === 'question').length;
+        if (isQuestion && questionCount <= 1) return;
         setOpenMenuIdx(null);
 
-        const q = questions[idx];
-        const responseCount = q?.responses?.length ?? 0;
-
-        if (!q._isNew && responseCount > 0) {
-            setPendingDeleteIdx(idx);
-            setShowDeleteWarning(true);
-            return;
+        if (isQuestion) {
+            const responseCount = item?.responses?.length ?? 0;
+            if (!item._isNew && responseCount > 0) {
+                setPendingDeleteIdx(idx);
+                setShowDeleteWarning(true);
+                return;
+            }
         }
 
         setQuestions(prev => prev.filter((_, i) => i !== idx));
@@ -249,11 +288,12 @@ export default function EditEvent() {
             setError(isES ? 'El nombre es requerido.' : 'Name is required.');
             return;
         }
-        if (questions.length === 0) {
+        const questionCount = questions.filter(i => i._kind === 'question').length;
+        if (questionCount === 0) {
             setError(t('create.errorNoQuestions'));
             return;
         }
-        const badMultiple = questions.find(q => q.type === 'multiple' && q.options.filter(Boolean).length < 2);
+        const badMultiple = questions.find(q => q._kind === 'question' && q.type === 'multiple' && q.options.filter(Boolean).length < 2);
         if (badMultiple) {
             setError(t('create.errorMultipleOptions'));
             return;
@@ -274,16 +314,30 @@ export default function EditEvent() {
                 completion_message: completionMessage.trim() || null,
             });
 
-            const cleanedQuestions = questions.map((q, idx) => ({
-                ...(q._isNew ? {} : { id: q.id }),
-                position: idx,
-                text: q.text.trim(),
-                type: q.type,
-                optional: q.optional,
-                options: q.type === 'multiple' ? q.options.filter(Boolean) : [],
-                multi_select: q.type === 'multiple' ? (q.multiSelect || false) : false,
-            }));
-            await api.patch(`/events/${eventId}/questions`, { questions: cleanedQuestions });
+            const cleanedQuestions = questions
+                .filter(item => item._kind === 'question')
+                .map((q) => ({
+                    ...(q._isNew ? {} : { id: q.id }),
+                    position: questions.indexOf(q) * 10,
+                    text: q.text.trim(),
+                    type: q.type,
+                    optional: q.optional,
+                    options: q.type === 'multiple' ? q.options.filter(Boolean) : [],
+                    multi_select: q.type === 'multiple' ? (q.multiSelect || false) : false,
+                }));
+
+            const cleanedTextBlocks = questions
+                .filter(item => item._kind === 'text_block' && item.content?.trim())
+                .map(tb => ({
+                    ...(tb._isNew ? {} : { id: tb.id }),
+                    content: tb.content.trim(),
+                    position: questions.indexOf(tb) * 10,
+                }));
+
+            await api.patch(`/events/${eventId}/questions`, {
+                questions: cleanedQuestions,
+                text_blocks: cleanedTextBlocks,
+            });
 
             toast.success(t('editEvent.saveSuccess'), { id: toastId });
             navigate(`/admin/events/${eventId}`);
@@ -294,13 +348,13 @@ export default function EditEvent() {
         }
     };
 
-    const titleError = !modalData.text.trim()
+    const titleError = modalData._kind !== 'text_block' && !modalData.text?.trim()
         ? (isES ? 'La pregunta debe tener un título.' : 'Question must have a title.')
         : null;
-    const filledOptions = modalData.type === 'multiple'
-        ? modalData.options.map(o => o.trim()).filter(Boolean)
+    const filledOptions = modalData._kind !== 'text_block' && modalData.type === 'multiple'
+        ? (modalData.options || []).map(o => o.trim()).filter(Boolean)
         : [];
-    const optionsError = modalData.type !== 'multiple' ? null
+    const optionsError = modalData._kind === 'text_block' || modalData.type !== 'multiple' ? null
         : filledOptions.length < 2
             ? (isES ? 'Agrega al menos 2 opciones.' : 'Add at least 2 options.')
             : new Set(filledOptions).size !== filledOptions.length
@@ -470,7 +524,7 @@ export default function EditEvent() {
                         {t('editEvent.sectionQuestions')}
                     </h2>
 
-                    {questions.length === 0 && (
+                    {questions.filter(i => i._kind === 'question').length === 0 && (
                         <div style={{
                             padding: '2rem 1rem', textAlign: 'center', marginBottom: '1rem',
                             border: '1px dashed var(--border)', background: 'var(--bg-secondary)',
@@ -484,13 +538,51 @@ export default function EditEvent() {
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                     <SortableContext items={questions.map(q => q._dndId)} strategy={verticalListSortingStrategy}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1rem' }}>
-                        {questions.map((q, idx) => (
-                            <SortableQuestionRow key={q._dndId} id={q._dndId}>
+                        {questions.map((item, idx) => (
+                            <SortableQuestionRow key={item._dndId} id={item._dndId}>
+                            {item._kind === 'text_block' ? (
+                                <div style={{
+                                    display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
+                                    padding: '0.75rem 1rem 0.75rem 2.25rem',
+                                    border: '1px dashed var(--border)',
+                                    background: 'var(--bg-secondary)',
+                                }}>
+                                    <span style={{ fontSize: '1rem', flexShrink: 0, marginTop: '0.1rem' }}>📝</span>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {item.content
+                                                ? item.content.substring(0, 80) + (item.content.length > 80 ? '…' : '')
+                                                : <em style={{ color: 'var(--text-muted)' }}>{isES ? 'Texto vacío' : 'Empty text'}</em>}
+                                        </p>
+                                        <p style={{ margin: '0.15rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                                            {isES ? 'Bloque de texto · Markdown' : 'Text block · Markdown'}
+                                            {item._isNew && <span style={{ color: 'var(--primary)', fontWeight: 600, marginLeft: '0.4rem' }}>{isES ? '• Nuevo' : '• New'}</span>}
+                                        </p>
+                                    </div>
+                                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                                        <button type="button" onClick={e => { e.stopPropagation(); setOpenMenuIdx(openMenuIdx === idx ? null : idx); }}
+                                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0.4rem', color: 'var(--text-secondary)', fontSize: '1.1rem', letterSpacing: '0.05em', lineHeight: 1, borderRadius: '4px' }}
+                                            title={isES ? 'Opciones' : 'Options'}>···</button>
+                                        {openMenuIdx === idx && (
+                                            <div style={{ position: 'absolute', right: 0, top: '100%', zIndex: 20, background: 'var(--bg-white)', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: '130px' }}>
+                                                <button type="button" onClick={() => openEditModal(idx)}
+                                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)', fontFamily: 'inherit' }}>
+                                                    ✏️ {isES ? 'Editar' : 'Edit'}
+                                                </button>
+                                                <button type="button" onClick={() => removeQuestion(idx)}
+                                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)', fontFamily: 'inherit' }}>
+                                                    🗑 {isES ? 'Eliminar' : 'Delete'}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
                             <div style={{
                                 display: 'flex', alignItems: 'center', gap: '0.75rem',
                                 padding: '0.75rem 1rem 0.75rem 2.25rem',
                                 border: '1px solid var(--border)',
-                                background: q._isNew ? 'var(--bg-secondary)' : 'var(--bg-white)',
+                                background: item._isNew ? 'var(--bg-secondary)' : 'var(--bg-white)',
                             }}>
                                 <span style={{
                                     width: '24px', height: '24px', flexShrink: 0,
@@ -498,58 +590,37 @@ export default function EditEvent() {
                                     borderRadius: '50%', display: 'flex', alignItems: 'center',
                                     justifyContent: 'center', fontSize: '0.75rem', fontWeight: '700',
                                 }}>
-                                    {idx + 1}
+                                    {questions.slice(0, idx + 1).filter(i => i._kind === 'question').length}
                                 </span>
 
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                    <p style={{
-                                        margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)',
-                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                                    }}>
-                                        {q.text || <em style={{ color: 'var(--text-muted)' }}>{isES ? 'Sin texto' : 'No text'}</em>}
+                                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {item.text || <em style={{ color: 'var(--text-muted)' }}>{isES ? 'Sin texto' : 'No text'}</em>}
                                     </p>
                                     <p style={{ margin: '0.15rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                                        {TYPE_ICONS[q.type]}{' '}
-                                        {t(`create.questionType${q.type.charAt(0).toUpperCase() + q.type.slice(1)}`)}
-                                        {q.type === 'multiple' && q.options?.filter(Boolean).length > 0 && (
-                                            <span> · {q.options.filter(Boolean).length} {isES ? 'opciones' : 'options'}</span>
+                                        {TYPE_ICONS[item.type]}{' '}
+                                        {t(`create.questionType${item.type.charAt(0).toUpperCase() + item.type.slice(1)}`)}
+                                        {item.type === 'multiple' && item.options?.filter(Boolean).length > 0 && (
+                                            <span> · {item.options.filter(Boolean).length} {isES ? 'opciones' : 'options'}</span>
                                         )}
                                         <span style={{ color: 'var(--border)', margin: '0 0.3rem' }}>·</span>
-                                        {q.optional ? t('create.questionOptional') : t('create.questionRequired')}
-                                        {q._isNew && (
-                                            <span style={{ color: 'var(--primary)', fontWeight: 600, marginLeft: '0.4rem' }}>
-                                                {isES ? '• Nueva' : '• New'}
-                                            </span>
-                                        )}
+                                        {item.optional ? t('create.questionOptional') : t('create.questionRequired')}
+                                        {item._isNew && <span style={{ color: 'var(--primary)', fontWeight: 600, marginLeft: '0.4rem' }}>{isES ? '• Nueva' : '• New'}</span>}
                                     </p>
                                 </div>
 
-                                {/* Three-dot menu */}
                                 <div style={{ position: 'relative', flexShrink: 0 }}>
-                                    <button
-                                        type="button"
+                                    <button type="button"
                                         onClick={e => { e.stopPropagation(); setOpenMenuIdx(openMenuIdx === idx ? null : idx); }}
-                                        style={{
-                                            background: 'none', border: 'none', cursor: 'pointer',
-                                            padding: '0.25rem 0.4rem', color: 'var(--text-secondary)',
-                                            fontSize: '1.1rem', letterSpacing: '0.05em', lineHeight: 1,
-                                            borderRadius: '4px',
-                                        }}
-                                        title={isES ? 'Opciones' : 'Options'}
-                                    >
-                                        ···
-                                    </button>
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0.4rem', color: 'var(--text-secondary)', fontSize: '1.1rem', letterSpacing: '0.05em', lineHeight: 1, borderRadius: '4px' }}
+                                        title={isES ? 'Opciones' : 'Options'}>···</button>
                                     {openMenuIdx === idx && (
-                                        <div style={{
-                                            position: 'absolute', right: 0, top: '100%', zIndex: 20,
-                                            background: 'var(--bg-white)', border: '1px solid var(--border)',
-                                            boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: '130px',
-                                        }}>
+                                        <div style={{ position: 'absolute', right: 0, top: '100%', zIndex: 20, background: 'var(--bg-white)', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: '130px' }}>
                                             <button type="button" onClick={() => openEditModal(idx)}
                                                 style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)', fontFamily: 'inherit' }}>
                                                 ✏️ {isES ? 'Editar' : 'Edit'}
                                             </button>
-                                            {questions.length > 1 && (
+                                            {questions.filter(i => i._kind === 'question').length > 1 && (
                                                 <button type="button" onClick={() => removeQuestion(idx)}
                                                     style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)', fontFamily: 'inherit' }}>
                                                     🗑 {isES ? 'Eliminar' : 'Delete'}
@@ -559,15 +630,23 @@ export default function EditEvent() {
                                     )}
                                 </div>
                             </div>
+                            )}
                             </SortableQuestionRow>
                         ))}
                     </div>
                     </SortableContext>
                     </DndContext>
 
-                    <button type="button" onClick={openAddModal} className="btn btn-outline" style={{ width: '100%', borderStyle: 'dashed' }}>
-                        + {t('editEvent.addQuestion')}
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button type="button" onClick={openAddModal} className="btn btn-outline" style={{ flex: 1, borderStyle: 'dashed' }}>
+                            + {t('editEvent.addQuestion')}
+                        </button>
+                        <button type="button" onClick={openAddTextBlock} className="btn btn-outline"
+                            style={{ flex: 1, borderStyle: 'dashed' }}
+                            title={isES ? 'Agrega un bloque de texto o separador entre preguntas' : 'Add a text block or separator between questions'}>
+                            📝 {isES ? 'Agregar texto' : 'Add text'}
+                        </button>
+                    </div>
                 </div>
 
                 {/* ── Footer actions ── */}
@@ -585,7 +664,10 @@ export default function EditEvent() {
             <Modal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
-                title={editingIdx === null ? (isES ? 'Nueva pregunta' : 'New question') : (isES ? 'Editar pregunta' : 'Edit question')}
+                title={modalData._kind === 'text_block'
+                    ? (editingIdx === null ? (isES ? 'Nuevo bloque de texto' : 'New text block') : (isES ? 'Editar texto' : 'Edit text'))
+                    : (editingIdx === null ? (isES ? 'Nueva pregunta' : 'New question') : (isES ? 'Editar pregunta' : 'Edit question'))
+                }
                 footer={
                     <div className="modal-actions">
                         <button className="btn btn-secondary" onClick={() => setShowModal(false)}>
@@ -594,19 +676,39 @@ export default function EditEvent() {
                         <button
                             className="btn btn-primary"
                             onClick={handleModalSave}
-                            disabled={!!titleError || !!optionsError}
+                            disabled={modalData._kind === 'text_block' ? !modalData.content?.trim() : (!!titleError || !!optionsError)}
                         >
                             {editingIdx === null ? (isES ? 'Agregar' : 'Add') : (isES ? 'Guardar' : 'Save')}
                         </button>
                     </div>
                 }
             >
+                {modalData._kind === 'text_block' ? (
+                    <div className="input-group">
+                        <label className="input-label">{isES ? 'Contenido (Markdown soportado)' : 'Content (Markdown supported)'}</label>
+                        <textarea
+                            className="input-field"
+                            rows="8"
+                            value={modalData.content || ''}
+                            onChange={e => setModalData(prev => ({ ...prev, content: e.target.value }))}
+                            placeholder={isES
+                                ? 'ej. ## Sección 2\nResponde las siguientes preguntas sobre...'
+                                : 'e.g. ## Section 2\nPlease answer the following questions about...'}
+                            style={{ margin: 0, fontFamily: 'monospace', fontSize: '0.875rem' }}
+                            autoFocus
+                        />
+                        <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                            {isES ? 'Soporta Markdown: **negrita**, # encabezados, listas, etc.' : 'Supports Markdown: **bold**, # headings, lists, etc.'}
+                        </p>
+                    </div>
+                ) : (
+                <>
                 <div className="input-group">
                     <label className="input-label">{isES ? 'Pregunta' : 'Question'}</label>
                     <input
                         type="text"
                         className="input-field"
-                        value={modalData.text}
+                        value={modalData.text || ''}
                         onChange={e => setModalData(p => ({ ...p, text: e.target.value }))}
                         placeholder={isES ? 'Escribe la pregunta aquí' : 'Write question here'}
                         style={{ borderColor: titleError ? 'var(--error)' : undefined }}
@@ -724,6 +826,8 @@ export default function EditEvent() {
                         </span>
                     </label>
                 </div>
+                </>
+                )}
             </Modal>
 
             {/* ── Delete question confirmation modal ── */}

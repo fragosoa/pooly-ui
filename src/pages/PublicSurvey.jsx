@@ -21,7 +21,11 @@ export default function PublicSurvey() {
       try {
         const response = await api.get(`/events/public/${publicId}`);
         const data = response.data.data;
-        setEvent(data);
+        // Build merged items list sorted by position
+        const questions = (data.questions || []).map(q => ({ ...q, item_type: 'question' }));
+        const textBlocks = (data.text_blocks || []).map(tb => ({ ...tb, item_type: 'text_block' }));
+        const items = [...questions, ...textBlocks].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+        setEvent({ ...data, items });
         if (data.welcome_message) setShowWelcome(true);
       } catch (err) {
         const status = err.response?.status;
@@ -31,16 +35,17 @@ export default function PublicSurvey() {
         } else {
           console.error('Failed to fetch event:', err);
           setError(t('survey.errorLoad'));
+          const fallbackQuestions = [
+              { id: 101, text: '¿Cuál es tu principal medio de transporte?', type: 'multiple', options: ['Metro', 'Bicicleta', 'Auto particular', 'Transporte público', 'A pie'], item_type: 'question', position: 0 },
+              { id: 102, text: '¿Qué opinas sobre las ciclovías actuales en la ciudad?', type: 'open', options: [], item_type: 'question', position: 10 },
+              { id: 103, text: '¿Cuántas veces por semana usas el transporte público?', type: 'numeric', options: [], item_type: 'question', position: 20 },
+              { id: 104, text: '¿Cuándo fue tu último viaje en transporte público?', type: 'date', options: [], item_type: 'question', position: 30 }
+            ];
           setEvent({
             public_id: publicId,
             name: 'Movilidad Urbana 2026',
             description: 'Ayúdanos a mejorar el transporte de nuestra ciudad. Tu opinión es importante para nosotros.',
-            questions: [
-              { id: 101, text: '¿Cuál es tu principal medio de transporte?', type: 'multiple', options: ['Metro', 'Bicicleta', 'Auto particular', 'Transporte público', 'A pie'] },
-              { id: 102, text: '¿Qué opinas sobre las ciclovías actuales en la ciudad?', type: 'open', options: [] },
-              { id: 103, text: '¿Cuántas veces por semana usas el transporte público?', type: 'numeric', options: [] },
-              { id: 104, text: '¿Cuándo fue tu último viaje en transporte público?', type: 'date', options: [] }
-            ]
+            items: fallbackQuestions,
           });
         }
       } finally {
@@ -71,8 +76,9 @@ export default function PublicSurvey() {
       const toNums = (pairs) =>
         pairs.map(([id]) => event.questions.findIndex(q => q.id === parseInt(id)) + 1).join(', ');
 
+      const allQuestions = (event.items || []).filter(i => i.item_type === 'question');
       const tooLongList = answeredQuestions.filter(([questionId, text]) => {
-        const q = event.questions.find(q => q.id === parseInt(questionId));
+        const q = allQuestions.find(q => q.id === parseInt(questionId));
         return !['multiple', 'numeric', 'date'].includes(q?.type) && text.trim().length > 500;
       });
       if (tooLongList.length > 0) {
@@ -104,7 +110,7 @@ export default function PublicSurvey() {
   const answeredCount = Object.values(responses).filter(r =>
     Array.isArray(r) ? r.length > 0 : r.trim() !== ''
   ).length;
-  const totalQuestions = event?.questions?.length || 0;
+  const totalQuestions = (event?.items || []).filter(i => i.item_type === 'question').length;
 
   if (loading) {
     return (
@@ -238,14 +244,30 @@ export default function PublicSurvey() {
 
         <form onSubmit={handleSubmit}>
           <div className="chat-container">
-            {event.questions.map((question, index) => (
+            {(() => {
+              let questionNum = 0;
+              return (event.items || []).map((item, index) => {
+              if (item.item_type === 'text_block') {
+                return (
+                  <div key={`tb-${item.id ?? index}`} className="chat-text-block" style={{
+                    padding: '1rem 1.25rem', margin: '0.5rem 0',
+                    background: 'var(--bg-secondary)', borderLeft: '3px solid var(--primary)',
+                  }}>
+                    <ReactMarkdown>{item.content}</ReactMarkdown>
+                  </div>
+                );
+              }
+              questionNum++;
+              const question = item;
+              const qNum = questionNum;
+              return (
               <div key={question.id} className="chat-block">
                 <div className="chat-message chat-assistant">
                   <div className="chat-avatar">
                     <span>P</span>
                   </div>
                   <div className="chat-bubble">
-                    <div className="chat-question-number">{t('survey.question', { num: index + 1 })}</div>
+                    <div className="chat-question-number">{t('survey.question', { num: qNum })}</div>
                     <div className="chat-question-text">{question.text}</div>
                   </div>
                 </div>
@@ -331,7 +353,9 @@ export default function PublicSurvey() {
                   )}
                 </div>
               </div>
-            ))}
+              );
+              });
+            })()}
           </div>
 
           <div className="survey-footer">

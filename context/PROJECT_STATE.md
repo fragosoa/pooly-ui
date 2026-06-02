@@ -1,8 +1,8 @@
 # context/PROJECT_STATE.md
 
-**Última actualización:** 2026-05-29
-**Branch activo:** `feat/KAN-7`
-**Branch principal:** `main`
+**Última actualización:** 2026-06-02
+**Branch activo:** `task/KAN-85-frontend` (limpio, sin cambios sin commitear)
+**Branch principal:** `task/KAN-85-frontend` (de-facto integration branch; `main` y `develop` son más antiguos)
 **Deploy:** Vite build → archivos estáticos (servicio externo — verificar configuración actual)
 **Backend API:** `https://pooly-core-development.up.railway.app` (producción) / `http://127.0.0.1:8080` (local)
 
@@ -10,7 +10,7 @@
 
 ## Fase actual del proyecto
 
-**Beta funcional.** El frontend opera end-to-end conectado al backend `pooly-core` en Railway. Las funciones core (creación de encuestas, respuesta pública, análisis NLP, importación CSV/XLSX, exportación, Google OAuth) están implementadas y estables. El trabajo reciente se ha centrado en recomendaciones de acción (OverviewTab), exportación a Excel de respuestas, y mejoras de UX en el flujo de encuestas.
+**Beta funcional.** El frontend opera end-to-end conectado al backend `pooly-core` en Railway. Desde la última actualización (2026-05-29) se completaron 6 PRs adicionales: mejoras al análisis (OverviewTab con recomendaciones globales, clusters consolidados, tendencias), flujo completo de autenticación vía magic link + password reset (KAN-72), y guardado automático de borradores de encuesta (KAN-87). La próxima tarea activa es KAN-85.
 
 ---
 
@@ -58,6 +58,15 @@
 | DisruptionBanner — banner de incidencias | ✅ Completo | PR #28 | `src/components/DisruptionBanner.jsx` |
 | TermsOfUse + PrivacyNotice — texto legal | ✅ Completo | — | `src/pages/TermsOfUse.jsx`, `PrivacyNotice.jsx` |
 | Preguntas opción múltiple con multi-select | ✅ Completo | `9c47e66` | `src/pages/CreateEvent.jsx`, `PublicSurvey.jsx` |
+| OverviewTab — recomendaciones globales (summary) | ✅ Completo | PR #33 (`e818d04`) | `src/components/OverviewTab.jsx` |
+| OverviewTab — clusters consolidados + presentación mejorada | ✅ Completo | PR #33 (`082bbd2`, `47e47ff`) | `src/components/OverviewTab.jsx` |
+| OverviewTab — preguntas cerradas en análisis de tendencias | ✅ Completo | PR #33 (`391d50a`) | `src/components/TrendsTab.jsx` |
+| OverviewTab — badge versión beta | ✅ Completo | PR #33 (`1a929c0`) | varios |
+| PDF report — fix generación y texto de recomendaciones | ✅ Completo | PR #34 (`66ccf5b`, `c51494d`) | `src/pages/EventDetails.jsx` |
+| Auth — magic link login (email verification) | ✅ Completo | PR #35 (`688770d`) | `src/pages/Auth.jsx` |
+| Auth — email authentication como default | ✅ Completo | PR #36 (`eec736d`) | `src/pages/Auth.jsx` |
+| Auth — **password reset** vía email | ✅ Completo | PR #37 (`e4256c6`) | `src/pages/Auth.jsx` |
+| CreateEvent — guardado automático de borradores | ✅ Completo | PR #38 (`2f8a61e`) | `src/pages/CreateEvent.jsx` |
 
 ---
 
@@ -65,7 +74,6 @@
 
 | Item | Evidencia | Prioridad estimada |
 |---|---|---|
-| **Password reset** — no existe flujo de recuperación de contraseña | Auth.jsx tiene link "¿Olvidaste tu contraseña?" sin implementar | Alta |
 | **Page titles** — `<title>` del HTML no cambia por ruta | Sin `useEffect` que actualice `document.title` | Media |
 | **Tests** — no hay ningún test (unit, integration, e2e) | Sin jest/vitest config, sin archivos `*.test.*` | Alta |
 | **CI/CD** — no hay GitHub Actions de lint/build | Sin `.github/workflows/` | Media |
@@ -95,6 +103,12 @@ Ver detalle en [DECISIONS.md](DECISIONS.md). Resumen rápido:
 
 | PR | Rama | Descripción |
 |---|---|---|
+| #38 | `task/KAN-87` | Guardado automático de borradores de encuesta |
+| #37 | `task/KAN-72-frontend-fix2` | Password reset frontend |
+| #36 | `task/KAN-72-frontend-fix1` | Email authentication como default |
+| #35 | `task/KAN-72-frontend` | Magic link login frontend |
+| #34 | `task/KAN-84` | Fix generación PDF, texto recomendaciones, nombres de tabs |
+| #33 | `feat/KAN-7` | Recomendaciones globales, clusters consolidados, tendencias, badge beta |
 | #32 | `task/KAN-78` | Exportar respuestas a Excel, filtrado por pregunta |
 | #30 | `task/KAN-56-additional` | Mejoras flujo encuesta pública (pausa, validaciones opciones múltiples) |
 | #29 | `test/dply` | Dashboard: modal confirmación borrar, badge is_paused, botón refresh respuestas |
@@ -107,6 +121,6 @@ Ver detalle en [DECISIONS.md](DECISIONS.md). Resumen rápido:
 
 ## Contexto para retomar el trabajo
 
-**Branch actual:** `feat/KAN-7` (clean, sin cambios sin commitear a 2026-05-29)
+**Branch actual:** `task/KAN-85-frontend` (clean, sin cambios sin commitear a 2026-06-02)
 
-El frontend está en buen estado. Los últimos commits completan las recomendaciones de acción (`ebef9a7`) y el fix de like duplicado (`d13360c`). Las próximas prioridades mencionadas en `TODO.md` son: password reset, page titles, y mejoras al símbolo de análisis IA.
+El frontend está en buen estado. Los últimos merges completan el flujo de autenticación vía magic link + password reset (KAN-72) y el guardado automático de borradores (KAN-87). Las próximas prioridades son: page titles dinámicos, dashboard mejorado (top urgencias, scatter, distribución sentimiento), y tests + CI/CD.
