@@ -684,23 +684,13 @@ export default function EditEvent() {
                 }
             >
                 {modalData._kind === 'text_block' ? (
-                    <div className="input-group">
-                        <label className="input-label">{isES ? 'Contenido (Markdown soportado)' : 'Content (Markdown supported)'}</label>
-                        <textarea
-                            className="input-field"
-                            rows="8"
-                            value={modalData.content || ''}
-                            onChange={e => setModalData(prev => ({ ...prev, content: e.target.value }))}
-                            placeholder={isES
-                                ? 'ej. ## Sección 2\nResponde las siguientes preguntas sobre...'
-                                : 'e.g. ## Section 2\nPlease answer the following questions about...'}
-                            style={{ margin: 0, fontFamily: 'monospace', fontSize: '0.875rem' }}
-                            autoFocus
-                        />
-                        <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                            {isES ? 'Soporta Markdown: **negrita**, # encabezados, listas, etc.' : 'Supports Markdown: **bold**, # headings, lists, etc.'}
-                        </p>
-                    </div>
+                    <MarkdownEditor
+                        value={modalData.content || ''}
+                        onChange={val => setModalData(prev => ({ ...prev, content: val }))}
+                        placeholder={isES
+                            ? 'ej. ## Sección 2\nResponde las siguientes preguntas sobre...'
+                            : 'e.g. ## Section 2\nPlease answer the following questions about...'}
+                    />
                 ) : (
                 <>
                 <div className="input-group">
