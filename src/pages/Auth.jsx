@@ -8,12 +8,24 @@ import Modal from '../components/Modal';
 
 const ForgotPasswordModal = ({ onClose }) => {
   const { t } = useLanguage();
+  const { forgotPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSent(true);
+    setIsLoading(true);
+    setError('');
+    try {
+      await forgotPassword(email);
+      setSent(true);
+    } catch {
+      setError(t('forgotPwd.error'));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -23,6 +35,7 @@ const ForgotPasswordModal = ({ onClose }) => {
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
             {t('forgotPwd.description')}
           </p>
+          {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="input-group">
               <label className="input-label">{t('forgotPwd.email')}</label>
@@ -40,8 +53,8 @@ const ForgotPasswordModal = ({ onClose }) => {
               <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={onClose}>
                 {t('forgotPwd.cancel')}
               </button>
-              <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                {t('forgotPwd.send')}
+              <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={isLoading}>
+                {isLoading ? t('register.send_verification_submitting') : t('forgotPwd.send')}
               </button>
             </div>
           </form>

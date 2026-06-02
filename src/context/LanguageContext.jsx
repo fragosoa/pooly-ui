@@ -46,6 +46,23 @@ const translations = {
     'forgotPwd.send': 'Enviar enlace',
     'forgotPwd.success': 'Si existe una cuenta con ese correo, recibirás un enlace en breve.',
     'forgotPwd.close': 'Cerrar',
+    'forgotPwd.error': 'Ocurrió un error. Inténtalo de nuevo.',
+
+    // Reset password page
+    'resetPwd.title': 'Nueva contraseña',
+    'resetPwd.subtitle': 'Elige una contraseña segura para tu cuenta.',
+    'resetPwd.password': 'Nueva contraseña',
+    'resetPwd.confirmPassword': 'Confirmar contraseña',
+    'resetPwd.submit': 'Guardar contraseña',
+    'resetPwd.submitting': 'Guardando...',
+    'resetPwd.success': 'Tu contraseña se actualizó. Ya puedes iniciar sesión.',
+    'resetPwd.goToLogin': 'Ir a iniciar sesión',
+    'resetPwd.errorMatch': 'Las contraseñas no coinciden.',
+    'resetPwd.errorLength': 'La contraseña debe tener al menos 8 caracteres.',
+    'resetPwd.errorExpired': 'Este link ha expirado. Solicita un nuevo enlace de recuperación.',
+    'resetPwd.errorInvalid': 'El link no es válido.',
+    'resetPwd.errorGeneric': 'Ocurrió un error. Inténtalo de nuevo.',
+    'resetPwd.requestNew': 'Solicitar nuevo enlace',
 
     // Register
     'register.title': 'Crear cuenta',
@@ -590,6 +607,23 @@ const translations = {
     'forgotPwd.send': 'Send link',
     'forgotPwd.success': 'If an account with that email exists, you will receive a reset link shortly.',
     'forgotPwd.close': 'Close',
+    'forgotPwd.error': 'Something went wrong. Please try again.',
+
+    // Reset password page
+    'resetPwd.title': 'New password',
+    'resetPwd.subtitle': 'Choose a secure password for your account.',
+    'resetPwd.password': 'New password',
+    'resetPwd.confirmPassword': 'Confirm password',
+    'resetPwd.submit': 'Save password',
+    'resetPwd.submitting': 'Saving...',
+    'resetPwd.success': 'Your password was updated. You can now sign in.',
+    'resetPwd.goToLogin': 'Go to sign in',
+    'resetPwd.errorMatch': 'Passwords do not match.',
+    'resetPwd.errorLength': 'Password must be at least 8 characters.',
+    'resetPwd.errorExpired': 'This link has expired. Please request a new reset link.',
+    'resetPwd.errorInvalid': 'This link is not valid.',
+    'resetPwd.errorGeneric': 'Something went wrong. Please try again.',
+    'resetPwd.requestNew': 'Request a new link',
 
     // Register
     'register.title': 'Create account',

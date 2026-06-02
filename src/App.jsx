@@ -17,6 +17,7 @@ import TermsOfUse from './pages/TermsOfUse';
 import PrivacyNotice from './pages/PrivacyNotice';
 import EditEvent from './pages/EditEvent';
 import SurveyPreview from './pages/SurveyPreview';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
           <Route path="/admin/events/:eventId" element={<><Navbar /><ProtectedRoute><EventDetails /></ProtectedRoute></>} />
           <Route path="/admin/events/:eventId/edit" element={<><Navbar /><ProtectedRoute><EditEvent /></ProtectedRoute></>} />
           <Route path="/admin/settings" element={<><Navbar /><ProtectedRoute><Settings /></ProtectedRoute></>} />
+          <Route path="/reset-password" element={<><Navbar /><ResetPassword /></>} />
           <Route path="/terms_of_use" element={<><Navbar /><TermsOfUse /></>} />
           <Route path="/privacy_notice" element={<><Navbar /><PrivacyNotice /></>} />
         </Routes>
