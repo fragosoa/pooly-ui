@@ -722,6 +722,11 @@ const CreateEvent = () => {
                                             type="button"
                                             className="btn btn-outline"
                                             onClick={() => {
+                                                if (formData.items.filter(i => i._kind === 'question').length === 0) {
+                                                    setError(t('create.errorNoQuestions'));
+                                                    return;
+                                                }
+                                                setError('');
                                                 sessionStorage.setItem('survey_preview', JSON.stringify({
                                                     ...formData,
                                                     welcome_message: welcomeMessage,
@@ -729,7 +734,6 @@ const CreateEvent = () => {
                                                 }));
                                                 window.open('/admin/preview', '_blank');
                                             }}
-                                            disabled={formData.items.filter(i => i._kind === 'question').length === 0}
                                         >
                                             {t('create.preview')}
                                         </button>
