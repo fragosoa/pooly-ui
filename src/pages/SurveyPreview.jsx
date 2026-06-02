@@ -18,12 +18,15 @@ export default function SurveyPreview() {
       return;
     }
     const data = JSON.parse(raw);
-    // Assign temporary IDs to questions that don't have them
-    const questions = (data.questions || []).map((q, idx) => ({
-      ...q,
-      id: q.id ?? `preview-${idx}`,
+    // Support both new format (items) and old format (questions)
+    const rawItems = data.items ||
+      (data.questions || []).map(q => ({ ...q, _kind: 'question' }));
+    const items = rawItems.map((item, idx) => ({
+      ...item,
+      item_type: item._kind || 'question',
+      id: item.id ?? `preview-${idx}`,
     }));
-    setEvent({ ...data, questions });
+    setEvent({ ...data, items });
     if (data.welcome_message) setShowWelcome(true);
   }, [navigate]);
 
@@ -38,7 +41,7 @@ export default function SurveyPreview() {
   };
 
   const answeredCount = Object.values(responses).filter(r => String(r).trim() !== '').length;
-  const totalQuestions = event?.questions?.length || 0;
+  const totalQuestions = (event?.items || []).filter(i => i.item_type === 'question').length;
 
   if (!event) return null;
 
@@ -130,12 +133,28 @@ export default function SurveyPreview() {
 
       <div className="survey-container">
         <div className="chat-container">
-          {event.questions.map((question, index) => (
+          {(() => {
+            let questionNum = 0;
+            return (event.items || []).map((item, index) => {
+              if (item.item_type === 'text_block') {
+                return (
+                  <div key={`tb-${item.id ?? index}`} className="chat-text-block" style={{
+                    padding: '1rem 1.25rem', margin: '0.5rem 0',
+                    background: 'var(--bg-secondary)', borderLeft: '3px solid var(--primary)',
+                  }}>
+                    <ReactMarkdown>{item.content}</ReactMarkdown>
+                  </div>
+                );
+              }
+              questionNum++;
+              const question = item;
+              const qNum = questionNum;
+              return (
             <div key={question.id} className="chat-block">
               <div className="chat-message chat-assistant">
                 <div className="chat-avatar"><span>P</span></div>
                 <div className="chat-bubble">
-                  <div className="chat-question-number">{t('survey.question', { num: index + 1 })}</div>
+                  <div className="chat-question-number">{t('survey.question', { num: qNum })}</div>
                   <div className="chat-question-text">{question.text || '(Sin texto)'}</div>
                 </div>
               </div>
@@ -209,7 +228,9 @@ export default function SurveyPreview() {
                 )}
               </div>
             </div>
-          ))}
+              );
+            });
+          })()}
         </div>
 
         <div className="survey-footer">
