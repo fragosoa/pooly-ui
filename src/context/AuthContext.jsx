@@ -49,6 +49,14 @@ export function AuthProvider({ children }) {
     await api.post('/auth/request-verification', { email });
   };
 
+  const forgotPassword = async (email) => {
+    await api.post('/auth/forgot-password', { email });
+  };
+
+  const resetPassword = async (token, password) => {
+    await api.post('/auth/reset-password', { token, password });
+  };
+
   const verifyEmailToken = async (token) => {
     const res = await api.post('/auth/verify-email-token', { token });
     return res.data.email;
@@ -108,7 +116,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout, updateUser, requestEmailVerification, verifyEmailToken }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout, updateUser, requestEmailVerification, verifyEmailToken, forgotPassword, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );
