@@ -3,9 +3,9 @@
    ======================================== */
 
 :root {
-  --primary: #2563EB;
-  --primary-hover: #1D4ED8;
-  --primary-light: #DBEAFE;
+  --primary: #DC2626;
+  --primary-hover: #B91C1C;
+  --primary-light: #FEE2E2;
   --secondary: #059669;
   --secondary-light: #D1FAE5;
   --bg-primary: #F9FAFB;
@@ -2232,12 +2232,12 @@ textarea.input-field {
 
 .import-dropzone:hover {
   border-color: var(--primary);
-  background: #f8fbff;
+  background: #fff5f5;
 }
 
 .import-dropzone.is-drag-active {
   border-color: var(--primary);
-  background: #eff6ff;
+  background: #fef2f2;
   box-shadow: inset 0 0 0 1px var(--primary-light);
 }
 
@@ -2642,7 +2642,7 @@ textarea.input-field {
 }
 
 .dashboard-entry-card-accent {
-  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 70%);
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 70%);
 }
 
 .dashboard-entry-icon {
@@ -2835,7 +2835,7 @@ textarea.input-field {
   border-radius: 50%;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
   z-index: 100;
   text-decoration: none;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -2843,7 +2843,7 @@ textarea.input-field {
 
 .fab:hover {
   transform: scale(1.08);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5);
 }
 
 .fab:active {
@@ -3162,9 +3162,9 @@ textarea.input-field {
 }
 
 .survey-card-source-online {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
 }
 
 .survey-card-source-imported {
