@@ -3,7 +3,8 @@ import {
   Pencil, FileText, Clock, Target, Clipboard, Sparkles, Share2, Upload,
   ThumbsUp, ThumbsDown, Flame, AlertTriangle, ArrowDown, CheckSquare,
   Hash, Calendar, X, Bell, Bot, Trash2, Eye, Check, ListChecks, Save,
-  Loader2, HelpCircle,
+  Loader2, HelpCircle, Plus, ArrowRight, Activity, Timer, Download,
+  Wifi, MoreVertical, Copy, Play, Pause,
 } from 'lucide-react';
 
 // Mapa explícito (no `import *`) para que Rollup pueda hacer tree-shaking
@@ -43,6 +44,16 @@ const ICONS = {
   save: Save,
   loader: Loader2,
   'help-circle': HelpCircle,
+  plus: Plus,
+  'arrow-right': ArrowRight,
+  activity: Activity,
+  timer: Timer,
+  download: Download,
+  wifi: Wifi,
+  'more-vertical': MoreVertical,
+  copy: Copy,
+  play: Play,
+  pause: Pause,
 };
 
 // Brand-standard Lucide line icon: stroke 2, round caps, currentColor.
