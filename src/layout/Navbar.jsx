@@ -32,10 +32,10 @@ const Navbar = () => {
           className="navbar-brand"
           style={{ color: 'var(--text-primary)', fontFamily: "'Nunito Sans', sans-serif", fontWeight: 800 }}
         >
-          Pool<span style={{ color: '#2563eb' }}>y</span>
+          Pool<span style={{ color: 'var(--primary)' }}>y</span>
         </Link>
         <span style={{
-          background: '#059669',
+          background: 'var(--secondary)',
           color: 'white',
           fontSize: '0.8125rem',
           fontWeight: 700,

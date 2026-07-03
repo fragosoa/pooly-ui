@@ -6,6 +6,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { CSS } from '@dnd-kit/utilities';
 import api from '../services/api';
 import Modal from '../components/Modal';
+import Icon from '../components/Icon';
 import MarkdownEditor from '../components/MarkdownEditor';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -301,29 +302,29 @@ const CreateEvent = () => {
 
     // Step 1 static tips (unchanged)
     const step1Tips = {
-        icon: '💡', title: t('tips.step1.title'),
+        icon: <Icon name="lightbulb" size={20} />, title: t('tips.step1.title'),
         tips: [
-            { icon: '✏️', title: t('tips.step1.tip1.title'), description: t('tips.step1.tip1.desc') },
-            { icon: '📝', title: t('tips.step1.tip2.title'), description: t('tips.step1.tip2.desc') },
-            { icon: '📅', title: t('tips.step1.tip3.title'), description: t('tips.step1.tip3.desc') },
+            { icon: <Icon name="pencil" size={16} />, title: t('tips.step1.tip1.title'), description: t('tips.step1.tip1.desc') },
+            { icon: <Icon name="note" size={16} />, title: t('tips.step1.tip2.title'), description: t('tips.step1.tip2.desc') },
+            { icon: <Icon name="clock" size={16} />, title: t('tips.step1.tip3.title'), description: t('tips.step1.tip3.desc') },
         ],
-        highlight: { icon: '🎯', text: t('tips.step1.highlight') },
+        highlight: { icon: <Icon name="target" size={18} />, text: t('tips.step1.highlight') },
     };
 
     // Step 2 carousel slides
     const slides = [
         {
-            icon: '✏️',
+            icon: <Icon name="pencil" size={20} />,
             title: t('tips.step2.title'),
             body: 'tips',
         },
         {
-            icon: '📋',
+            icon: <Icon name="clipboard" size={20} />,
             title: isES ? 'Tipos de respuesta' : 'Response types',
             body: 'types',
         },
         {
-            icon: '🤖',
+            icon: <Icon name="sparkles" size={20} />,
             title: isES ? 'Análisis con IA' : 'AI-powered analysis',
             body: 'highlight',
         },
@@ -786,9 +787,9 @@ const CreateEvent = () => {
                                 {carouselIdx === 0 && (
                                     <div className="tips-list">
                                         {[
-                                            { icon: '🎯', title: t('tips.step2.tip1.title'), description: t('tips.step2.tip1.desc') },
-                                            { icon: '🚫', title: t('tips.step2.tip2.title'), description: t('tips.step2.tip2.desc') },
-                                            { icon: '📊', title: t('tips.step2.tip3.title'), description: t('tips.step2.tip3.desc') },
+                                            { icon: <Icon name="target" size={16} />, title: t('tips.step2.tip1.title'), description: t('tips.step2.tip1.desc') },
+                                            { icon: <Icon name="message" size={16} />, title: t('tips.step2.tip2.title'), description: t('tips.step2.tip2.desc') },
+                                            { icon: <Icon name="chart" size={16} />, title: t('tips.step2.tip3.title'), description: t('tips.step2.tip3.desc') },
                                         ].map((tip, i) => (
                                             <div key={i} className="tip-item">
                                                 <span className="tip-icon">{tip.icon}</span>
@@ -824,7 +825,7 @@ const CreateEvent = () => {
                                 {/* Slide 2 — AI highlight */}
                                 {carouselIdx === 2 && (
                                     <div className="tips-highlight" style={{ marginTop: '0.5rem' }}>
-                                        <span className="tips-highlight-icon">🤖</span>
+                                        <span className="tips-highlight-icon"><Icon name="sparkles" size={18} /></span>
                                         <p>{t('tips.step2.highlight')}</p>
                                     </div>
                                 )}

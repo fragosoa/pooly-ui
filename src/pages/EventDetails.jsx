@@ -9,6 +9,7 @@ import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 import api from '../services/api';
 import Modal from '../components/Modal';
+import Icon from '../components/Icon';
 import OverviewTab from '../components/OverviewTab';
 import TrendsTab from '../components/TrendsTab';
 import { useLanguage } from '../context/LanguageContext';
@@ -930,29 +931,29 @@ export default function EventDetails() {
         }}>
         <div className="tabs-nav" style={{ borderBottom: 'none', marginBottom: 0 }}>
           <button className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
-            <span className="tab-icon">⚡</span>
+            <span className="tab-icon"><Icon name="zap" /></span>
             {t('eventDetails.tabOverview')}
-            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: '#F59E0B', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
+            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: 'var(--warning)', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
             {recommendations.filter(r => r.impact_level === 'high').length > 0 && (
               <span className="tab-badge running">{recommendations.filter(r => r.impact_level === 'high').length}</span>
             )}
           </button>
           <button className={`tab-btn ${activeTab === 'insights' ? 'active' : ''}`} onClick={() => setActiveTab('insights')}>
-            <span className="tab-icon">📊</span>
+            <span className="tab-icon"><Icon name="chart" /></span>
             {t('eventDetails.tabInsights')}
             {reports.length > 0 && <span className="tab-badge">{reports.length}</span>}
           </button>
           <button className={`tab-btn ${activeTab === 'trends' ? 'active' : ''}`} onClick={() => setActiveTab('trends')}>
-            <span className="tab-icon">📈</span>
+            <span className="tab-icon"><Icon name="trend" /></span>
             {t('eventDetails.tabTrends')}
-            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: '#F59E0B', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
+            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: 'var(--warning)', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
           </button>
           <button className={`tab-btn ${activeTab === 'responses' ? 'active' : ''}`} onClick={() => setActiveTab('responses')}>
-            <span className="tab-icon">💬</span>
+            <span className="tab-icon"><Icon name="message" /></span>
             {t('eventDetails.tabResponses')}
           </button>
           <button className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`} onClick={() => setActiveTab('status')}>
-            <span className="tab-icon">⚙️</span>
+            <span className="tab-icon"><Icon name="settings" /></span>
             {t('eventDetails.tabStatus')}
             {jobs.filter(j => j.status === 'RUNNING').length > 0 && (
               <span className="tab-badge running">{jobs.filter(j => j.status === 'RUNNING').length}</span>

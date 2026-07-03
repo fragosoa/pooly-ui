@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import api from '../services/api';
+import Icon from '../components/Icon';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function PublicSurvey() {
@@ -36,15 +37,15 @@ export default function PublicSurvey() {
           console.error('Failed to fetch event:', err);
           setError(t('survey.errorLoad'));
           const fallbackQuestions = [
-              { id: 101, text: '¿Cuál es tu principal medio de transporte?', type: 'multiple', options: ['Metro', 'Bicicleta', 'Auto particular', 'Transporte público', 'A pie'], item_type: 'question', position: 0 },
-              { id: 102, text: '¿Qué opinas sobre las ciclovías actuales en la ciudad?', type: 'open', options: [], item_type: 'question', position: 10 },
-              { id: 103, text: '¿Cuántas veces por semana usas el transporte público?', type: 'numeric', options: [], item_type: 'question', position: 20 },
-              { id: 104, text: '¿Cuándo fue tu último viaje en transporte público?', type: 'date', options: [], item_type: 'question', position: 30 }
+              { id: 101, text: '¿Cómo descubriste nuestra tienda?', type: 'multiple', options: ['Redes sociales', 'Recomendación', 'Búsqueda en Google', 'Publicidad', 'Otro'], item_type: 'question', position: 0 },
+              { id: 102, text: '¿Qué te hizo dudar antes de completar tu compra?', type: 'open', options: [], item_type: 'question', position: 10 },
+              { id: 103, text: 'Del 1 al 10, ¿qué tan probable es que nos recomiendes?', type: 'numeric', options: [], item_type: 'question', position: 20 },
+              { id: 104, text: '¿Cuándo recibiste tu pedido?', type: 'date', options: [], item_type: 'question', position: 30 }
             ];
           setEvent({
             public_id: publicId,
-            name: 'Movilidad Urbana 2026',
-            description: 'Ayúdanos a mejorar el transporte de nuestra ciudad. Tu opinión es importante para nosotros.',
+            name: 'Cuéntanos de tu compra',
+            description: 'Tu opinión define decisiones reales de la marca. Solo te tomará un minuto.',
             items: fallbackQuestions,
           });
         }
@@ -65,7 +66,7 @@ export default function PublicSurvey() {
     setError('');
 
     try {
-      const answeredQuestions = Object.entries(responses).filter(([_, val]) =>
+      const answeredQuestions = Object.entries(responses).filter(([, val]) =>
         Array.isArray(val) ? val.length > 0 : val.trim() !== ''
       );
 
@@ -210,6 +211,19 @@ export default function PublicSurvey() {
         </div>
       </header>
 
+      <div
+        className="survey-progress-track"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={totalQuestions}
+        aria-valuenow={answeredCount}
+      >
+        <div
+          className="survey-progress-fill"
+          style={{ width: totalQuestions > 0 ? `${(answeredCount / totalQuestions) * 100}%` : 0 }}
+        />
+      </div>
+
       <div className="survey-hero">
         <h1 className="survey-title">{event.name}</h1>
         <p className="survey-description">{event.description}</p>
@@ -223,10 +237,10 @@ export default function PublicSurvey() {
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 1000,
-            background: '#fee2e2',
-            color: '#991b1b',
-            border: '1px solid #fca5a5',
-            borderRadius: 0,
+            background: 'var(--error-light)',
+            color: 'var(--error)',
+            border: '1px solid #FCA5A5',
+            borderRadius: 'var(--radius)',
             padding: '0.875rem 1.25rem',
             boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
             maxWidth: 'min(90vw, 480px)',
@@ -360,7 +374,7 @@ export default function PublicSurvey() {
 
           <div className="survey-footer">
             <div className="survey-footer-info">
-              <span className="survey-footer-icon">🔒</span>
+              <span className="survey-footer-icon"><Icon name="lock" size={15} /></span>
               <span>{t('survey.anonymous')}</span>
             </div>
             <button
