@@ -1,0 +1,31 @@
+/* ============================================================
+   RADIUS & SHADOW
+   ------------------------------------------------------------
+   The single biggest visual change in the rebrand: the original
+   system was 100% squared (border-radius: 0, "civic form" look).
+   We move to a moderate radius so Pooly reads like the modern
+   e-commerce tools its users already know (Shopify, Klaviyo).
+   Default control/card radius is 8–12px. Shadows stay subtle
+   and flat — no skeuomorphism, no heavy depth.
+   ============================================================ */
+
+:root {
+  --radius-xs:    4px;    /* chips, small tags, bar fills */
+  --radius-sm:    6px;    /* inputs, buttons (small) */
+  --radius-md:    8px;    /* buttons, badges, default control */
+  --radius-lg:    12px;   /* cards, panels, modals */
+  --radius-xl:    16px;   /* feature cards, hero panels */
+  --radius-pill:  999px;  /* pills, status chips, avatars groups */
+  --radius-round: 50%;    /* avatars, dots, icon circles */
+
+  /* Subtle, flat elevation */
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0 1px 4px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 2px 8px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 4px 16px rgba(16, 24, 40, 0.10);
+  --shadow-xl: 0 12px 32px rgba(16, 24, 40, 0.14);
+
+  /* Brand-tinted lift, used on hovered primary cards */
+  --shadow-brand: 0 4px 16px rgba(37, 99, 235, 0.18);
+  --shadow-action: 0 4px 14px rgba(29, 78, 216, 0.28);
+}

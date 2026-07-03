@@ -1,13 +1,15 @@
+import Icon from './Icon';
+
 const IMPACT = {
-  high:   { icon: '🔴', labelES: 'Alto',       labelEN: 'High',        bg: '#FEF2F2', color: '#DC2626' },
-  medium: { icon: '🟡', labelES: 'Medio',      labelEN: 'Medium',      bg: '#FFFBEB', color: '#D97706' },
-  low:    { icon: '⚪', labelES: 'Bajo',        labelEN: 'Low',         bg: '#F9FAFB', color: '#6B7280' },
+  high:   { icon: 'flame',          labelES: 'Alto',   labelEN: 'High',   bg: 'var(--danger-soft)', color: 'var(--danger)' },
+  medium: { icon: 'alert-triangle', labelES: 'Medio',  labelEN: 'Medium', bg: 'var(--warning-soft)', color: 'var(--warning)' },
+  low:    { icon: 'arrow-down',     labelES: 'Bajo',   labelEN: 'Low',    bg: 'var(--bg-secondary)', color: 'var(--text-secondary)' },
 };
 
 const URGENCY = {
-  immediate:   { icon: '⚠️', labelES: 'Inmediato',   labelEN: 'Immediate'   },
-  monitor:     { icon: '📅', labelES: 'Monitorear',  labelEN: 'Monitor'     },
-  opportunity: { icon: '💡', labelES: 'Oportunidad', labelEN: 'Opportunity' },
+  immediate:   { icon: 'zap',       labelES: 'Inmediato',   labelEN: 'Immediate' },
+  monitor:     { icon: 'clock',     labelES: 'Monitorear',  labelEN: 'Monitor' },
+  opportunity: { icon: 'lightbulb', labelES: 'Oportunidad', labelEN: 'Opportunity' },
 };
 
 export default function RecommendationCard({ recommendation, onFeedback, locale }) {
@@ -28,24 +30,27 @@ export default function RecommendationCard({ recommendation, onFeedback, locale 
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-          padding: '0.2rem 0.6rem', borderRadius: '999px',
+          padding: '0.25rem 0.625rem', borderRadius: 'var(--radius-pill)',
           fontSize: '0.75rem', fontWeight: '600',
           background: impact.bg, color: impact.color,
         }}>
-          {impact.icon} {isES ? impact.labelES : impact.labelEN}
+          <Icon name={impact.icon} size={12} />
+          {isES ? impact.labelES : impact.labelEN}
         </span>
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-          padding: '0.2rem 0.6rem', borderRadius: '999px',
+          padding: '0.25rem 0.625rem', borderRadius: 'var(--radius-pill)',
           fontSize: '0.75rem', fontWeight: '600',
           background: 'var(--bg-secondary)', color: 'var(--text-secondary)',
           border: '1px solid var(--border)',
         }}>
-          {urgency.icon} {isES ? urgency.labelES : urgency.labelEN}
+          <Icon name={urgency.icon} size={12} />
+          {isES ? urgency.labelES : urgency.labelEN}
         </span>
         {recommendation.type === 'historical' && (
-          <span style={{ marginLeft: 'auto', fontSize: '0.7rem', color: 'var(--primary)', fontWeight: '500' }}>
-            ↗ {isES ? 'Basado en tendencia' : 'Based on trend'}
+          <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: 'var(--primary)', fontWeight: '500' }}>
+            <Icon name="trending-up" size={12} />
+            {isES ? 'Basado en tendencia' : 'Based on trend'}
           </span>
         )}
       </div>
@@ -64,14 +69,18 @@ export default function RecommendationCard({ recommendation, onFeedback, locale 
         </ul>
       )}
 
-      {/* Recommendation text */}
+      {/* Recommendation text — acción recomendada, spec de ReportCard.jsx */}
       <div style={{
-        padding: '0.75rem 1rem',
-        background: 'var(--primary-light)',
-        borderLeft: '3px solid var(--primary)',
-        borderRadius: '0 0.375rem 0.375rem 0',
+        display: 'flex', gap: '0.625rem', alignItems: 'flex-start',
+        padding: '0.75rem 0.875rem',
+        background: 'var(--accent-light)',
+        border: '1px solid var(--accent-light)',
+        borderRadius: 'var(--radius-md)',
       }}>
-        <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)' }}>
+        <span style={{ fontSize: '0.6875rem', fontWeight: '800', color: 'var(--accent-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0, marginTop: '0.1rem' }}>
+          {isES ? 'Acción' : 'Action'}
+        </span>
+        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>
           {recommendation.recommendation_text}
         </p>
       </div>
@@ -90,33 +99,35 @@ export default function RecommendationCard({ recommendation, onFeedback, locale 
           style={{
             background: userVote === 'helpful' ? 'var(--primary-light)' : 'none',
             border: `1px solid ${userVote === 'helpful' ? 'var(--primary)' : 'var(--border)'}`,
-            borderRadius: '0.375rem',
+            borderRadius: 'var(--radius-sm)',
             padding: '0.25rem 0.6rem',
             cursor: userVote !== null ? 'default' : 'pointer',
             fontSize: '0.8rem',
             display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
             color: userVote === 'helpful' ? 'var(--primary)' : 'var(--text-secondary)',
-            transition: 'all 0.15s',
+            transition: 'var(--transition-control)',
           }}
         >
-          👍{' '}{recommendation.helpful_votes > 0 ? recommendation.helpful_votes : ''}
+          <Icon name="thumbs-up" size={14} />
+          {recommendation.helpful_votes > 0 ? recommendation.helpful_votes : ''}
         </button>
         <button
           onClick={() => handleFeedback(false)}
           disabled={userVote !== null}
           style={{
-            background: userVote === 'not_helpful' ? '#FEF2F2' : 'none',
-            border: `1px solid ${userVote === 'not_helpful' ? '#DC2626' : 'var(--border)'}`,
-            borderRadius: '0.375rem',
+            background: userVote === 'not_helpful' ? 'var(--danger-soft)' : 'none',
+            border: `1px solid ${userVote === 'not_helpful' ? 'var(--danger)' : 'var(--border)'}`,
+            borderRadius: 'var(--radius-sm)',
             padding: '0.25rem 0.6rem',
             cursor: userVote !== null ? 'default' : 'pointer',
             fontSize: '0.8rem',
             display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-            color: userVote === 'not_helpful' ? '#DC2626' : 'var(--text-secondary)',
-            transition: 'all 0.15s',
+            color: userVote === 'not_helpful' ? 'var(--danger)' : 'var(--text-secondary)',
+            transition: 'var(--transition-control)',
           }}
         >
-          👎{' '}{recommendation.not_helpful_votes > 0 ? recommendation.not_helpful_votes : ''}
+          <Icon name="thumbs-down" size={14} />
+          {recommendation.not_helpful_votes > 0 ? recommendation.not_helpful_votes : ''}
         </button>
       </div>
     </div>

@@ -39,7 +39,7 @@ function SortableQuestionRow({ id, children }) {
     );
 }
 
-const TYPE_ICONS = { open: '💬', multiple: '☑️', numeric: '🔢', date: '📅' };
+const TYPE_ICONS = { open: 'message', multiple: 'list-checks', numeric: 'hash', date: 'calendar' };
 const CAROUSEL_SLIDES = 3;
 
 const CreateEvent = () => {
@@ -353,8 +353,8 @@ const CreateEvent = () => {
                 <p style={{ color: 'var(--text-secondary)' }}>
                     {t('create.step', { step })}: {step === 1 ? t('create.step1Label') : t('create.step2Label')}
                     {draftSavedAt && (
-                        <span style={{ marginLeft: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                            · 💾 {t('create.draftSaved')} {draftSavedAt}
+                        <span style={{ marginLeft: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            · <Icon name="save" size={12} /> {t('create.draftSaved')} {draftSavedAt}
                         </span>
                     )}
                 </p>
@@ -372,8 +372,8 @@ const CreateEvent = () => {
                     padding: '0.75rem 1rem', marginBottom: '1.25rem', maxWidth: '900px',
                     background: 'var(--primary-light)', border: '1px solid var(--primary)', borderRadius: '6px',
                 }}>
-                    <span style={{ fontSize: '0.875rem', color: 'var(--primary)' }}>
-                        💾 {t('create.draftRestoredBanner')}
+                    <span style={{ fontSize: '0.875rem', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Icon name="save" size={15} /> {t('create.draftRestoredBanner')}
                     </span>
                     <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, marginLeft: '1rem' }}>
                         <button
@@ -545,7 +545,7 @@ const CreateEvent = () => {
                                                 padding: '0.75rem 1rem 0.75rem 2.25rem', border: '1px dashed var(--border)',
                                                 background: 'var(--bg-secondary)',
                                             }}>
-                                                <span style={{ fontSize: '1rem', flexShrink: 0, marginTop: '0.1rem' }}>📝</span>
+                                                <span style={{ flexShrink: 0, marginTop: '0.1rem', color: 'var(--text-secondary)', display: 'flex' }}><Icon name="note" size={16} /></span>
                                                 <div style={{ flex: 1, minWidth: 0 }}>
                                                     <p style={{
                                                         margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)',
@@ -568,12 +568,12 @@ const CreateEvent = () => {
                                                     {openMenuIdx === idx && (
                                                         <div style={{ position: 'absolute', right: 0, top: '100%', zIndex: 20, background: '#fff', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: '130px' }}>
                                                             <button type="button" onClick={() => openEditModal(idx)}
-                                                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)', fontFamily: 'inherit' }}>
-                                                                ✏️ {isES ? 'Editar' : 'Edit'}
+                                                                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)', fontFamily: 'inherit' }}>
+                                                                <Icon name="pencil" size={14} /> {isES ? 'Editar' : 'Edit'}
                                                             </button>
                                                             <button type="button" onClick={() => { removeQuestion(idx); setOpenMenuIdx(null); }}
-                                                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)', fontFamily: 'inherit' }}>
-                                                                🗑 {isES ? 'Eliminar' : 'Delete'}
+                                                                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)', fontFamily: 'inherit' }}>
+                                                                <Icon name="trash" size={14} /> {isES ? 'Eliminar' : 'Delete'}
                                                             </button>
                                                         </div>
                                                     )}
@@ -604,7 +604,8 @@ const CreateEvent = () => {
                                                     {item.text || <em style={{ color: 'var(--text-muted)' }}>{isES ? 'Sin texto' : 'No text'}</em>}
                                                 </p>
                                                 <p style={{ margin: '0.15rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                                                    {TYPE_ICONS[item.type]} {t(`create.questionType${item.type.charAt(0).toUpperCase() + item.type.slice(1)}`)}
+                                                    <Icon name={TYPE_ICONS[item.type]} size={12} style={{ verticalAlign: '-2px', marginRight: '0.15rem' }} />
+                                                    {t(`create.questionType${item.type.charAt(0).toUpperCase() + item.type.slice(1)}`)}
                                                     {item.type === 'multiple' && item.options.filter(Boolean).length > 0 && (
                                                         <span> · {item.options.filter(Boolean).length} {isES ? 'opciones' : 'options'}</span>
                                                     )}
@@ -624,14 +625,14 @@ const CreateEvent = () => {
                                                 {openMenuIdx === idx && (
                                                     <div style={{ position: 'absolute', right: 0, top: '100%', zIndex: 20, background: '#fff', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: '130px' }}>
                                                         <button type="button" onClick={() => openEditModal(idx)}
-                                                            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)', fontFamily: 'inherit' }}>
-                                                            ✏️ {isES ? 'Editar' : 'Edit'}
+                                                            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)', fontFamily: 'inherit' }}>
+                                                            <Icon name="pencil" size={14} /> {isES ? 'Editar' : 'Edit'}
                                                         </button>
                                                         {formData.items.filter(i => i._kind === 'question').length > 1 && (
                                                             <button type="button"
                                                                 onClick={() => { removeQuestion(idx); setOpenMenuIdx(null); }}
-                                                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)', fontFamily: 'inherit' }}>
-                                                                🗑 {isES ? 'Eliminar' : 'Delete'}
+                                                                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)', fontFamily: 'inherit' }}>
+                                                                <Icon name="trash" size={14} /> {isES ? 'Eliminar' : 'Delete'}
                                                             </button>
                                                         )}
                                                     </div>
@@ -656,7 +657,7 @@ const CreateEvent = () => {
                                         className="btn btn-outline"
                                         style={{ flex: 1, borderStyle: 'dashed' }}
                                         title={isES ? 'Agrega un bloque de texto o separador entre preguntas' : 'Add a text block or separator between questions'}>
-                                        📝 {isES ? 'Agregar texto' : 'Add text'}
+                                        <Icon name="note" size={14} /> {isES ? 'Agregar texto' : 'Add text'}
                                     </button>
                                 </div>
 
@@ -738,7 +739,7 @@ const CreateEvent = () => {
                                         >
                                             {t('create.preview')}
                                         </button>
-                                        <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                                        <button type="submit" className="btn btn-action" disabled={isLoading}>
                                             {isLoading ? t('create.submitting') : t('create.submit')}
                                         </button>
                                     </div>
@@ -806,13 +807,13 @@ const CreateEvent = () => {
                                 {carouselIdx === 1 && (
                                     <div style={{ marginTop: '0.5rem' }}>
                                         {[
-                                            { icon: '💬', label: t('create.questionTypeOpen'),    desc: isES ? 'Opiniones libres → análisis de temas y sentimiento'  : 'Free opinions → topic & sentiment analysis' },
-                                            { icon: '☑️', label: t('create.questionTypeMultiple'), desc: isES ? 'Categorías o escalas → distribución de respuestas'       : 'Fixed categories or scales → distribution' },
-                                            { icon: '🔢', label: t('create.questionTypeNumeric'),  desc: isES ? 'Edades, puntajes → estadísticas y promedios'             : 'Ages, scores → statistics & averages' },
-                                            { icon: '📅', label: t('create.questionTypeDate'),     desc: isES ? 'Eventos y plazos → análisis de tendencias'              : 'Events & deadlines → trend analysis' },
+                                            { icon: 'message', label: t('create.questionTypeOpen'),    desc: isES ? 'Opiniones libres → análisis de temas y sentimiento'  : 'Free opinions → topic & sentiment analysis' },
+                                            { icon: 'list-checks', label: t('create.questionTypeMultiple'), desc: isES ? 'Categorías o escalas → distribución de respuestas'       : 'Fixed categories or scales → distribution' },
+                                            { icon: 'hash', label: t('create.questionTypeNumeric'),  desc: isES ? 'Edades, puntajes → estadísticas y promedios'             : 'Ages, scores → statistics & averages' },
+                                            { icon: 'calendar', label: t('create.questionTypeDate'),     desc: isES ? 'Eventos y plazos → análisis de tendencias'              : 'Events & deadlines → trend analysis' },
                                         ].map(({ icon, label, desc }) => (
                                             <div key={label} style={{ display: 'flex', gap: '0.6rem', marginBottom: '0.85rem', alignItems: 'flex-start' }}>
-                                                <span style={{ fontSize: '1rem', flexShrink: 0, marginTop: '0.05rem' }}>{icon}</span>
+                                                <span style={{ flexShrink: 0, marginTop: '0.05rem', color: 'var(--primary)', display: 'flex' }}><Icon name={icon} size={15} /></span>
                                                 <div>
                                                     <span style={{ fontSize: '0.82rem', fontWeight: '700', color: 'var(--text-primary)' }}>{label}</span>
                                                     <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', display: 'block', lineHeight: 1.4 }}>{desc}</span>
@@ -914,10 +915,10 @@ const CreateEvent = () => {
                         onChange={e => setModalData(prev => ({ ...prev, type: e.target.value }))}
                         style={{ margin: 0 }}
                     >
-                        <option value="open">{TYPE_ICONS.open} {t('create.questionTypeOpen')}</option>
-                        <option value="multiple">{TYPE_ICONS.multiple} {t('create.questionTypeMultiple')}</option>
-                        <option value="numeric">{TYPE_ICONS.numeric} {t('create.questionTypeNumeric')}</option>
-                        <option value="date">{TYPE_ICONS.date} {t('create.questionTypeDate')}</option>
+                        <option value="open">{t('create.questionTypeOpen')}</option>
+                        <option value="multiple">{t('create.questionTypeMultiple')}</option>
+                        <option value="numeric">{t('create.questionTypeNumeric')}</option>
+                        <option value="date">{t('create.questionTypeDate')}</option>
                     </select>
                     {/* Inline description */}
                     <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.4rem', lineHeight: 1.5 }}>
@@ -994,10 +995,11 @@ const CreateEvent = () => {
                             </span>
                         </div>
                         {modalData.multiSelect && (
-                            <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: 'var(--warning, #b45309)', lineHeight: 1.5 }}>
+                            <p style={{ margin: '0.5rem 0 0', display: 'flex', alignItems: 'flex-start', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--warning-strong)', lineHeight: 1.5 }}>
+                                <Icon name="alert-triangle" size={13} style={{ flexShrink: 0, marginTop: '0.15rem' }} />
                                 {isES
-                                    ? '⚠ Evita usar signos de puntuacion en las opciones tales como comas, guiones o barras'
-                                    : '⚠ Avoid commas in option text — commas are used internally to separate selected answers.'}
+                                    ? 'Evita usar signos de puntuacion en las opciones tales como comas, guiones o barras'
+                                    : 'Avoid commas in option text — commas are used internally to separate selected answers.'}
                             </p>
                         )}
                         {optionsError && (

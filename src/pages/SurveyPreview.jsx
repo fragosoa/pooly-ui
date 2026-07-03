@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { useLanguage } from '../context/LanguageContext';
+import Icon from '../components/Icon';
 
 export default function SurveyPreview() {
   const { t } = useLanguage();
@@ -235,7 +236,7 @@ export default function SurveyPreview() {
 
         <div className="survey-footer">
           <div className="survey-footer-info">
-            <span className="survey-footer-icon">👁</span>
+            <span className="survey-footer-icon"><Icon name="eye" size={15} /></span>
             <span>{t('survey.previewBannerDesc')}</span>
           </div>
           <button

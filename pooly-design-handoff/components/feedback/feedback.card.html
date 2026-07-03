@@ -1,0 +1,50 @@
+<!-- @dsCard group="Components" viewport="700x340" name="Alerts, Modal & Spinner" subtitle="Inline status, dialog, loader" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="../../styles.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin: 0; padding: 24px 26px; background: var(--surface-sunken); }
+  .layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; align-items: start; }
+  .alerts { display: flex; flex-direction: column; gap: 10px; }
+  .modal-stage { position: relative; height: 280px; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-alt); }
+  .modal-stage > div { position: absolute !important; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { Alert, Modal, Spinner, Button } = window.PoolyDesignSystem_3787fa;
+  function Demo() {
+    return (
+      <div className="layout">
+        <div className="alerts">
+          <Alert variant="success" title="Análisis listo">Encontramos 6 temas en 1,284 respuestas.</Alert>
+          <Alert variant="error" onClose={() => {}}>No pudimos procesar el archivo CSV.</Alert>
+          <Alert variant="warning">La encuesta cierra en 2 días.</Alert>
+          <Alert variant="info">El enlace es anónimo: tus clientes responden sin crear cuenta.</Alert>
+          <div style={{ display: "flex", gap: 16, alignItems: "center", marginTop: 4 }}>
+            <Spinner size={20} /><Spinner size={28} tone="action" /><Spinner size={28} tone="muted" />
+          </div>
+        </div>
+        <div className="modal-stage">
+          <Modal title="Eliminar encuesta" tone="danger" icon="trash-2" width={360}
+            footer={<><Button variant="secondary" size="sm">Cancelar</Button><Button variant="danger" size="sm">Eliminar</Button></>}>
+            <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.6 }}>
+              Se eliminarán todas las respuestas y reportes. Esta acción no se puede deshacer.
+            </p>
+          </Modal>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+</script>
+</body>
+</html>

@@ -297,7 +297,7 @@ const AdminDashboard = () => {
             </div>
 
             {error && (
-                <div className="alert alert-error" style={{ background: 'var(--primary-50)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>
+                <div className="alert alert-info">
                     {error} ({t('admin.errorDemo')})
                 </div>
             )}
@@ -328,7 +328,7 @@ const AdminDashboard = () => {
                     <h3 className="empty-state-title">{t('admin.emptyTitle')}</h3>
                     <p className="empty-state-description">{t('admin.emptyDesc')}</p>
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        <Link to="/admin/create" className="btn btn-primary">
+                        <Link to="/admin/create" className="btn btn-action">
                             {t('admin.createFirst')}
                         </Link>
                         <Link to="/admin/import" className="btn btn-outline">

@@ -190,7 +190,7 @@ export default function PublicSurvey() {
               <ReactMarkdown>{event.welcome_message}</ReactMarkdown>
             </div>
             <button
-              className="btn btn-primary btn-large"
+              className="btn btn-action btn-large"
               style={{ marginTop: '2rem' }}
               onClick={() => setShowWelcome(false)}
             >

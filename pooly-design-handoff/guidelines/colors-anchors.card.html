@@ -1,0 +1,41 @@
+<!-- @dsCard group="Colors" viewport="700x180" name="Brand & Action anchors" subtitle="Blue = trust · Orange = conversion energy" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 22px 24px; background: var(--surface); }
+  .group { display: flex; gap: 22px; flex-wrap: wrap; }
+  .col { flex: 1; min-width: 280px; }
+  .col-h { font: var(--font-eyebrow); text-transform: uppercase; letter-spacing: var(--tracking-wider); color: var(--text-muted); margin-bottom: 10px; }
+  .ramp { display: flex; gap: 8px; }
+  .sw { flex: 1; }
+  .chip { height: 56px; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,.06); }
+  .nm { font-size: 11px; font-weight: 700; color: var(--text-primary); margin-top: 7px; }
+  .hex { font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="group">
+  <div class="col">
+    <div class="col-h">Brand · trust anchor</div>
+    <div class="ramp">
+      <div class="sw"><div class="chip" style="background:var(--blue-50)"></div><div class="nm">tint</div><div class="hex">#EFF6FF</div></div>
+      <div class="sw"><div class="chip" style="background:var(--blue-100)"></div><div class="nm">soft</div><div class="hex">#DBEAFE</div></div>
+      <div class="sw"><div class="chip" style="background:var(--blue-600)"></div><div class="nm">brand</div><div class="hex">#2563EB</div></div>
+      <div class="sw"><div class="chip" style="background:var(--blue-700)"></div><div class="nm">hover</div><div class="hex">#1D4ED8</div></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="col-h">Action · conversion energy</div>
+    <div class="ramp">
+      <div class="sw"><div class="chip" style="background:var(--orange-50)"></div><div class="nm">tint</div><div class="hex">#FFF7ED</div></div>
+      <div class="sw"><div class="chip" style="background:var(--orange-100)"></div><div class="nm">soft</div><div class="hex">#FFEDD5</div></div>
+      <div class="sw"><div class="chip" style="background:var(--orange-500)"></div><div class="nm">action</div><div class="hex">#F97316</div></div>
+      <div class="sw"><div class="chip" style="background:var(--orange-600)"></div><div class="nm">hover</div><div class="hex">#EA580C</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!-- @dsCard group="Colors" viewport="700x180" name="Neutrals" subtitle="Gray ramp + surface & text aliases" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 22px 24px; background: var(--surface); }
+  .h { font: var(--font-eyebrow); text-transform: uppercase; letter-spacing: var(--tracking-wider); color: var(--text-muted); margin: 0 0 10px; }
+  .ramp { display: flex; gap: 6px; margin-bottom: 16px; }
+  .sw { flex: 1; }
+  .chip { height: 44px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,.06); }
+  .nm { font-size: 10.5px; font-family: var(--font-mono); color: var(--text-muted); margin-top: 5px; text-align: center; }
+  .aliases { display: flex; gap: 18px; flex-wrap: wrap; }
+  .al { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+  .dot { width: 18px; height: 18px; border-radius: var(--radius-xs); border: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="h">Gray ramp</div>
+<div class="ramp">
+  <div class="sw"><div class="chip" style="background:var(--gray-50)"></div><div class="nm">50</div></div>
+  <div class="sw"><div class="chip" style="background:var(--gray-100)"></div><div class="nm">100</div></div>
+  <div class="sw"><div class="chip" style="background:var(--gray-200)"></div><div class="nm">200</div></div>
+  <div class="sw"><div class="chip" style="background:var(--gray-300)"></div><div class="nm">300</div></div>
+  <div class="sw"><div class="chip" style="background:var(--gray-400)"></div><div class="nm">400</div></div>
+  <div class="sw"><div class="chip" style="background:var(--gray-500)"></div><div class="nm">500</div></div>
+  <div class="sw"><div class="chip" style="background:var(--gray-600)"></div><div class="nm">600</div></div>
+  <div class="sw"><div class="chip" style="background:var(--gray-700)"></div><div class="nm">700</div></div>
+  <div class="sw"><div class="chip" style="background:var(--gray-800)"></div><div class="nm">800</div></div>
+  <div class="sw"><div class="chip" style="background:var(--gray-900)"></div><div class="nm">900</div></div>
+  <div class="sw"><div class="chip" style="background:var(--gray-950)"></div><div class="nm">950</div></div>
+</div>
+<div class="aliases">
+  <div class="al"><span class="dot" style="background:var(--surface-sunken)"></span>surface-sunken (canvas)</div>
+  <div class="al"><span class="dot" style="background:var(--surface)"></span>surface (cards)</div>
+  <div class="al"><span class="dot" style="background:var(--surface-alt)"></span>surface-alt (rows)</div>
+  <div class="al"><span class="dot" style="background:var(--border)"></span>border</div>
+  <div class="al"><span class="dot" style="background:var(--text-primary)"></span>text-primary</div>
+  <div class="al"><span class="dot" style="background:var(--text-secondary)"></span>text-secondary</div>
+  <div class="al"><span class="dot" style="background:var(--text-muted)"></span>text-muted</div>
+</div>
+</body>
+</html>

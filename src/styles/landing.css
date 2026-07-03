@@ -8,24 +8,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,300;1,6..12,400&display=swap');
 
 .landing-page {
-  --lp-accent:        #2563eb;
-  --lp-accent-hover:  #1d4ed8;
-  --lp-accent-light:  #dbeafe;
-  --lp-cta:           #EA580C;
-  --lp-cta-hover:     #C2410C;
+  /* Ancla de confianza: brand blue */
+  --lp-accent:        #2563EB;
+  --lp-accent-hover:  #1D4ED8;
+  --lp-accent-light:  #DBEAFE;
+  /* Ancla de conversión: action orange (único CTA por sección, spec exacta) */
+  --lp-cta:           #F97316;
+  --lp-cta-hover:     #EA580C;
   --lp-cta-light:     #FFEDD5;
-  --lp-ink:           oklch(15% 0.02 50);
-  --lp-ink-mid:       oklch(27% 0.02 50);
-  --lp-muted:         oklch(52% 0.02 50);
-  --lp-border:        oklch(89% 0.008 50);
-  --lp-surface:       #ffffff;
-  --lp-surface-tint:  #faf9f7;
-  --lp-dark-bg:       oklch(15% 0.02 50);
-  --lp-dark-mid:      oklch(20% 0.02 50);
-  --lp-dark-border:   oklch(27% 0.02 50);
-  --lp-dark-muted:    oklch(64% 0.015 50);
-  --lp-radius:        10px;
-  --lp-radius-lg:     14px;
+  /* Neutros — gray Tailwind frío, igual que el resto del sistema */
+  --lp-ink:           #111827;
+  --lp-ink-mid:       #1F2937;
+  --lp-muted:         #6B7280;
+  --lp-border:        #E5E7EB;
+  --lp-surface:       #FFFFFF;
+  --lp-surface-tint:  #F9FAFB;
+  --lp-dark-bg:       #0B1220;
+  --lp-dark-mid:      #1F2937;
+  --lp-dark-border:   #2A3441;
+  --lp-dark-muted:    #9CA3AF;
+  --lp-radius:        8px;
+  --lp-radius-lg:     12px;
   --lp-radius-pill:   999px;
   font-family: 'Nunito Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -217,7 +220,7 @@
   background: var(--lp-surface-tint);
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-radius-lg);
-  box-shadow: 0 12px 32px oklch(15% 0.02 50 / 0.12);
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
 }
 .lp-hero-ui img {
@@ -230,7 +233,7 @@
   background: #fff;
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-radius);
-  box-shadow: 0 4px 12px oklch(15% 0.02 50 / 0.10);
+  box-shadow: var(--shadow-lg);
   padding: 12px 16px;
   pointer-events: none;
 }
@@ -252,8 +255,8 @@
 .lp-fc-trend {
   font-size: 11px;
   font-weight: 600;
-  color: oklch(52% 0.18 145);
-  background: oklch(94% 0.06 145);
+  color: var(--success);
+  background: var(--success-soft);
   padding: 2px 7px;
   border-radius: var(--lp-radius-pill);
   display: inline-block;
@@ -310,7 +313,7 @@
   font-family: 'Nunito Sans', sans-serif;
   font-size: 17px;
   font-weight: 700;
-  color: oklch(74% 0.012 50);
+  color: var(--gray-300);
   letter-spacing: -0.02em;
 }
 
@@ -389,19 +392,19 @@
   inset: 0;
   background: repeating-linear-gradient(
     -45deg,
-    oklch(92% 0.012 265) 0px,
-    oklch(92% 0.012 265) 8px,
-    oklch(97% 0.008 265) 8px,
-    oklch(97% 0.008 265) 16px
+    var(--gray-200) 0px,
+    var(--gray-200) 8px,
+    var(--gray-100) 8px,
+    var(--gray-100) 16px
   );
 }
 .lp-img-placeholder-dark::before {
   background: repeating-linear-gradient(
     -45deg,
-    oklch(16% 0.04 265) 0px,
-    oklch(16% 0.04 265) 8px,
-    oklch(20% 0.04 265) 8px,
-    oklch(20% 0.04 265) 16px
+    var(--gray-800) 0px,
+    var(--gray-800) 8px,
+    var(--surface-dark-2) 8px,
+    var(--surface-dark-2) 16px
   );
 }
 .lp-img-placeholder-label {
@@ -412,7 +415,7 @@
 }
 .lp-img-placeholder-label span {
   display: block;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--lp-muted);
   letter-spacing: 0.08em;
@@ -422,7 +425,7 @@
   border: 1px solid var(--lp-border);
 }
 .lp-img-placeholder-dark .lp-img-placeholder-label span {
-  background: oklch(18% 0.04 265 / 0.9);
+  background: rgba(31, 41, 55, 0.9);
   color: var(--lp-dark-muted);
   border-color: var(--lp-dark-border);
 }
@@ -538,7 +541,7 @@
   transition: box-shadow 0.25s, transform 0.25s;
 }
 .lp-step-card:hover {
-  box-shadow: 0 8px 24px oklch(15% 0.02 50 / 0.1);
+  box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
 .lp-step-number {
@@ -601,10 +604,10 @@
   transition: box-shadow 0.25s;
 }
 .lp-testimonial-card:hover {
-  box-shadow: 0 4px 12px oklch(15% 0.02 50 / 0.08);
+  box-shadow: var(--shadow-md);
 }
 .lp-stars {
-  color: oklch(75% 0.18 75);
+  color: var(--amber-600);
   font-size: 13px;
   margin-bottom: 14px;
 }
@@ -781,7 +784,7 @@
 
 /* ─── FOOTER ────────────────────────────────────────────── */
 .lp-footer {
-  background: oklch(10% 0.015 50);
+  background: var(--gray-950);
   border-top: 1px solid var(--lp-dark-border);
   padding: 64px 0 32px;
 }
@@ -862,7 +865,7 @@
 }
 .lp-footer-copy {
   font-size: 13px;
-  color: oklch(42% 0.012 50);
+  color: var(--gray-600);
 }
 .lp-footer-legal {
   display: flex;
@@ -870,7 +873,7 @@
 }
 .lp-footer-legal a {
   font-size: 13px;
-  color: oklch(42% 0.012 50);
+  color: var(--gray-600);
   text-decoration: none;
   transition: color 0.2s;
 }

@@ -1,0 +1,53 @@
+/* ============================================================
+   TYPOGRAPHY
+   Family carried over from the original system: Nunito Sans.
+   Headlines lean on weight 800 + tight tracking for commercial
+   energy; body stays at 400 with relaxed line-height.
+   ============================================================ */
+
+:root {
+  --font-sans: "Nunito Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* Weights */
+  --weight-light:     300;
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+  --weight-extrabold: 800;
+
+  /* Type scale (px) */
+  --text-xs:   12px;   /* labels, timestamps, table headers */
+  --text-sm:   14px;   /* secondary body, controls */
+  --text-base: 16px;   /* body */
+  --text-md:   17px;   /* lead paragraph */
+  --text-lg:   20px;   /* card titles */
+  --text-xl:   24px;   /* section titles (app) */
+  --text-2xl:  30px;   /* page headers */
+  --text-3xl:  36px;   /* marketing H2 */
+  --text-4xl:  44px;   /* marketing H1 (small) */
+  --text-5xl:  56px;   /* hero */
+
+  /* Line height */
+  --leading-tight:   1.15;
+  --leading-snug:    1.3;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.7;
+
+  /* Letter spacing */
+  --tracking-tighter: -0.02em;   /* big headlines */
+  --tracking-tight:   -0.015em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.05em;
+  --tracking-wider:   0.1em;      /* eyebrows / uppercase labels */
+
+  /* Semantic roles */
+  --font-display:  var(--weight-extrabold) var(--text-5xl)/var(--leading-tight) var(--font-sans);
+  --font-h1:       var(--weight-extrabold) var(--text-3xl)/var(--leading-tight) var(--font-sans);
+  --font-h2:       var(--weight-bold) var(--text-2xl)/var(--leading-snug) var(--font-sans);
+  --font-title:    var(--weight-semibold) var(--text-lg)/var(--leading-snug) var(--font-sans);
+  --font-body:     var(--weight-regular) var(--text-base)/var(--leading-normal) var(--font-sans);
+  --font-small:    var(--weight-regular) var(--text-sm)/var(--leading-normal) var(--font-sans);
+  --font-eyebrow:  var(--weight-bold) var(--text-xs)/var(--leading-normal) var(--font-sans);
+}
