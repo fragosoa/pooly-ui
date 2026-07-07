@@ -1,7 +1,7 @@
 /* ========================================
    POOLY DESIGN SYSTEM — Commerce Voice-of-Customer (rebrand 2026)
    Fuente de verdad: pooly-design-handoff/ (tokens/, DESIGN_SYSTEM.md)
-   Dos anclas: brand blue (confianza) + action orange (conversión).
+   Ancla única: brand blue (confianza y conversión).
    Radios moderados 8/12/16px, sombras planas, Nunito Sans.
    ======================================== */
 
@@ -11,12 +11,6 @@
   --blue-700: #1D4ED8;
   --blue-100: #DBEAFE;
   --blue-50:  #EFF6FF;
-
-  /* ---- Paleta base: action orange ---- */
-  --orange-500: #F97316;
-  --orange-600: #EA580C;
-  --orange-100: #FFEDD5;
-  --orange-50:  #FFF7ED;
 
   /* ---- Tonos funcionales ---- */
   --green-600: #059669;   --green-100: #D1FAE5;   --green-50: #ECFDF5;
@@ -45,10 +39,10 @@
   --brand-soft:   var(--blue-100);
   --brand-tint:   var(--blue-50);
 
-  --action:       var(--orange-500);
-  --action-hover: var(--orange-600);
-  --action-soft:  var(--orange-100);
-  --action-tint:  var(--orange-50);
+  --action:       var(--blue-600);
+  --action-hover: var(--blue-700);
+  --action-soft:  var(--blue-100);
+  --action-tint:  var(--blue-50);
 
   --surface:        var(--white);
   --surface-sunken: var(--gray-50);
@@ -104,7 +98,7 @@
   --shadow-lg: 0 4px 16px rgba(16, 24, 40, 0.10);
   --shadow-xl: 0 12px 32px rgba(16, 24, 40, 0.14);
   --shadow-brand:  0 4px 16px rgba(37, 99, 235, 0.18);
-  --shadow-action: 0 4px 14px rgba(249, 115, 22, 0.30);
+  --shadow-action: 0 4px 14px rgba(37, 99, 235, 0.30);
 
   /* ---- Motion ---- */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -317,9 +311,9 @@ body {
 
 /* ========================================
    BUTTONS — spec exacta de components/buttons/Button.jsx
-   variant default = "primary" (brand blue). "action" (orange) se
-   reserva para el ÚNICO CTA de conversión por pantalla (crear,
-   analizar, importar, signup) — no es el botón por defecto.
+   variant default = "primary" (brand blue). "action" también es
+   brand blue — antes naranja, revertido por decisión de producto
+   a un único acento azul en toda la app.
    ======================================== */
 .btn {
   display: inline-flex;

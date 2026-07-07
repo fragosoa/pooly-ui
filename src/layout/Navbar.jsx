@@ -116,8 +116,6 @@ const Navbar = () => {
                 padding: '0.5rem 1.25rem',
                 fontSize: '0.875rem',
                 borderRadius: '0',
-                background: '#F59E0B',
-                color: '#1a1a1a',
                 fontWeight: 700,
               }}
             >
@@ -219,8 +217,6 @@ const Navbar = () => {
                       display: 'block',
                       textAlign: 'center',
                       borderRadius: '0',
-                      background: '#F59E0B',
-                      color: '#1a1a1a',
                       fontWeight: 700,
                       fontSize: '0.9rem',
                     }}

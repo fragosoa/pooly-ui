@@ -45,7 +45,7 @@ const DashboardPreview = () => (
           <div><strong>8,420</strong><span>Respuestas</span></div>
         </div>
         <div className="lp-dash-stat">
-          <span className="lp-dash-stat-icon" style={{ background: 'var(--lp-cta-light)', color: 'var(--lp-cta)' }}>
+          <span className="lp-dash-stat-icon" style={{ background: '#e0e7ff', color: '#4f46e5' }}>
             <Icon name="activity" size={16} />
           </span>
           <div><strong>4</strong><span>Activas</span></div>

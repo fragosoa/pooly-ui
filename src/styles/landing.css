@@ -1,21 +1,19 @@
 /* ========================================
    POOLY LANDING PAGE
    Scoped to .landing-page wrapper
-   Rebrand e-commerce, demo-gate model:
-   azul = confianza, coral = acción/CTA
+   Un solo acento: brand blue (confianza y CTA).
    ======================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,300;1,6..12,400&display=swap');
 
 .landing-page {
-  /* Ancla de confianza: brand blue */
+  /* Ancla única: brand blue */
   --lp-accent:        #2563EB;
   --lp-accent-hover:  #1D4ED8;
   --lp-accent-light:  #DBEAFE;
-  /* Ancla de conversión: action orange (único CTA por sección, spec exacta) */
-  --lp-cta:           #F97316;
-  --lp-cta-hover:     #EA580C;
-  --lp-cta-light:     #FFEDD5;
+  --lp-cta:           var(--lp-accent);
+  --lp-cta-hover:     var(--lp-accent-hover);
+  --lp-cta-light:     var(--lp-accent-light);
   /* Neutros — gray Tailwind frío, igual que el resto del sistema */
   --lp-ink:           #111827;
   --lp-ink-mid:       #1F2937;
@@ -67,13 +65,13 @@
   cursor: pointer;
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(234, 88, 12, 0.3);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
 }
 .lp-btn-primary:hover {
   background: var(--lp-cta-hover);
   transform: translateY(-1px);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
 .lp-btn-primary.lp-btn-full { display: flex; justify-content: center; width: 100%; }
 
@@ -543,7 +541,7 @@
   gap: 8px;
   padding: 10px 14px;
   background: var(--lp-cta-light);
-  border: 1px solid #fed7aa;
+  border: 1px solid #bfdbfe;
   border-radius: var(--lp-radius);
   margin-bottom: 22px;
   font-size: 13.5px;
