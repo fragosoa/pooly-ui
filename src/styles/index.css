@@ -687,25 +687,6 @@ textarea.input-field {
   padding: 3rem 1rem;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.stat-item h3 {
-  font-size: 2rem;
-  font-weight: 800;
-  color: white;
-}
-
-.stat-item p {
-  color: var(--text-muted);
-}
-
 /* CTA Section */
 .cta-section {
   background: var(--primary);

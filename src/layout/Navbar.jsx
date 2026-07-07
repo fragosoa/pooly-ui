@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import Icon from '../components/Icon';
 
 const DEMO_URL = 'mailto:hello@pooly.app?subject=Quiero%20agendar%20una%20demo%20de%20Pooly';
 
@@ -105,6 +106,14 @@ const Navbar = () => {
         {user ? (
           <>
             <LanguageSwitcher />
+            <Link
+              to="/admin/create"
+              className="btn btn-action"
+              style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+            >
+              <Icon name="plus" size={16} />
+              {t('admin.newSurvey')}
+            </Link>
             <div ref={userMenuRef} style={{ position: 'relative' }}>
               <button
                 onClick={() => setUserMenuOpen((o) => !o)}
@@ -232,6 +241,17 @@ const Navbar = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 600 }}>
                   <span style={avatarStyle}>{getInitials(user.username)}</span>
                   {user.username}
+                </div>
+                <div style={{ padding: '0.5rem 1rem' }}>
+                  <Link
+                    to="/admin/create"
+                    className="btn btn-action"
+                    onClick={() => setMenuOpen(false)}
+                    style={{ display: 'flex', justifyContent: 'center', width: '100%' }}
+                  >
+                    <Icon name="plus" size={16} />
+                    {t('admin.newSurvey')}
+                  </Link>
                 </div>
                 <Link to="/admin" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>
                   {t('navbar.controlPanel')}
