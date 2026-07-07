@@ -13,6 +13,11 @@ const translations = {
     'lang.es': 'Español',
     'lang.en': 'English',
 
+    // Demo modal
+    'demoModal.title': 'Agenda tu demo',
+    'demoModal.body': 'Elige un horario en el calendario de Adolfo y platicamos cómo Pooly puede ayudar a tu marca.',
+    'demoModal.cta': 'Ir a Calendly',
+
     // Auth - social & legal
     'auth.socialDivider': 'o continúa con',
     'auth.emailDivider': 'o continúa con email',
@@ -532,6 +537,11 @@ const translations = {
     'navbar.logout': 'Log out',
     'lang.es': 'Español',
     'lang.en': 'English',
+
+    // Demo modal
+    'demoModal.title': 'Book your demo',
+    'demoModal.body': "Pick a time on Adolfo's calendar and we'll show you how Pooly can help your brand.",
+    'demoModal.cta': 'Go to Calendly',
 
     // Auth - social & legal
     'auth.socialDivider': 'or continue with',

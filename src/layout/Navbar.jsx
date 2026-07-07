@@ -4,8 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import Icon from '../components/Icon';
-
-const DEMO_URL = 'mailto:hello@pooly.app?subject=Quiero%20agendar%20una%20demo%20de%20Pooly';
+import DemoModal from '../components/DemoModal';
 
 const NAV_LINKS = (t) => [
   { label: t('landing.nav.how'), href: '/#como' },
@@ -51,6 +50,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
   const userMenuRef = useRef(null);
 
   useEffect(() => {
@@ -72,6 +72,7 @@ const Navbar = () => {
   };
 
   return (
+    <>
     <nav className="navbar" style={{ position: 'relative' }}>
       {/* Logo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
@@ -188,8 +189,8 @@ const Navbar = () => {
             >
               {t('navbar.login')}
             </Link>
-            <a
-              href={DEMO_URL}
+            <button
+              onClick={() => setDemoOpen(true)}
               className="btn btn-primary"
               style={{
                 padding: '0.5rem 1.25rem',
@@ -199,7 +200,7 @@ const Navbar = () => {
               }}
             >
               {t('landing.nav.demoBtn')}
-            </a>
+            </button>
           </>
         )}
       </div>
@@ -283,12 +284,12 @@ const Navbar = () => {
                   <LanguageSwitcher />
                 </div>
                 <div style={{ padding: '0.75rem 1rem' }}>
-                  <a
-                    href={DEMO_URL}
+                  <button
+                    onClick={() => { setMenuOpen(false); setDemoOpen(true); }}
                     className="btn btn-primary"
-                    onClick={() => setMenuOpen(false)}
                     style={{
                       display: 'block',
+                      width: '100%',
                       textAlign: 'center',
                       borderRadius: '0',
                       fontWeight: 700,
@@ -296,7 +297,7 @@ const Navbar = () => {
                     }}
                   >
                     {t('landing.nav.demoBtn')}
-                  </a>
+                  </button>
                 </div>
               </>
             )}
@@ -304,6 +305,8 @@ const Navbar = () => {
         </div>
       )}
     </nav>
+    <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />
+    </>
   );
 };
 

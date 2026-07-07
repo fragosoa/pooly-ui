@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import '../styles/landing.css';
 import Icon from '../components/Icon';
+import DemoModal from '../components/DemoModal';
 
-const DEMO_URL = 'mailto:hello@pooly.app?subject=Quiero%20agendar%20una%20demo%20de%20Pooly';
 const SPOTS_LEFT = 7;
 
 const PAIN_ICONS = ['shopping-cart', 'star', 'inbox'];
@@ -88,6 +88,7 @@ const DashboardPreview = () => (
 
 const PublicGallery = () => {
   const { t } = useLanguage();
+  const [demoOpen, setDemoOpen] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -113,10 +114,10 @@ const PublicGallery = () => {
           </h1>
           <p className="lp-hero-sub">{t('landing.hero.sub')}</p>
           <div className="lp-hero-actions">
-            <a href={DEMO_URL} className="lp-btn-primary">
+            <button onClick={() => setDemoOpen(true)} className="lp-btn-primary">
               {t('landing.hero.cta')}
               <Icon name="arrow-right" size={16} />
-            </a>
+            </button>
             <p className="lp-hero-note">{t('landing.hero.note')}</p>
           </div>
           <div className="lp-shot-wrap lp-fade-up">
@@ -212,10 +213,10 @@ const PublicGallery = () => {
               <Icon name="zap" size={16} />
               {t('landing.pricing.spots', { n: SPOTS_LEFT })}
             </div>
-            <a href={DEMO_URL} className="lp-btn-primary lp-btn-full">
+            <button onClick={() => setDemoOpen(true)} className="lp-btn-primary lp-btn-full">
               {t('landing.pricing.btn')}
               <Icon name="arrow-right" size={16} />
-            </a>
+            </button>
           </div>
         </div>
       </section>
@@ -243,10 +244,10 @@ const PublicGallery = () => {
         <div className="lp-container lp-fade-up">
           <h2>{t('landing.finalcta.title')}</h2>
           <p>{t('landing.finalcta.body')}</p>
-          <a href={DEMO_URL} className="lp-btn-primary">
+          <button onClick={() => setDemoOpen(true)} className="lp-btn-primary">
             <Icon name="calendar" size={16} />
             {t('landing.finalcta.btn')}
-          </a>
+          </button>
         </div>
       </div>
 
@@ -265,6 +266,8 @@ const PublicGallery = () => {
           </div>
         </div>
       </footer>
+
+      <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />
 
     </div>
   );
