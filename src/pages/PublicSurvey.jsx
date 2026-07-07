@@ -13,7 +13,8 @@ export default function PublicSurvey() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
   const [error, setError] = useState('');
   const [isPaused, setIsPaused] = useState(false);
 
@@ -27,7 +28,6 @@ export default function PublicSurvey() {
         const textBlocks = (data.text_blocks || []).map(tb => ({ ...tb, item_type: 'text_block' }));
         const items = [...questions, ...textBlocks].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
         setEvent({ ...data, items });
-        if (data.welcome_message) setShowWelcome(true);
       } catch (err) {
         const status = err.response?.status;
         const errorCode = err.response?.data?.error;
@@ -60,8 +60,7 @@ export default function PublicSurvey() {
     setResponses(prev => ({ ...prev, [questionId]: text }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setSubmitting(true);
     setError('');
 
@@ -74,10 +73,10 @@ export default function PublicSurvey() {
         throw new Error(t('survey.errorAtLeastOne'));
       }
 
-      const toNums = (pairs) =>
-        pairs.map(([id]) => event.questions.findIndex(q => q.id === parseInt(id)) + 1).join(', ');
-
       const allQuestions = (event.items || []).filter(i => i.item_type === 'question');
+      const toNums = (pairs) =>
+        pairs.map(([id]) => allQuestions.findIndex(q => q.id === parseInt(id)) + 1).join(', ');
+
       const tooLongList = answeredQuestions.filter(([questionId, text]) => {
         const q = allQuestions.find(q => q.id === parseInt(questionId));
         return !['multiple', 'numeric', 'date'].includes(q?.type) && text.trim().length > 500;
@@ -108,10 +107,28 @@ export default function PublicSurvey() {
     }
   };
 
-  const answeredCount = Object.values(responses).filter(r =>
-    Array.isArray(r) ? r.length > 0 : r.trim() !== ''
-  ).length;
-  const totalQuestions = (event?.items || []).filter(i => i.item_type === 'question').length;
+  const steps = event?.items || [];
+  const totalQuestions = steps.filter(i => i.item_type === 'question').length;
+  const currentItem = steps[stepIndex];
+  const isLastStep = stepIndex >= steps.length - 1;
+  const questionsSoFar = Math.max(1, steps.slice(0, stepIndex + 1).filter(i => i.item_type === 'question').length);
+  const estimatedMinutes = Math.max(1, Math.round(totalQuestions / 3));
+
+  const canContinue = (item) => {
+    if (!item) return false;
+    if (item.item_type === 'text_block') return true;
+    if (item.optional) return true;
+    const val = responses[item.id];
+    return Array.isArray(val) ? val.length > 0 : !!(val && val.trim());
+  };
+
+  const goNext = () => {
+    if (isLastStep) {
+      handleSubmit();
+      return;
+    }
+    setStepIndex(i => i + 1);
+  };
 
   if (loading) {
     return (
@@ -128,22 +145,24 @@ export default function PublicSurvey() {
     const completionMsg = event?.completion_message;
     return (
       <div className="survey-page">
-        <div className="survey-success">
-          <div className="survey-success-icon">✓</div>
-          {completionMsg ? (
-            <div className="survey-success-markdown">
-              <ReactMarkdown>{completionMsg}</ReactMarkdown>
-            </div>
-          ) : (
-            <>
-              <h1>{t('survey.successTitle')}</h1>
-              <p>{t('survey.successDesc')}</p>
-              <p className="survey-success-note">{t('survey.successNote')}</p>
-            </>
-          )}
-          <Link to="/" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
-            {t('survey.goToPooly')}
-          </Link>
+        <div className="survey-stage">
+          <div className="survey-success" style={{ flex: 1 }}>
+            <div className="survey-success-icon"><Icon name="check" size={40} /></div>
+            {completionMsg ? (
+              <div className="survey-success-markdown">
+                <ReactMarkdown>{completionMsg}</ReactMarkdown>
+              </div>
+            ) : (
+              <>
+                <h1>{t('survey.successTitle')}</h1>
+                <p>{t('survey.successDesc')}</p>
+                <p className="survey-success-note">{t('survey.successNote')}</p>
+              </>
+            )}
+            <Link to="/" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
+              {t('survey.goToPooly')}
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -152,13 +171,15 @@ export default function PublicSurvey() {
   if (isPaused) {
     return (
       <div className="survey-page">
-        <header className="survey-header">
-          <Link to="/" className="survey-brand">Pooly</Link>
-        </header>
-        <div className="survey-error">
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏸</div>
-          <h1>{t('survey.pausedTitle')}</h1>
-          <p>{t('survey.pausedDesc')}</p>
+        <div className="survey-stage">
+          <header className="survey-header">
+            <Link to="/" className="survey-brand">Pool<span style={{ color: 'var(--primary)' }}>y</span></Link>
+          </header>
+          <div className="survey-error" style={{ flex: 1 }}>
+            <Icon name="pause" size={40} style={{ marginBottom: '1rem', color: 'var(--text-muted)' }} />
+            <h1>{t('survey.pausedTitle')}</h1>
+            <p>{t('survey.pausedDesc')}</p>
+          </div>
         </div>
       </div>
     );
@@ -167,35 +188,13 @@ export default function PublicSurvey() {
   if (!event) {
     return (
       <div className="survey-page">
-        <div className="survey-error">
-          <h1>{t('survey.notFound')}</h1>
-          <p>{t('survey.notFoundDesc')}</p>
-          <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>
-            {t('survey.goToPooly')}
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (showWelcome && event.welcome_message) {
-    return (
-      <div className="survey-page">
-        <header className="survey-header">
-          <Link to="/" className="survey-brand">Pooly</Link>
-        </header>
-        <div className="survey-welcome">
-          <div className="survey-welcome-content">
-            <div className="survey-welcome-markdown">
-              <ReactMarkdown>{event.welcome_message}</ReactMarkdown>
-            </div>
-            <button
-              className="btn btn-action btn-large"
-              style={{ marginTop: '2rem' }}
-              onClick={() => setShowWelcome(false)}
-            >
-              {t('survey.welcomeStart')}
-            </button>
+        <div className="survey-stage">
+          <div className="survey-error" style={{ flex: 1 }}>
+            <h1>{t('survey.notFound')}</h1>
+            <p>{t('survey.notFoundDesc')}</p>
+            <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+              {t('survey.goToPooly')}
+            </Link>
           </div>
         </div>
       </div>
@@ -204,94 +203,98 @@ export default function PublicSurvey() {
 
   return (
     <div className="survey-page">
-      <header className="survey-header">
-        <Link to="/" className="survey-brand">Pooly</Link>
-        <div className="survey-progress-badge">
-          {t('survey.progressBadge', { answered: answeredCount, total: totalQuestions })}
-        </div>
-      </header>
+      <div className="survey-stage">
+        <header className="survey-header">
+          <Link to="/" className="survey-brand">Pool<span style={{ color: 'var(--primary)' }}>y</span></Link>
+          {started && (
+            <>
+              <div className="survey-header-progress">
+                <div
+                  className="survey-header-progress-fill"
+                  style={{ width: totalQuestions > 0 ? `${(questionsSoFar / totalQuestions) * 100}%` : 0 }}
+                />
+              </div>
+              <span className="survey-header-counter">
+                {t('survey.stepCounter', { step: questionsSoFar, total: totalQuestions })}
+              </span>
+            </>
+          )}
+        </header>
 
-      <div
-        className="survey-progress-track"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={totalQuestions}
-        aria-valuenow={answeredCount}
-      >
-        <div
-          className="survey-progress-fill"
-          style={{ width: totalQuestions > 0 ? `${(answeredCount / totalQuestions) * 100}%` : 0 }}
-        />
-      </div>
+        {error && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: '1.5rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 1000,
+              background: 'var(--error-light)',
+              color: 'var(--error)',
+              border: '1px solid #FCA5A5',
+              borderRadius: 'var(--radius)',
+              padding: '0.875rem 1.25rem',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+              maxWidth: 'min(90vw, 480px)',
+              width: '100%',
+              textAlign: 'center',
+              fontSize: '0.9rem',
+              fontWeight: '500',
+            }}
+          >
+            {error}
+          </div>
+        )}
 
-      <div className="survey-hero">
-        <h1 className="survey-title">{event.name}</h1>
-        <p className="survey-description">{event.description}</p>
-      </div>
-
-      {error && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: '1.5rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1000,
-            background: 'var(--error-light)',
-            color: 'var(--error)',
-            border: '1px solid #FCA5A5',
-            borderRadius: 'var(--radius)',
-            padding: '0.875rem 1.25rem',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-            maxWidth: 'min(90vw, 480px)',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '0.9rem',
-            fontWeight: '500',
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      <div className="survey-container">
-
-        <form onSubmit={handleSubmit}>
-          <div className="chat-container">
-            {(() => {
-              let questionNum = 0;
-              return (event.items || []).map((item, index) => {
-              if (item.item_type === 'text_block') {
-                return (
-                  <div key={`tb-${item.id ?? index}`} className="chat-text-block" style={{
-                    padding: '1rem 1.25rem', margin: '0.5rem 0',
-                    background: 'var(--bg-secondary)', borderLeft: '3px solid var(--primary)',
-                  }}>
-                    <ReactMarkdown>{item.content}</ReactMarkdown>
-                  </div>
-                );
-              }
-              questionNum++;
-              const question = item;
-              const qNum = questionNum;
-              return (
-              <div key={question.id} className="chat-block">
+        {!started ? (
+          <div className="survey-intro">
+            <div className="survey-intro-icon">
+              <Icon name="shopping-bag" size={28} />
+            </div>
+            <h1 className="survey-intro-title">{event.name}</h1>
+            {event.welcome_message ? (
+              <div className="survey-welcome-markdown" style={{ marginBottom: '1.75rem' }}>
+                <ReactMarkdown>{event.welcome_message}</ReactMarkdown>
+              </div>
+            ) : (
+              <p className="survey-intro-desc">
+                {event.description || t('survey.introDefaultDesc', { count: totalQuestions })}
+              </p>
+            )}
+            <button className="btn btn-primary btn-large" onClick={() => setStarted(true)}>
+              {t('survey.introCta', { min: estimatedMinutes })}
+              <Icon name="arrow-right" size={17} />
+            </button>
+            <div className="survey-intro-trust">
+              <span><Icon name="lock" size={13} /> {t('survey.trustAnonymous')}</span>
+              <span><Icon name="zap" size={13} /> {t('survey.trustNoAccount')}</span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '1.5rem 1.25rem' }}>
+            {currentItem?.item_type === 'text_block' ? (
+              <div className="chat-message chat-assistant">
+                <div className="chat-avatar"><Icon name="message" size={18} color="#fff" /></div>
+                <div className="chat-bubble" style={{ flex: 1 }}>
+                  <ReactMarkdown>{currentItem.content}</ReactMarkdown>
+                </div>
+              </div>
+            ) : (
+              <>
                 <div className="chat-message chat-assistant">
-                  <div className="chat-avatar">
-                    <span>P</span>
-                  </div>
+                  <div className="chat-avatar"><Icon name="message" size={18} color="#fff" /></div>
                   <div className="chat-bubble">
-                    <div className="chat-question-number">{t('survey.question', { num: qNum })}</div>
-                    <div className="chat-question-text">{question.text}</div>
+                    <div className="chat-question-number">{t('survey.question', { num: questionsSoFar })}</div>
+                    <div className="chat-question-text">{currentItem.text}</div>
                   </div>
                 </div>
 
-                <div className="chat-message chat-user">
-                  {question.type === 'multiple' && question.options?.length > 0 ? (
+                <div className="chat-message chat-user" style={{ flex: 1 }}>
+                  {currentItem.type === 'multiple' && currentItem.options?.length > 0 ? (
                     <div className="chat-options">
-                      {question.options.map((option, oIdx) => {
-                        const isMulti = question.multi_select;
-                        const current = responses[question.id];
+                      {currentItem.options.map((option, oIdx) => {
+                        const isMulti = currentItem.multi_select;
+                        const current = responses[currentItem.id];
                         const isSelected = isMulti
                           ? (Array.isArray(current) ? current.includes(option) : false)
                           : current === option;
@@ -299,20 +302,20 @@ export default function PublicSurvey() {
                           <label key={oIdx} className={`chat-option ${isSelected ? 'is-selected' : ''}`}>
                             <input
                               type={isMulti ? 'checkbox' : 'radio'}
-                              name={`q-${question.id}`}
+                              name={`q-${currentItem.id}`}
                               value={option}
                               checked={isSelected}
                               onChange={() => {
                                 if (isMulti) {
                                   setResponses(prev => {
-                                    const arr = Array.isArray(prev[question.id]) ? prev[question.id] : [];
+                                    const arr = Array.isArray(prev[currentItem.id]) ? prev[currentItem.id] : [];
                                     const next = arr.includes(option)
                                       ? arr.filter(o => o !== option)
                                       : [...arr, option];
-                                    return { ...prev, [question.id]: next };
+                                    return { ...prev, [currentItem.id]: next };
                                   });
                                 } else {
-                                  handleResponseChange(question.id, option);
+                                  handleResponseChange(currentItem.id, option);
                                 }
                               }}
                               style={{ display: 'none' }}
@@ -322,72 +325,69 @@ export default function PublicSurvey() {
                           </label>
                         );
                       })}
-                      {(Array.isArray(responses[question.id]) ? responses[question.id].length > 0 : responses[question.id]) && (
-                        <div className="chat-options-done"><span>✓</span></div>
-                      )}
                     </div>
-                  ) : question.type === 'numeric' ? (
+                  ) : currentItem.type === 'numeric' ? (
                     <div className="chat-input-container">
                       <input
                         type="number"
                         className="chat-input-single"
                         placeholder={t('survey.placeholderNumeric')}
-                        value={responses[question.id] || ''}
-                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                        value={responses[currentItem.id] || ''}
+                        onChange={(e) => handleResponseChange(currentItem.id, e.target.value)}
+                        autoFocus
                       />
-                      {responses[question.id]?.trim() && (
-                        <div className="chat-input-status">✓</div>
-                      )}
                     </div>
-                  ) : question.type === 'date' ? (
+                  ) : currentItem.type === 'date' ? (
                     <div className="chat-input-container">
                       <input
                         type="date"
                         className="chat-input-single"
-                        value={responses[question.id] || ''}
-                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                        value={responses[currentItem.id] || ''}
+                        onChange={(e) => handleResponseChange(currentItem.id, e.target.value)}
+                        autoFocus
                       />
-                      {responses[question.id]?.trim() && (
-                        <div className="chat-input-status">✓</div>
-                      )}
                     </div>
                   ) : (
                     <div className="chat-input-container">
                       <textarea
                         className="chat-textarea"
                         placeholder={t('survey.placeholder')}
-                        value={responses[question.id] || ''}
-                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                        rows={3}
+                        value={responses[currentItem.id] || ''}
+                        onChange={(e) => handleResponseChange(currentItem.id, e.target.value)}
+                        rows={4}
+                        autoFocus
                       />
-                      {responses[question.id]?.trim() && (
-                        <div className="chat-input-status">✓</div>
-                      )}
                     </div>
                   )}
                 </div>
-              </div>
-              );
-              });
-            })()}
-          </div>
+              </>
+            )}
 
-          <div className="survey-footer">
-            <div className="survey-footer-info">
-              <span className="survey-footer-icon"><Icon name="lock" size={15} /></span>
-              <span>{t('survey.anonymous')}</span>
+            <div className="survey-footer" style={{ marginTop: '1.5rem' }}>
+              <div className="survey-footer-info">
+                <span className="survey-footer-icon"><Icon name="lock" size={14} /></span>
+                <span>{t('survey.anonymous')}</span>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={submitting || !canContinue(currentItem)}
+                onClick={goNext}
+              >
+                {submitting
+                  ? t('survey.submitting')
+                  : currentItem?.item_type === 'text_block'
+                    ? t('survey.continueBlock')
+                    : isLastStep ? t('survey.submit') : t('survey.next')}
+                <Icon name={isLastStep && currentItem?.item_type !== 'text_block' ? 'check' : 'arrow-right'} size={15} />
+              </button>
             </div>
-            <button
-              type="submit"
-              className="btn btn-primary btn-large survey-submit"
-              disabled={submitting || answeredCount === 0}
-            >
-              {submitting
-                ? t('survey.submitting')
-                : `${t('survey.submit')}${answeredCount > 0 ? ` (${answeredCount})` : ''}`}
-            </button>
           </div>
-        </form>
+        )}
+
+        <div className="survey-powered-by">
+          {t('survey.poweredBy')} <strong style={{ color: 'var(--text-secondary)' }}>Pool<span style={{ color: 'var(--primary)' }}>y</span></strong>
+        </div>
       </div>
     </div>
   );
