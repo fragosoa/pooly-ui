@@ -6,6 +6,7 @@ const translations = {
   es: {
     // Navbar
     'navbar.controlPanel': 'Panel de control',
+    'navbar.settings': 'Configuración',
     'navbar.login': 'Iniciar sesión',
     'navbar.register': 'Comenzar',
     'navbar.logout': 'Cerrar sesión',
@@ -525,6 +526,7 @@ const translations = {
   en: {
     // Navbar
     'navbar.controlPanel': 'Control Panel',
+    'navbar.settings': 'Settings',
     'navbar.login': 'Log in',
     'navbar.register': 'Get started',
     'navbar.logout': 'Log out',
