@@ -12,6 +12,13 @@ const NAV_LINKS = (t) => [
   { label: t('landing.nav.faq'), href: '/#faq' },
 ];
 
+const getInitials = (username = '') => {
+  const parts = username.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+};
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
@@ -35,21 +42,6 @@ const Navbar = () => {
         >
           Pool<span style={{ color: 'var(--primary)' }}>y</span>
         </Link>
-        <span style={{
-          background: 'var(--secondary)',
-          color: 'white',
-          fontSize: '0.8125rem',
-          fontWeight: 700,
-          padding: '0.25rem 0.875rem',
-          borderRadius: '0',
-          letterSpacing: '0.05em',
-          lineHeight: '1.4',
-          userSelect: 'none',
-          clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%)',
-          paddingRight: '1.25rem',
-        }}>
-          DEMO
-        </span>
       </div>
 
       {/* Center nav links — desktop only, logged-out */}
@@ -74,11 +66,30 @@ const Navbar = () => {
         {user ? (
           <>
             <LanguageSwitcher />
-            <Link to="/admin" className="nav-link" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-              {user.username}
-            </Link>
             <Link to="/admin/settings" className="nav-link">
               {t('navbar.controlPanel')}
+            </Link>
+            <Link
+              to="/admin"
+              className="nav-link"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}
+            >
+              <span style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                background: 'var(--brand-soft, var(--primary-light))',
+                color: 'var(--brand, var(--primary))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.6875rem',
+                fontWeight: 700,
+                flexShrink: 0,
+              }}>
+                {getInitials(user.username)}
+              </span>
+              {user.username}
             </Link>
             <button
               onClick={handleLogout}
@@ -150,7 +161,27 @@ const Navbar = () => {
           <div className="navbar-mobile-actions">
             {user ? (
               <>
-                <Link to="/admin" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>
+                <Link
+                  to="/admin"
+                  className="navbar-mobile-link"
+                  onClick={() => setMenuOpen(false)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <span style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: 'var(--brand-soft, var(--primary-light))',
+                    color: 'var(--brand, var(--primary))',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.6875rem',
+                    fontWeight: 700,
+                    flexShrink: 0,
+                  }}>
+                    {getInitials(user.username)}
+                  </span>
                   {user.username}
                 </Link>
                 <Link to="/admin/settings" className="navbar-mobile-link" onClick={() => setMenuOpen(false)}>
