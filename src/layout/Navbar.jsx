@@ -4,11 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
+const DEMO_URL = 'mailto:hello@pooly.app?subject=Quiero%20agendar%20una%20demo%20de%20Pooly';
+
 const NAV_LINKS = (t) => [
-  { label: t('landing.nav.product'), href: '/#features' },
-  { label: t('landing.nav.how'), href: '/#how' },
-  { label: t('landing.nav.demo'), href: '/#demo' },
-  { label: t('landing.nav.pricing'), href: '/#pricing' },
+  { label: t('landing.nav.how'), href: '/#como' },
+  { label: t('landing.nav.pricing'), href: '/#precios' },
+  { label: t('landing.nav.faq'), href: '/#faq' },
 ];
 
 const Navbar = () => {
@@ -89,6 +90,7 @@ const Navbar = () => {
           </>
         ) : (
           <>
+            <LanguageSwitcher />
             <Link
               to="/login"
               className="nav-link"
@@ -96,8 +98,8 @@ const Navbar = () => {
             >
               {t('navbar.login')}
             </Link>
-            <Link
-              to="/register"
+            <a
+              href={DEMO_URL}
               className="btn btn-primary"
               style={{
                 padding: '0.5rem 1.25rem',
@@ -108,8 +110,8 @@ const Navbar = () => {
                 fontWeight: 700,
               }}
             >
-              {t('navbar.register')}
-            </Link>
+              {t('landing.nav.demoBtn')}
+            </a>
           </>
         )}
       </div>
@@ -174,9 +176,12 @@ const Navbar = () => {
                 >
                   {t('navbar.login')}
                 </Link>
+                <div style={{ padding: '0.5rem 1rem' }}>
+                  <LanguageSwitcher />
+                </div>
                 <div style={{ padding: '0.75rem 1rem' }}>
-                  <Link
-                    to="/register"
+                  <a
+                    href={DEMO_URL}
                     className="btn btn-primary"
                     onClick={() => setMenuOpen(false)}
                     style={{
@@ -189,8 +194,8 @@ const Navbar = () => {
                       fontSize: '0.9rem',
                     }}
                   >
-                    {t('navbar.register')}
-                  </Link>
+                    {t('landing.nav.demoBtn')}
+                  </a>
                 </div>
               </>
             )}
