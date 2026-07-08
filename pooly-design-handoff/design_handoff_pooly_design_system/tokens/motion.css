@@ -1,0 +1,25 @@
+/* ============================================================
+   MOTION
+   Quick, functional transitions. Fades and small translateY
+   lifts (1px on hover). No bounce, no long durations.
+   ============================================================ */
+
+:root {
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1); /* @kind other */
+
+  --dur-fast:   0.15s; /* @kind other */
+  --dur-base:   0.2s;  /* @kind other */
+  --dur-slow:   0.35s; /* @kind other */
+  --dur-slower: 0.6s;  /* @kind other */
+
+  --transition-control: color var(--dur-base) var(--ease-standard),
+                        background var(--dur-base) var(--ease-standard),
+                        border-color var(--dur-base) var(--ease-standard),
+                        box-shadow var(--dur-base) var(--ease-standard),
+                        transform var(--dur-fast) var(--ease-standard);
+}
+
+@keyframes pooly-spin { to { transform: rotate(360deg); } }
+@keyframes pooly-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+@keyframes pooly-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }

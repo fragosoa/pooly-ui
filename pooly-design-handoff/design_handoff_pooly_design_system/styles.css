@@ -1,0 +1,14 @@
+/* ============================================================
+   POOLY DESIGN SYSTEM — global entry point
+   E-commerce "Voice of Customer" rebrand (2026)
+   This file is a manifest of @imports only. Consumers link
+   this single file. Do not add rules here directly.
+   ============================================================ */
+
+@import url("tokens/fonts.css");
+@import url("tokens/colors.css");
+@import url("tokens/typography.css");
+@import url("tokens/spacing.css");
+@import url("tokens/radius-shadow.css");
+@import url("tokens/motion.css");
+@import url("tokens/base.css");

@@ -9,6 +9,7 @@ import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 import api from '../services/api';
 import Modal from '../components/Modal';
+import Icon from '../components/Icon';
 import OverviewTab from '../components/OverviewTab';
 import TrendsTab from '../components/TrendsTab';
 import { useLanguage } from '../context/LanguageContext';
@@ -249,10 +250,10 @@ export default function EventDetails() {
 
   const getJobStatusInfo = (status) => {
     switch (status) {
-      case 'COMPLETED': return { label: t('jobs.statusCompleted'), class: 'completed', icon: '✓' };
-      case 'RUNNING':   return { label: t('jobs.statusRunning'),   class: 'running',   icon: '⟳' };
-      case 'ERROR':     return { label: t('jobs.statusError'),     class: 'error',     icon: '✕' };
-      default:          return { label: status,                    class: 'unknown',   icon: '?' };
+      case 'COMPLETED': return { label: t('jobs.statusCompleted'), class: 'completed', icon: 'check' };
+      case 'RUNNING':   return { label: t('jobs.statusRunning'),   class: 'running',   icon: 'loader' };
+      case 'ERROR':     return { label: t('jobs.statusError'),     class: 'error',     icon: 'x' };
+      default:          return { label: status,                    class: 'unknown',   icon: 'help-circle' };
     }
   };
 
@@ -836,7 +837,7 @@ export default function EventDetails() {
       {isImported ? (
         <div className="share-card">
           <div className="share-card-header">
-            <div className="share-card-icon">↑</div>
+            <div className="share-card-icon"><Icon name="upload" size={20} /></div>
             <div>
               <h3 className="share-card-title">{t('eventDetails.importTitle')}</h3>
               <p className="share-card-subtitle">{t('eventDetails.importSubtitle')}</p>
@@ -864,7 +865,7 @@ export default function EventDetails() {
       ) : (
         <div className="share-card">
           <div className="share-card-header">
-            <div className="share-card-icon">🔗</div>
+            <div className="share-card-icon"><Icon name="share-2" size={20} /></div>
             <div>
               <h3 className="share-card-title">{t('eventDetails.shareTitle')}</h3>
               <p className="share-card-subtitle">{t('eventDetails.shareSubtitle')}</p>
@@ -930,29 +931,29 @@ export default function EventDetails() {
         }}>
         <div className="tabs-nav" style={{ borderBottom: 'none', marginBottom: 0 }}>
           <button className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
-            <span className="tab-icon">⚡</span>
+            <span className="tab-icon"><Icon name="zap" /></span>
             {t('eventDetails.tabOverview')}
-            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: '#F59E0B', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
+            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: 'var(--warning)', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
             {recommendations.filter(r => r.impact_level === 'high').length > 0 && (
               <span className="tab-badge running">{recommendations.filter(r => r.impact_level === 'high').length}</span>
             )}
           </button>
           <button className={`tab-btn ${activeTab === 'insights' ? 'active' : ''}`} onClick={() => setActiveTab('insights')}>
-            <span className="tab-icon">📊</span>
+            <span className="tab-icon"><Icon name="chart" /></span>
             {t('eventDetails.tabInsights')}
             {reports.length > 0 && <span className="tab-badge">{reports.length}</span>}
           </button>
           <button className={`tab-btn ${activeTab === 'trends' ? 'active' : ''}`} onClick={() => setActiveTab('trends')}>
-            <span className="tab-icon">📈</span>
+            <span className="tab-icon"><Icon name="trend" /></span>
             {t('eventDetails.tabTrends')}
-            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: '#F59E0B', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
+            <span style={{ fontSize: '0.6rem', fontWeight: '700', padding: '0.1rem 0.35rem', background: 'var(--warning)', color: 'white', borderRadius: '999px', letterSpacing: '0.04em', verticalAlign: 'middle' }}>BETA</span>
           </button>
           <button className={`tab-btn ${activeTab === 'responses' ? 'active' : ''}`} onClick={() => setActiveTab('responses')}>
-            <span className="tab-icon">💬</span>
+            <span className="tab-icon"><Icon name="message" /></span>
             {t('eventDetails.tabResponses')}
           </button>
           <button className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`} onClick={() => setActiveTab('status')}>
-            <span className="tab-icon">⚙️</span>
+            <span className="tab-icon"><Icon name="settings" /></span>
             {t('eventDetails.tabStatus')}
             {jobs.filter(j => j.status === 'RUNNING').length > 0 && (
               <span className="tab-badge running">{jobs.filter(j => j.status === 'RUNNING').length}</span>
@@ -1075,7 +1076,7 @@ export default function EventDetails() {
                   <button
                     onClick={handleAnalyzeClick}
                     disabled={analyzing}
-                    className="btn btn-primary"
+                    className="btn btn-action"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                   >
                     {analyzing ? (
@@ -1112,7 +1113,7 @@ export default function EventDetails() {
                                 padding: '0.15rem 0.55rem',
                                 whiteSpace: 'nowrap',
                               }}>
-                                {{ open: '💬', multiple: '☑️', numeric: '🔢', date: '📅' }[question.type]}
+                                <Icon name={{ open: 'message', multiple: 'list-checks', numeric: 'hash', date: 'calendar' }[question.type]} size={11} style={{ verticalAlign: '-1.5px' }} />
                                 {' '}
                                 {t(`create.questionType${question.type.charAt(0).toUpperCase() + question.type.slice(1)}`)}
                               </span>
@@ -1190,7 +1191,7 @@ export default function EventDetails() {
                   <button
                     onClick={handleAnalyzeClick}
                     disabled={analyzing}
-                    className="btn btn-primary"
+                    className="btn btn-action"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                   >
                     {analyzing ? (
@@ -1312,7 +1313,7 @@ export default function EventDetails() {
                     return (
                       <div className="report-type-section">
                         <div className="report-type-section-title">
-                          <span>💬</span>
+                          <Icon name="message" size={13} />
                           <span>{isES ? 'Análisis de texto libre' : 'Free text analysis'}</span>
                           <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                           <span style={{ fontWeight: 400 }}>({reportsByType.open.length})</span>
@@ -1447,7 +1448,7 @@ export default function EventDetails() {
                   {reportsByType.multiple.length > 0 && (
                     <div className="report-type-section">
                       <div className="report-type-section-title">
-                        <span>☑️</span>
+                        <Icon name="list-checks" size={13} />
                         <span>{locale === 'es-MX' ? 'Distribución de opciones' : 'Option distribution'}</span>
                         <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                         <span style={{ fontWeight: 400 }}>({reportsByType.multiple.length})</span>
@@ -1461,8 +1462,8 @@ export default function EventDetails() {
                             <div key={report.id} className="report-card">
                               <div className="report-card-header">
                                 <h4 className="report-category">{report.question_text}</h4>
-                                <span className="report-badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
-                                  ☑️ {locale === 'es-MX' ? 'Opción múltiple' : 'Multiple choice'}
+                                <span className="report-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'var(--primary-light)', color: 'var(--primary)' }}>
+                                  <Icon name="list-checks" size={11} /> {locale === 'es-MX' ? 'Opción múltiple' : 'Multiple choice'}
                                 </span>
                               </div>
                               <div style={{ padding: '0.75rem 1.25rem' }}>
@@ -1511,7 +1512,7 @@ export default function EventDetails() {
                   {reportsByType.numeric.length > 0 && (
                     <div className="report-type-section">
                       <div className="report-type-section-title">
-                        <span>🔢</span>
+                        <Icon name="hash" size={13} />
                         <span>{locale === 'es-MX' ? 'Estadísticas numéricas' : 'Numeric statistics'}</span>
                         <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                         <span style={{ fontWeight: 400 }}>({reportsByType.numeric.length})</span>
@@ -1523,8 +1524,8 @@ export default function EventDetails() {
                             <div key={report.id} className="report-card">
                               <div className="report-card-header">
                                 <h4 className="report-category">{report.question_text}</h4>
-                                <span className="report-badge" style={{ background: '#F0FDF4', color: '#15803D' }}>
-                                  🔢 {locale === 'es-MX' ? 'Numérico' : 'Numeric'}
+                                <span className="report-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'var(--secondary-light)', color: 'var(--secondary)' }}>
+                                  <Icon name="hash" size={11} /> {locale === 'es-MX' ? 'Numérico' : 'Numeric'}
                                 </span>
                               </div>
                               <div className="report-stats-grid">
@@ -1572,7 +1573,7 @@ export default function EventDetails() {
                   {reportsByType.date.length > 0 && (
                     <div className="report-type-section">
                       <div className="report-type-section-title">
-                        <span>📅</span>
+                        <Icon name="calendar" size={13} />
                         <span>{locale === 'es-MX' ? 'Análisis temporal' : 'Temporal analysis'}</span>
                         <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                         <span style={{ fontWeight: 400 }}>({reportsByType.date.length})</span>
@@ -1584,8 +1585,8 @@ export default function EventDetails() {
                             <div key={report.id} className="report-card">
                               <div className="report-card-header">
                                 <h4 className="report-category">{report.question_text}</h4>
-                                <span className="report-badge" style={{ background: '#FFF7ED', color: '#C2410C' }}>
-                                  📅 {locale === 'es-MX' ? 'Fecha' : 'Date'}
+                                <span className="report-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'var(--action-tint)', color: 'var(--action-hover)' }}>
+                                  <Icon name="calendar" size={11} /> {locale === 'es-MX' ? 'Fecha' : 'Date'}
                                 </span>
                               </div>
                               <div className="report-stats">
@@ -1660,11 +1661,12 @@ export default function EventDetails() {
                 <div className="reports-empty">
                   <div style={{
                     width: '4rem', height: '4rem',
-                    background: 'var(--primary)',
+                    background: 'var(--primary-light)', color: 'var(--primary)',
+                    borderRadius: 'var(--radius-round)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 1.25rem',
                   }}>
-                    <span style={{ fontSize: '1.75rem' }}>📈</span>
+                    <Icon name="trending-up" size={28} />
                   </div>
                   <h4>{t('reports.emptyTitle')}</h4>
                   <p>{t('charts.noData')}</p>
@@ -1732,7 +1734,7 @@ export default function EventDetails() {
                     return (
                       <>
                         <div className="report-type-section-title">
-                          <span>💬</span><span>{locale === 'es-MX' ? 'Texto libre' : 'Free text'}</span>
+                          <Icon name="message" size={13} /><span>{locale === 'es-MX' ? 'Texto libre' : 'Free text'}</span>
                           <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                         </div>
                         {openByQuestion.map(({ label, reports: qReports }) => {
@@ -1793,7 +1795,7 @@ export default function EventDetails() {
                   {reportsByType.multiple.length > 0 && (
                     <>
                       <div className="report-type-section-title">
-                        <span>☑️</span><span>{locale === 'es-MX' ? 'Distribución de opciones' : 'Option distribution'}</span>
+                        <Icon name="list-checks" size={13} /><span>{locale === 'es-MX' ? 'Distribución de opciones' : 'Option distribution'}</span>
                         <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                       </div>
                       {reportsByType.multiple.map(r => {
@@ -1821,7 +1823,7 @@ export default function EventDetails() {
                   {reportsByType.numeric.length > 0 && (
                     <>
                       <div className="report-type-section-title">
-                        <span>🔢</span><span>{locale === 'es-MX' ? 'Estadísticas numéricas' : 'Numeric statistics'}</span>
+                        <Icon name="hash" size={13} /><span>{locale === 'es-MX' ? 'Estadísticas numéricas' : 'Numeric statistics'}</span>
                         <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                       </div>
                       {reportsByType.numeric.map(r => {
@@ -1863,7 +1865,7 @@ export default function EventDetails() {
                   {reportsByType.date.length > 0 && (
                     <>
                       <div className="report-type-section-title">
-                        <span>📅</span><span>{locale === 'es-MX' ? 'Análisis temporal' : 'Temporal analysis'}</span>
+                        <Icon name="calendar" size={13} /><span>{locale === 'es-MX' ? 'Análisis temporal' : 'Temporal analysis'}</span>
                         <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
                       </div>
                       {reportsByType.date.map(r => {
@@ -1934,7 +1936,7 @@ export default function EventDetails() {
 
               {!jobsLoading && jobs.length === 0 && !jobsError && (
                 <div className="reports-empty">
-                  <div className="reports-empty-icon">⚙️</div>
+                  <div className="reports-empty-icon"><Icon name="settings" size={40} /></div>
                   <h4>{t('jobs.emptyTitle')}</h4>
                   <p>{t('jobs.emptyDesc')}</p>
                 </div>
@@ -1960,7 +1962,7 @@ export default function EventDetails() {
                             <td className="jobs-table-id">#{idx + 1}</td>
                             <td>
                               <span className={`job-status job-status-${statusInfo.class}`}>
-                                <span className="job-status-icon">{statusInfo.icon}</span>
+                                <span className="job-status-icon"><Icon name={statusInfo.icon} size={13} /></span>
                                 {statusInfo.label}
                               </span>
                             </td>
@@ -1993,14 +1995,14 @@ export default function EventDetails() {
             <button className="btn btn-secondary" onClick={() => setShowAnalyzeModal(false)}>
               {t('analyzeModal.cancel')}
             </button>
-            <button className="btn btn-primary" onClick={handleAnalyzeConfirm}>
+            <button className="btn btn-action" onClick={handleAnalyzeConfirm}>
               {t('analyzeModal.confirm')}
             </button>
           </div>
         }
       >
         <div className="modal-confirm-content">
-          <div className="modal-icon">🤖</div>
+          <div className="modal-icon"><Icon name="bot" size={40} /></div>
           <p className="modal-message">
             {locale === 'es-MX'
               ? 'Estás a punto de iniciar un análisis de las respuestas con inteligencia artificial.'
@@ -2008,7 +2010,7 @@ export default function EventDetails() {
           </p>
           <div className="modal-info-box">
             <div className="modal-info-item">
-              <span className="modal-info-icon">⏱️</span>
+              <span className="modal-info-icon"><Icon name="clock" size={18} /></span>
               <span>
                 {locale === 'es-MX'
                   ? <>El proceso puede tardar <strong>unos minutos</strong> dependiendo del volumen de respuestas.</>
@@ -2016,7 +2018,7 @@ export default function EventDetails() {
               </span>
             </div>
             <div className="modal-info-item">
-              <span className="modal-info-icon">📊</span>
+              <span className="modal-info-icon"><Icon name="chart" size={18} /></span>
               <span>
                 {locale === 'es-MX'
                   ? <>Podrás monitorear el progreso en la sección <strong>Status</strong>.</>
@@ -2024,7 +2026,7 @@ export default function EventDetails() {
               </span>
             </div>
             <div className="modal-info-item">
-              <span className="modal-info-icon">🔔</span>
+              <span className="modal-info-icon"><Icon name="bell" size={18} /></span>
               <span>
                 {locale === 'es-MX'
                   ? <>Recibirás los resultados en la pestaña <strong>Reportes IA</strong> cuando termine.</>

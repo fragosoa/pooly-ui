@@ -1,0 +1,32 @@
+/* ============================================================
+   BASE — minimal element resets so specimen cards & kits
+   inherit the brand defaults. Components rely on tokens, not
+   on these globals, but these keep raw HTML on-brand.
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background: var(--surface-sunken);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: var(--text-link);
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--brand-soft);
+  color: var(--brand-hover);
+}

@@ -6,10 +6,11 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { CSS } from '@dnd-kit/utilities';
 import api from '../services/api';
 import Modal from '../components/Modal';
+import Icon from '../components/Icon';
 import MarkdownEditor from '../components/MarkdownEditor';
 import { useLanguage } from '../context/LanguageContext';
 
-const TYPE_ICONS = { open: '💬', multiple: '☑️', numeric: '🔢', date: '📅' };
+const TYPE_ICONS = { open: 'message', multiple: 'list-checks', numeric: 'hash', date: 'calendar' };
 const QUESTION_TYPES = ['open', 'multiple', 'numeric', 'date'];
 
 const emptyQuestion = () => ({
@@ -547,7 +548,7 @@ export default function EditEvent() {
                                     border: '1px dashed var(--border)',
                                     background: 'var(--bg-secondary)',
                                 }}>
-                                    <span style={{ fontSize: '1rem', flexShrink: 0, marginTop: '0.1rem' }}>📝</span>
+                                    <span style={{ flexShrink: 0, marginTop: '0.1rem', color: 'var(--text-secondary)', display: 'flex' }}><Icon name="note" size={16} /></span>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                             {item.content
@@ -566,12 +567,12 @@ export default function EditEvent() {
                                         {openMenuIdx === idx && (
                                             <div style={{ position: 'absolute', right: 0, top: '100%', zIndex: 20, background: 'var(--bg-white)', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: '130px' }}>
                                                 <button type="button" onClick={() => openEditModal(idx)}
-                                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)', fontFamily: 'inherit' }}>
-                                                    ✏️ {isES ? 'Editar' : 'Edit'}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)', fontFamily: 'inherit' }}>
+                                                    <Icon name="pencil" size={14} /> {isES ? 'Editar' : 'Edit'}
                                                 </button>
                                                 <button type="button" onClick={() => removeQuestion(idx)}
-                                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)', fontFamily: 'inherit' }}>
-                                                    🗑 {isES ? 'Eliminar' : 'Delete'}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)', fontFamily: 'inherit' }}>
+                                                    <Icon name="trash" size={14} /> {isES ? 'Eliminar' : 'Delete'}
                                                 </button>
                                             </div>
                                         )}
@@ -598,7 +599,7 @@ export default function EditEvent() {
                                         {item.text || <em style={{ color: 'var(--text-muted)' }}>{isES ? 'Sin texto' : 'No text'}</em>}
                                     </p>
                                     <p style={{ margin: '0.15rem 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                                        {TYPE_ICONS[item.type]}{' '}
+                                        <Icon name={TYPE_ICONS[item.type]} size={12} style={{ verticalAlign: '-2px', marginRight: '0.15rem' }} />{' '}
                                         {t(`create.questionType${item.type.charAt(0).toUpperCase() + item.type.slice(1)}`)}
                                         {item.type === 'multiple' && item.options?.filter(Boolean).length > 0 && (
                                             <span> · {item.options.filter(Boolean).length} {isES ? 'opciones' : 'options'}</span>
@@ -617,13 +618,13 @@ export default function EditEvent() {
                                     {openMenuIdx === idx && (
                                         <div style={{ position: 'absolute', right: 0, top: '100%', zIndex: 20, background: 'var(--bg-white)', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', minWidth: '130px' }}>
                                             <button type="button" onClick={() => openEditModal(idx)}
-                                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)', fontFamily: 'inherit' }}>
-                                                ✏️ {isES ? 'Editar' : 'Edit'}
+                                                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-primary)', fontFamily: 'inherit' }}>
+                                                <Icon name="pencil" size={14} /> {isES ? 'Editar' : 'Edit'}
                                             </button>
                                             {questions.filter(i => i._kind === 'question').length > 1 && (
                                                 <button type="button" onClick={() => removeQuestion(idx)}
-                                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)', fontFamily: 'inherit' }}>
-                                                    🗑 {isES ? 'Eliminar' : 'Delete'}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--error)', fontFamily: 'inherit' }}>
+                                                    <Icon name="trash" size={14} /> {isES ? 'Eliminar' : 'Delete'}
                                                 </button>
                                             )}
                                         </div>
@@ -644,7 +645,7 @@ export default function EditEvent() {
                         <button type="button" onClick={openAddTextBlock} className="btn btn-outline"
                             style={{ flex: 1, borderStyle: 'dashed' }}
                             title={isES ? 'Agrega un bloque de texto o separador entre preguntas' : 'Add a text block or separator between questions'}>
-                            📝 {isES ? 'Agregar texto' : 'Add text'}
+                            <Icon name="note" size={14} /> {isES ? 'Agregar texto' : 'Add text'}
                         </button>
                     </div>
                 </div>
@@ -654,7 +655,7 @@ export default function EditEvent() {
                     <Link to={`/admin/events/${eventId}`} className="btn btn-secondary">
                         {t('editEvent.cancelBtn')}
                     </Link>
-                    <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+                    <button className="btn btn-action" onClick={handleSave} disabled={saving}>
                         {saving ? t('editEvent.saving') : t('editEvent.saveBtn')}
                     </button>
                 </div>
@@ -725,7 +726,7 @@ export default function EditEvent() {
                                 className={`btn ${modalData.type === type ? 'btn-primary' : 'btn-outline'}`}
                                 style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
                             >
-                                {TYPE_ICONS[type]}{' '}
+                                <Icon name={TYPE_ICONS[type]} size={13} style={{ verticalAlign: '-2px', marginRight: '0.15rem' }} />{' '}
                                 {isES
                                     ? { open: 'Texto', multiple: 'Múltiple', numeric: 'Número', date: 'Fecha' }[type]
                                     : { open: 'Text', multiple: 'Multiple', numeric: 'Number', date: 'Date' }[type]
@@ -790,10 +791,11 @@ export default function EditEvent() {
                             </span>
                         </div>
                         {modalData.multiSelect && (
-                            <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: 'var(--warning, #b45309)', lineHeight: 1.5 }}>
+                            <p style={{ margin: '0.5rem 0 0', display: 'flex', alignItems: 'flex-start', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--warning-strong)', lineHeight: 1.5 }}>
+                                <Icon name="alert-triangle" size={13} style={{ flexShrink: 0, marginTop: '0.15rem' }} />
                                 {isES
-                                    ? '⚠ Evita usar signos de puntuacion en las opciones tales como comas, guiones o barras'
-                                    : '⚠ Avoid commas in option text — commas are used internally to separate selected answers.'}
+                                    ? 'Evita usar signos de puntuacion en las opciones tales como comas, guiones o barras'
+                                    : 'Avoid commas in option text — commas are used internally to separate selected answers.'}
                             </p>
                         )}
                         {optionsError && (

@@ -1,0 +1,109 @@
+/* ============================================================
+   COLORS
+   ------------------------------------------------------------
+   Two anchors define the rebrand:
+   - BRAND BLUE  (#2563EB) — trust, the recognizable Pooly mark,
+     navigation, focus, links, data accents.
+   - ACTION BLUE (#1D4ED8) — commercial energy. Reserved for
+     conversion moments: primary CTAs, "start", pricing, sale.
+     (Retuned 2026-07 from orange #F97316; --orange-* kept as
+     legacy palette only — do not use for CTAs.)
+   The squared "civic" look is gone, but the color anchors and
+   the functional badge palette (sentiment / urgency / status)
+   are carried over because they map cleanly onto e-commerce
+   meaning (order status, complaint urgency, review sentiment).
+   ============================================================ */
+
+:root {
+  /* ---- Base palette: Brand blue ---- */
+  --blue-600: #2563EB;
+  --blue-700: #1D4ED8;
+  --blue-800: #1E40AF;
+  --blue-100: #DBEAFE;
+  --blue-50:  #EFF6FF;
+
+  /* ---- Base palette: Action orange (NEW) ---- */
+  --orange-500: #F97316;
+  --orange-600: #EA580C;
+  --orange-100: #FFEDD5;
+  --orange-50:  #FFF7ED;
+
+  /* ---- Functional hues ---- */
+  --green-600: #059669;   --green-100: #D1FAE5;   --green-50: #ECFDF5;
+  --red-600:   #DC2626;   --red-100:   #FEE2E2;
+  --amber-600: #D97706;   --amber-100: #FEF3C7;
+  --indigo-600:#4F46E5;   --indigo-100:#E0E7FF;
+  --purple-600:#7C3AED;   --purple-100:#F3E8FF;
+
+  /* ---- Neutrals (warm-cool gray, Tailwind-derived) ---- */
+  --white:    #FFFFFF;
+  --gray-50:  #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+  --gray-950: #0B1220;
+
+  /* ============================================================
+     SEMANTIC ALIASES — prefer these in components
+     ============================================================ */
+
+  /* Brand (trust anchor) */
+  --brand:        var(--blue-600);
+  --brand-hover:  var(--blue-700);
+  --brand-soft:   var(--blue-100);
+  --brand-tint:   var(--blue-50);
+
+  /* Action (conversion energy) — retuned 2026-07: deep blue instead of
+     orange/amber, per brand decision. One step darker than --brand so
+     CTAs keep weight without introducing a second hue. */
+  --action:       var(--blue-700);
+  --action-hover: var(--blue-800);
+  --action-soft:  var(--blue-100);
+  --action-tint:  var(--blue-50);
+
+  /* Surfaces */
+  --surface:        var(--white);      /* cards, inputs, navbar */
+  --surface-sunken: var(--gray-50);    /* app canvas */
+  --surface-alt:    var(--gray-100);   /* rows, hover fills */
+  --surface-dark:   var(--gray-900);   /* footers, dark bands */
+  --surface-dark-2: var(--gray-800);   /* cards on dark */
+
+  /* Text */
+  --text-primary:   var(--gray-900);
+  --text-secondary: var(--gray-500);
+  --text-muted:     var(--gray-400);
+  --text-inverse:   var(--white);
+  --text-on-action: var(--white);
+  --text-link:      var(--brand);
+
+  /* Lines */
+  --border:        var(--gray-200);
+  --border-strong: var(--gray-300);
+  --border-dark:   #2A3441;            /* dividers on dark surfaces */
+
+  /* Status — positive / active / in-stock / completed */
+  --success:      var(--green-600);
+  --success-soft: var(--green-100);
+  /* Danger — error / high urgency / churn / out-of-stock */
+  --danger:       var(--red-600);
+  --danger-soft:  var(--red-100);
+  /* Warning — medium urgency / closing soon */
+  --warning:      var(--amber-600);
+  --warning-soft: var(--amber-100);
+  /* Info — neutral metric / online source */
+  --info:         var(--indigo-600);
+  --info-soft:    var(--indigo-100);
+  /* Special — preview / paused / promo */
+  --special:      var(--purple-600);
+  --special-soft: var(--purple-100);
+
+  /* Focus ring */
+  --ring: 0 0 0 3px var(--brand-soft);
+  --ring-action: 0 0 0 3px var(--action-soft);
+}

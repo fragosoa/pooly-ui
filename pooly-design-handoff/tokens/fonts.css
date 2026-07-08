@@ -1,0 +1,8 @@
+/* ============================================================
+   FONTS — Nunito Sans (Google Fonts)
+   The base family is kept from the original Pooly system: it is
+   friendly, legible, and reads well in commercial contexts.
+   Weights 300–800; italic 300/400 for testimonial quotes.
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,300;1,6..12,400&display=swap");

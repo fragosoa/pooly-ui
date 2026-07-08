@@ -1,0 +1,47 @@
+<!-- @dsCard group="Colors" viewport="700x210" name="Functional / status" subtitle="Carried-over badge palette, re-mapped to commerce" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 22px 24px; background: var(--surface); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .row { }
+  .pair { display: flex; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); height: 46px; }
+  .solid { flex: 0 0 46px; }
+  .soft { flex: 1; display: flex; align-items: center; padding: 0 12px; font-size: 12.5px; font-weight: 700; }
+  .meta { display: flex; justify-content: space-between; margin-top: 6px; }
+  .nm { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+  .use { font-size: 11px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="row">
+    <div class="pair"><div class="solid" style="background:var(--success)"></div><div class="soft" style="background:var(--success-soft);color:var(--success)">Positivo</div></div>
+    <div class="meta"><span class="nm">Success</span><span class="use">activo · in-stock</span></div>
+  </div>
+  <div class="row">
+    <div class="pair"><div class="solid" style="background:var(--danger)"></div><div class="soft" style="background:var(--danger-soft);color:var(--danger)">Negativo</div></div>
+    <div class="meta"><span class="nm">Danger</span><span class="use">urgencia alta · churn</span></div>
+  </div>
+  <div class="row">
+    <div class="pair"><div class="solid" style="background:var(--warning)"></div><div class="soft" style="background:var(--warning-soft);color:var(--warning)">Por cerrar</div></div>
+    <div class="meta"><span class="nm">Warning</span><span class="use">urgencia media</span></div>
+  </div>
+  <div class="row">
+    <div class="pair"><div class="solid" style="background:var(--info)"></div><div class="soft" style="background:var(--info-soft);color:var(--info)">Online</div></div>
+    <div class="meta"><span class="nm">Info</span><span class="use">métrica · fuente</span></div>
+  </div>
+  <div class="row">
+    <div class="pair"><div class="solid" style="background:var(--special)"></div><div class="soft" style="background:var(--special-soft);color:var(--special)">Pausada</div></div>
+    <div class="meta"><span class="nm">Special</span><span class="use">preview · promo</span></div>
+  </div>
+  <div class="row">
+    <div class="pair"><div class="solid" style="background:var(--text-secondary)"></div><div class="soft" style="background:var(--surface-alt);color:var(--text-secondary)">Borrador</div></div>
+    <div class="meta"><span class="nm">Neutral</span><span class="use">finalizado · pausa</span></div>
+  </div>
+</div>
+</body>
+</html>

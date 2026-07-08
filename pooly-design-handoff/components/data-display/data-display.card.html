@@ -1,0 +1,66 @@
+<!-- @dsCard group="Components" viewport="700x340" name="Badges, Status, Avatars & Stats" subtitle="The functional color vocabulary, re-mapped to commerce" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="../../styles.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin: 0; padding: 24px 26px; background: var(--surface-sunken); }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .label { font: var(--font-eyebrow); text-transform: uppercase; letter-spacing: var(--tracking-wider); color: var(--text-muted); width: 100%; margin: 4px 0 2px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 520px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { Badge, StatusBadge, Avatar, StatCard, ProgressBar } = window.PoolyDesignSystem_3787fa;
+  function Demo() {
+    return (
+      <div>
+        <div className="label">Sentiment · Urgency · Order state · Job</div>
+        <div className="row">
+          <StatusBadge kind="sentiment" value="positive" />
+          <StatusBadge kind="sentiment" value="neutral" />
+          <StatusBadge kind="sentiment" value="negative" />
+          <StatusBadge kind="urgency" value="high" />
+          <StatusBadge kind="urgency" value="medium" />
+        </div>
+        <div className="row">
+          <StatusBadge kind="order" value="active" />
+          <StatusBadge kind="order" value="closing" />
+          <StatusBadge kind="order" value="paused" />
+          <StatusBadge kind="job" value="completed" />
+          <StatusBadge kind="job" value="running" />
+          <StatusBadge kind="source" value="imported" />
+        </div>
+        <div className="label">Generic badges &amp; avatars</div>
+        <div className="row">
+          <Badge tone="brand" icon="message-circle">128 respuestas</Badge>
+          <Badge tone="action" icon="zap">Nuevo</Badge>
+          <Badge tone="neutral" dot>Borrador</Badge>
+          <Avatar name="María López" size="sm" />
+          <Avatar name="Carlos Ruiz" size="sm" />
+          <Avatar name="Tienda Lumo" shape="rounded" size="sm" />
+        </div>
+        <div className="label">Stat tiles</div>
+        <div className="stats">
+          <StatCard icon="message-square" tone="brand" value="1,284" label="Respuestas" trend="+12%" />
+          <StatCard icon="trending-up" tone="success" value="4.6" label="NPS cualitativo" trend="+0.3" />
+        </div>
+        <div className="label" style={{marginTop: 14}}>Progress</div>
+        <div className="row" style={{maxWidth: 520}}>
+          <ProgressBar value={62} showLabel />
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+</script>
+</body>
+</html>

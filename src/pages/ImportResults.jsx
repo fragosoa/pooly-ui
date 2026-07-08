@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import api from '../services/api';
+import Icon from '../components/Icon';
 import { useLanguage } from '../context/LanguageContext';
 
 const ACCEPTED_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
@@ -85,10 +86,10 @@ async function parseFileWithColumns(file) {
 }
 
 const TYPE_META = {
-  open:     { icon: '💬', labelES: 'Texto libre',       labelEN: 'Free text',        descES: 'NLP: temas y sentimiento',          descEN: 'NLP: topics & sentiment' },
-  multiple: { icon: '☑️', labelES: 'Opción múltiple',   labelEN: 'Multiple choice',  descES: 'Distribución entre categorías',     descEN: 'Distribution across options' },
-  numeric:  { icon: '🔢', labelES: 'Numérico',          labelEN: 'Numeric',          descES: 'Estadísticas y promedios',          descEN: 'Statistics & averages' },
-  date:     { icon: '📅', labelES: 'Fecha',             labelEN: 'Date',             descES: 'Tendencias temporales',             descEN: 'Time trends' },
+  open:     { icon: 'message', labelES: 'Texto libre',       labelEN: 'Free text',        descES: 'NLP: temas y sentimiento',          descEN: 'NLP: topics & sentiment' },
+  multiple: { icon: 'list-checks', labelES: 'Opción múltiple',   labelEN: 'Multiple choice',  descES: 'Distribución entre categorías',     descEN: 'Distribution across options' },
+  numeric:  { icon: 'hash', labelES: 'Numérico',          labelEN: 'Numeric',          descES: 'Estadísticas y promedios',          descEN: 'Statistics & averages' },
+  date:     { icon: 'calendar', labelES: 'Fecha',             labelEN: 'Date',             descES: 'Tendencias temporales',             descEN: 'Time trends' },
 };
 
 // ── Column card shown in the sidebar ─────────────────────────────────────────
@@ -131,7 +132,7 @@ function ColumnCard({ col, idx, isES, onTypeChange, onRemove }) {
       >
         {Object.entries(TYPE_META).map(([val, m]) => (
           <option key={val} value={val}>
-            {m.icon} {isES ? m.labelES : m.labelEN}
+            {isES ? m.labelES : m.labelEN}
           </option>
         ))}
       </select>
@@ -349,7 +350,7 @@ export default function ImportResults() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
                 <Link to="/admin" className="btn btn-secondary">{t('import.cancel')}</Link>
-                <button type="submit" className="btn btn-primary" disabled={isSubmitting || columns.length === 0}>
+                <button type="submit" className="btn btn-action" disabled={isSubmitting || columns.length === 0}>
                   {isSubmitting ? t('import.submitting') : t('import.submit')}
                 </button>
               </div>
@@ -394,7 +395,7 @@ export default function ImportResults() {
               </strong>
               {Object.entries(TYPE_META).map(([val, m]) => (
                 <p key={val} style={{ margin: '0 0 0.25rem', display: 'flex', gap: '0.35rem' }}>
-                  <span style={{ flexShrink: 0 }}>{m.icon}</span>
+                  <span style={{ flexShrink: 0, color: 'var(--primary)', display: 'flex', marginTop: '0.15rem' }}><Icon name={m.icon} size={13} /></span>
                   <span>
                     <strong style={{ color: 'var(--text-primary)' }}>{isES ? m.labelES : m.labelEN}</strong>
                     {' — '}{isES ? m.descES : m.descEN}
@@ -431,12 +432,12 @@ export default function ImportResults() {
                           display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
                           padding: '0.25rem 0.4rem 0.25rem 0.55rem',
                           border: `1px solid ${isActive ? 'var(--primary)' : 'var(--border)'}`,
-                          background: isActive ? 'var(--primary-light, #EEF0FF)' : '#fff',
+                          background: isActive ? 'var(--primary-light)' : '#fff',
                           cursor: 'pointer', userSelect: 'none',
                           transition: 'border-color 0.15s, background 0.15s',
                         }}
                       >
-                        <span style={{ fontSize: '0.78rem' }}>{meta.icon}</span>
+                        <span style={{ display: 'flex', color: 'var(--primary)' }}><Icon name={meta.icon} size={12} /></span>
                         <span style={{
                           fontFamily: 'monospace', fontSize: '0.74rem', fontWeight: '700',
                           color: 'var(--primary)', maxWidth: '120px',
@@ -457,7 +458,7 @@ export default function ImportResults() {
                           >
                             {Object.entries(TYPE_META).map(([val, m]) => (
                               <option key={val} value={val}>
-                                {m.icon} {isES ? m.labelES : m.labelEN}
+                                {isES ? m.labelES : m.labelEN}
                               </option>
                             ))}
                           </select>
@@ -481,8 +482,8 @@ export default function ImportResults() {
                 <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: 0 }}>
                   {Object.entries(typeCounts)
                     .filter(([, n]) => n > 0)
-                    .map(([type, n]) => `${TYPE_META[type].icon} ×${n}`)
-                    .join('  ')}
+                    .map(([type, n]) => `${isES ? TYPE_META[type].labelES : TYPE_META[type].labelEN} ×${n}`)
+                    .join('  ·  ')}
                   {' · '}
                   {isES ? 'clic para editar tipo' : 'click to edit type'}
                 </p>

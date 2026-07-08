@@ -388,7 +388,7 @@ const Auth = () => {
                 </label>
                 <button
                   type="submit"
-                  className="btn btn-primary"
+                  className="btn btn-action"
                   style={{ width: '100%', marginTop: '0.75rem' }}
                   disabled={isLoading}
                 >
@@ -407,7 +407,7 @@ const Auth = () => {
               <div style={{ textAlign: 'center' }}>
                 <div style={{
                   width: 48, height: 48, borderRadius: '50%',
-                  background: 'var(--primary, #6366F1)', color: '#fff',
+                  background: 'var(--primary)', color: '#fff',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '1.5rem', margin: '0 auto 1.25rem',
                 }}>
@@ -445,7 +445,7 @@ const Auth = () => {
                 </div>
                 <button
                   type="submit"
-                  className="btn btn-primary"
+                  className="btn btn-action"
                   style={{ width: '100%', marginTop: '0.5rem' }}
                   disabled={isLoading}
                 >

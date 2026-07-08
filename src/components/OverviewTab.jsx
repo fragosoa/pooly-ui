@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import RecommendationCard from './RecommendationCard';
+import Icon from './Icon';
 
 function InfoTooltip({ text }) {
   const [visible, setVisible] = useState(false);
@@ -169,11 +170,12 @@ export default function OverviewTab({
             {globalSummary.some(r => r.impact_level === 'high') && (
               <div style={{
                 padding: '0.75rem 1rem',
-                background: '#FEF2F2', border: '1px solid #FCA5A5',
-                fontSize: '0.85rem', color: '#991B1B',
+                background: 'var(--danger-soft)', border: '1px solid var(--danger-soft)',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.85rem', color: 'var(--danger)',
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
               }}>
-                <span style={{ fontSize: '1.1rem' }}>⚠️</span>
+                <Icon name="alert-triangle" size={17} style={{ flexShrink: 0 }} />
                 <span>
                   {globalSummary.filter(r => r.impact_level === 'high').length}{' '}
                   {isES ? 'alerta(s) de alto impacto detectada(s) en las tendencias.' : 'high-impact alert(s) detected in trends.'}
@@ -223,7 +225,7 @@ export default function OverviewTab({
               borderRadius: '0.375rem', marginBottom: '0.5rem',
               display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
             }}>
-              <span>📋</span>
+              <Icon name="clipboard" size={13} />
               <span>
                 {isES ? 'Análisis del' : 'Analysis from'}{' '}
                 <strong>{selectedLabel}</strong>
@@ -257,10 +259,10 @@ export default function OverviewTab({
           padding: '1.5rem',
           background: 'linear-gradient(135deg, var(--primary-light) 0%, var(--bg-secondary) 100%)',
           border: '1px solid var(--primary)',
-          borderRadius: '0.5rem',
+          borderRadius: 'var(--radius-xl)',
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-            <span style={{ fontSize: '1.75rem', lineHeight: 1, flexShrink: 0 }}>⚠️</span>
+            <span style={{ flexShrink: 0, color: 'var(--primary)', display: 'flex' }}><Icon name="alert-triangle" size={26} /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.75rem', lineHeight: 1.4 }}>
                 {topRec.title}
@@ -278,15 +280,16 @@ export default function OverviewTab({
               {topRec.recommendation_text && (
                 <div style={{
                   marginTop: '1rem', padding: '0.75rem 1rem',
-                  background: 'white', borderRadius: '0.375rem',
-                  border: '1px solid var(--border)',
+                  background: 'var(--accent-light)', borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--accent-light)',
                 }}>
                   <span style={{
-                    fontSize: '0.7rem', fontWeight: '600',
-                    color: 'var(--primary)', textTransform: 'uppercase',
+                    display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                    fontSize: '0.7rem', fontWeight: '700',
+                    color: 'var(--accent-hover)', textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                   }}>
-                    💡 {isES ? 'Recomendación' : 'Recommendation'}
+                    <Icon name="lightbulb" size={12} /> {isES ? 'Recomendación' : 'Recommendation'}
                   </span>
                   <p style={{ margin: '0.25rem 0 0', fontSize: '0.9rem', fontWeight: '500', color: 'var(--text-primary)' }}>
                     {topRec.recommendation_text}
@@ -360,7 +363,7 @@ export default function OverviewTab({
           <button
             onClick={onAnalyzeClick}
             disabled={analyzing}
-            className="btn btn-primary"
+            className="btn btn-action"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
           >
             {analyzing ? (

@@ -1,0 +1,52 @@
+<!-- @dsCard group="Components" viewport="700x150" name="Icon (Lucide)" subtitle="Line icons, stroke 2 — the iconography standard" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="../../styles.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin: 0; padding: 22px 26px; background: var(--surface); }
+  .row { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+  .ic { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text-primary); }
+  .ic small { font: var(--font-eyebrow); color: var(--text-muted); letter-spacing: .04em; }
+  .bubble { width: 48px; height: 48px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { Icon } = window.PoolyDesignSystem_3787fa;
+  const items = [
+    ["shopping-cart", "var(--brand)"], ["package", "var(--text-primary)"],
+    ["truck", "var(--text-primary)"], ["star", "var(--amber-600)"],
+    ["heart", "var(--danger)"], ["tag", "var(--action)"],
+    ["message-circle", "var(--brand)"], ["trending-up", "var(--success)"],
+    ["sparkles", "var(--special)"], ["zap", "var(--action)"],
+  ];
+  function Demo() {
+    return (
+      <div className="row">
+        {items.map(([n, c]) => (
+          <div className="ic" key={n}>
+            <Icon name={n} size={26} color={c} />
+            <small>{n}</small>
+          </div>
+        ))}
+        <div className="ic">
+          <div className="bubble" style={{ background: "var(--brand-soft)" }}>
+            <Icon name="bar-chart-3" size={26} color="var(--brand)" />
+          </div>
+          <small>in bubble</small>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+</script>
+</body>
+</html>

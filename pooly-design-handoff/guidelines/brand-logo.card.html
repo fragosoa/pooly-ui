@@ -1,0 +1,43 @@
+<!-- @dsCard group="Brand" viewport="700x200" name="Logo & wordmark" subtitle="Pool + blue y · the mark · DEMO tag" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 26px; background: var(--surface); display: flex; gap: 40px; align-items: center; flex-wrap: wrap; }
+  .block { display: flex; flex-direction: column; gap: 10px; }
+  .lab { font: var(--font-eyebrow); text-transform: uppercase; letter-spacing: var(--tracking-wider); color: var(--text-muted); }
+  .wordmark { font-family: var(--font-sans); font-weight: 800; font-size: 40px; letter-spacing: -0.02em; color: var(--text-primary); }
+  .wordmark span { color: var(--brand); }
+  .lockup { display: flex; align-items: center; gap: 12px; }
+  .demo {
+    background: var(--success); color: #fff; font-size: 13px; font-weight: 700;
+    padding: 4px 18px 4px 14px; letter-spacing: 0.05em; line-height: 1.4; user-select: none;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%);
+  }
+  .mark-row { display: flex; align-items: center; gap: 14px; }
+  .mark-tile { width: 56px; height: 56px; border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; }
+  .mark-tile img { width: 34px; height: 34px; object-fit: contain; }
+  .mark-tile.dark { background: var(--surface-dark); }
+  .onblue { color: #fff; }
+</style>
+</head>
+<body>
+  <div class="block">
+    <span class="lab">Wordmark</span>
+    <div class="lockup">
+      <span class="wordmark">Pool<span>y</span></span>
+      <span class="demo">DEMO</span>
+    </div>
+    <span class="wordmark onblue" style="background:var(--surface-dark);padding:8px 14px;border-radius:var(--radius-md);color:#fff;font-size:30px">Pool<span style="color:#7CA8FF">y</span></span>
+  </div>
+  <div class="block">
+    <span class="lab">Mark / favicon</span>
+    <div class="mark-row">
+      <div class="mark-tile"><img src="../assets/pooly-mark.png" alt="Pooly mark" /></div>
+      <div class="mark-tile" style="background:var(--surface-sunken)"><img src="../assets/pooly-mark.png" alt="Pooly mark" /></div>
+    </div>
+  </div>
+</body>
+</html>

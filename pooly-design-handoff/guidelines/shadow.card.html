@@ -1,0 +1,23 @@
+<!-- @dsCard group="Spacing" viewport="700x180" name="Elevation" subtitle="Subtle, flat shadow ramp" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 28px 26px; background: var(--surface-sunken); display: flex; gap: 26px; flex-wrap: wrap; }
+  .e { text-align: center; }
+  .box { width: 96px; height: 60px; background: var(--surface); border-radius: var(--radius-lg); }
+  .nm { font-size: 11.5px; font-weight: 700; color: var(--text-primary); margin-top: 12px; }
+  .px { font-size: 10.5px; font-family: var(--font-mono); color: var(--text-muted); }
+</style>
+</head>
+<body>
+  <div class="e"><div class="box" style="box-shadow:var(--shadow-xs)"></div><div class="nm">xs</div></div>
+  <div class="e"><div class="box" style="box-shadow:var(--shadow-sm)"></div><div class="nm">sm · card</div></div>
+  <div class="e"><div class="box" style="box-shadow:var(--shadow-md)"></div><div class="nm">md · hover</div></div>
+  <div class="e"><div class="box" style="box-shadow:var(--shadow-lg)"></div><div class="nm">lg</div></div>
+  <div class="e"><div class="box" style="box-shadow:var(--shadow-xl)"></div><div class="nm">xl · modal</div></div>
+  <div class="e"><div class="box" style="box-shadow:var(--shadow-action);background:var(--action)"></div><div class="nm">action glow</div></div>
+</body>
+</html>
