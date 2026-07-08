@@ -5,7 +5,7 @@ import {
   Hash, Calendar, X, Bell, Bot, Trash2, Eye, Check, ListChecks, Save,
   Loader2, HelpCircle, Plus, ArrowRight, Activity, Timer, Download,
   Wifi, MoreVertical, Copy, Play, Pause, ShoppingBag, ShoppingCart,
-  Star, Inbox,
+  Star, Inbox, Store, MapPin, ChevronDown,
 } from 'lucide-react';
 
 // Mapa explícito (no `import *`) para que Rollup pueda hacer tree-shaking
@@ -59,6 +59,9 @@ const ICONS = {
   'shopping-cart': ShoppingCart,
   star: Star,
   inbox: Inbox,
+  store: Store,
+  'map-pin': MapPin,
+  'chevron-down': ChevronDown,
 };
 
 // Brand-standard Lucide line icon: stroke 2, round caps, currentColor.

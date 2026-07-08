@@ -7,10 +7,24 @@ import DemoModal from '../components/DemoModal';
 
 const SPOTS_LEFT = 7;
 
-const PAIN_ICONS = ['shopping-cart', 'star', 'inbox'];
 const HOW_STEPS = ['s1', 's2', 's3'];
 const FAQ_ITEMS = ['q1', 'q2', 'q3', 'q4', 'q5'];
 const PLATFORM_LOGOS = ['Shopify', 'Mercado Libre', 'VTEX', 'WooCommerce'];
+
+const PHYSICAL_PAINS = [
+  { icon: 'store', bg: '#ffedd5', color: '#c2410c' },
+  { icon: 'map-pin', bg: '#fce7f3', color: '#be185d' },
+  { icon: 'star', bg: '#dcfce7', color: '#15803d' },
+];
+const ECOMMERCE_PAINS = [
+  { icon: 'shopping-cart', bg: '#ede9fe', color: '#7c3aed' },
+  { icon: 'star', bg: '#dbeafe', color: '#1d4ed8' },
+  { icon: 'inbox', bg: '#fce7f3', color: '#be185d' },
+];
+
+const FIT_COL1_ITEMS = [1, 2, 3, 4];
+const FIT_COL2_ITEMS = [1, 2, 3, 4];
+const FIT_COL3_ITEMS = [1, 2, 3, 4];
 
 const DashboardPreview = () => (
   <div className="lp-dash">
@@ -135,15 +149,104 @@ const PublicGallery = () => {
           <div className="lp-section-header center lp-fade-up">
             <span className="lp-eyebrow">{t('landing.problem.eyebrow')}</span>
             <h2 className="lp-section-title">{t('landing.problem.title')}</h2>
+            <p className="lp-section-body lp-problem-subtitle" style={{ textAlign: 'center' }}>
+              {t('landing.problem.subtitle')}
+            </p>
           </div>
-          <div className="lp-pains lp-fade-up">
-            {PAIN_ICONS.map((icon, i) => (
-              <div className="lp-pain-card" key={icon}>
-                <span className="lp-pain-icon"><Icon name={icon} size={22} /></span>
-                <h3>{t(`landing.problem.p${i + 1}.title`)}</h3>
-                <p>{t(`landing.problem.p${i + 1}.body`)}</p>
+          <div className="lp-problem-cols lp-fade-up">
+            <div className="lp-problem-col">
+              <div className="lp-problem-col-head">
+                <span className="lp-problem-dot" style={{ background: 'var(--lp-accent)' }} />
+                {t('landing.problem.physical.label')}
               </div>
-            ))}
+              {PHYSICAL_PAINS.map((pain, i) => (
+                <div className="lp-problem-item" key={pain.icon + i}>
+                  <span className="lp-problem-item-icon" style={{ background: pain.bg, color: pain.color }}>
+                    <Icon name={pain.icon} size={17} />
+                  </span>
+                  <div>
+                    <h3>{t(`landing.problem.physical.p${i + 1}.title`)}</h3>
+                    <p>{t(`landing.problem.physical.p${i + 1}.body`)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="lp-problem-col">
+              <div className="lp-problem-col-head">
+                <span className="lp-problem-dot" style={{ background: '#7c3aed' }} />
+                {t('landing.problem.ecommerce.label')}
+              </div>
+              {ECOMMERCE_PAINS.map((pain, i) => (
+                <div className="lp-problem-item" key={pain.icon + i}>
+                  <span className="lp-problem-item-icon" style={{ background: pain.bg, color: pain.color }}>
+                    <Icon name={pain.icon} size={17} />
+                  </span>
+                  <div>
+                    <h3>{t(`landing.problem.ecommerce.p${i + 1}.title`)}</h3>
+                    <p>{t(`landing.problem.ecommerce.p${i + 1}.body`)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── FIT / QUALIFIER ─────────────────────────────── */}
+      <section className="lp-section lp-section-light">
+        <div className="lp-container">
+          <div className="lp-section-header center lp-fade-up">
+            <span className="lp-eyebrow">{t('landing.fit.eyebrow')}</span>
+            <h2 className="lp-section-title">{t('landing.fit.title')}</h2>
+            <p className="lp-section-body lp-fit-subtitle" style={{ textAlign: 'center' }}>
+              {t('landing.fit.subtitle')}
+            </p>
+          </div>
+          <div className="lp-fit-grid lp-fade-up">
+            <div className="lp-fit-card blue">
+              <span className="lp-fit-icon"><Icon name="store" size={18} /></span>
+              <div className="lp-fit-card-title">
+                <Icon name="check" size={16} />
+                {t('landing.fit.col1.title')}
+              </div>
+              <div className="lp-fit-card-subtitle">{t('landing.fit.col1.subtitle')}</div>
+              <hr className="lp-fit-divider" />
+              <ul className="lp-fit-list">
+                {FIT_COL1_ITEMS.map((n) => (
+                  <li key={n}><Icon name="check" size={15} />{t(`landing.fit.col1.li${n}`)}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="lp-fit-card purple">
+              <span className="lp-fit-icon"><Icon name="shopping-bag" size={18} /></span>
+              <div className="lp-fit-card-title">
+                <Icon name="check" size={16} />
+                {t('landing.fit.col2.title')}
+              </div>
+              <div className="lp-fit-card-subtitle">{t('landing.fit.col2.subtitle')}</div>
+              <hr className="lp-fit-divider" />
+              <ul className="lp-fit-list">
+                {FIT_COL2_ITEMS.map((n) => (
+                  <li key={n}><Icon name="check" size={15} />{t(`landing.fit.col2.li${n}`)}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="lp-fit-card muted">
+              <span className="lp-fit-icon"><Icon name="x" size={18} /></span>
+              <div className="lp-fit-card-title">
+                <Icon name="x" size={16} />
+                {t('landing.fit.col3.title')}
+              </div>
+              <hr className="lp-fit-divider" style={{ marginTop: '20px' }} />
+              <ul className="lp-fit-list">
+                {FIT_COL3_ITEMS.map((n) => (
+                  <li key={n}><Icon name="x" size={15} />{t(`landing.fit.col3.li${n}`)}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="lp-fit-scroll-cue">
+            <span><Icon name="chevron-down" size={18} /></span>
           </div>
         </div>
       </section>
