@@ -24,7 +24,6 @@ const ECOMMERCE_PAINS = [
 
 const FIT_COL1_ITEMS = [1, 2, 3, 4];
 const FIT_COL2_ITEMS = [1, 2, 3, 4];
-const FIT_COL3_ITEMS = [1, 2, 3, 4];
 
 const DashboardPreview = () => (
   <div className="lp-dash">
@@ -228,19 +227,6 @@ const PublicGallery = () => {
               <ul className="lp-fit-list">
                 {FIT_COL2_ITEMS.map((n) => (
                   <li key={n}><Icon name="check" size={15} />{t(`landing.fit.col2.li${n}`)}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="lp-fit-card muted">
-              <span className="lp-fit-icon"><Icon name="x" size={18} /></span>
-              <div className="lp-fit-card-title">
-                <Icon name="x" size={16} />
-                {t('landing.fit.col3.title')}
-              </div>
-              <hr className="lp-fit-divider" style={{ marginTop: '20px' }} />
-              <ul className="lp-fit-list">
-                {FIT_COL3_ITEMS.map((n) => (
-                  <li key={n}><Icon name="x" size={15} />{t(`landing.fit.col3.li${n}`)}</li>
                 ))}
               </ul>
             </div>
