@@ -2519,6 +2519,11 @@ textarea.input-field {
   color: var(--error);
 }
 
+.job-status-warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
 .job-status-unknown {
   background: var(--bg-secondary);
   color: var(--text-muted);
