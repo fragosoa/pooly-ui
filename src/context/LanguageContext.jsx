@@ -551,6 +551,18 @@ const translations = {
     'import.errorNoColumns': 'Agrega al menos una columna antes de importar.',
     'import.errorSubmit': 'No se pudo importar el archivo. Verifica el formato esperado e intenta de nuevo.',
     'import.errorMissingProject': 'La importación terminó sin devolver un proyecto válido.',
+
+    // Chatbot (landing page)
+    'chatbot.toggleLabel': 'Pregúntale a Pooly',
+    'chatbot.title': 'Pregúntale a Pooly',
+    'chatbot.subtitle': 'Resolvemos tus dudas antes de tu demo.',
+    'chatbot.welcome': 'Hola 👋 Soy el asistente de Pooly. Pregúntame qué hace Pooly, cómo funciona, para quién es o cuánto cuesta.',
+    'chatbot.placeholder': 'Escribe tu pregunta...',
+    'chatbot.send': 'Enviar',
+    'chatbot.thinking': 'Pensando...',
+    'chatbot.error': 'No pude responder en este momento. Intenta de nuevo en unos segundos.',
+    'chatbot.ctaDemo': 'Agendar demo',
+    'chatbot.close': 'Cerrar',
   },
 
   en: {
@@ -1101,6 +1113,18 @@ const translations = {
     'import.errorNoColumns': 'Add at least one column before importing.',
     'import.errorSubmit': 'Could not import the file. Please verify the expected format and try again.',
     'import.errorMissingProject': 'The import finished without returning a valid project.',
+
+    // Chatbot (landing page)
+    'chatbot.toggleLabel': 'Ask Pooly',
+    'chatbot.title': 'Ask Pooly',
+    'chatbot.subtitle': "We'll answer your questions before your demo.",
+    'chatbot.welcome': "Hi 👋 I'm Pooly's assistant. Ask me what Pooly does, how it works, who it's for, or how much it costs.",
+    'chatbot.placeholder': 'Type your question...',
+    'chatbot.send': 'Send',
+    'chatbot.thinking': 'Thinking...',
+    'chatbot.error': "I couldn't reply right now. Please try again in a few seconds.",
+    'chatbot.ctaDemo': 'Book a demo',
+    'chatbot.close': 'Close',
   },
 };
 

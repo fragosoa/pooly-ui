@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import '../styles/landing.css';
 import Icon from '../components/Icon';
 import DemoModal from '../components/DemoModal';
+import ChatPanel from '../components/ChatPanel';
 
 const SPOTS_LEFT = 7;
 
@@ -357,6 +358,7 @@ const PublicGallery = () => {
       </footer>
 
       <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />
+      <ChatPanel />
 
     </div>
   );
