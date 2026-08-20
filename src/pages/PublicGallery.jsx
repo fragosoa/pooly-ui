@@ -6,11 +6,15 @@ import Icon from '../components/Icon';
 import DemoModal from '../components/DemoModal';
 import ChatPanel from '../components/ChatPanel';
 
-const SPOTS_LEFT = 7;
-
 const HOW_STEPS = ['s1', 's2', 's3'];
 const FAQ_ITEMS = ['q1', 'q2', 'q3', 'q4', 'q5'];
 const PLATFORM_LOGOS = ['Shopify', 'Mercado Libre', 'VTEX', 'WooCommerce'];
+const PRICING_TIERS = [
+  { id: 'starter', liCount: 3 },
+  { id: 'growth', liCount: 4, popular: true },
+  { id: 'business', liCount: 3 },
+  { id: 'enterprise', liCount: 4 },
+];
 
 const PHYSICAL_PAINS = [
   { icon: 'store', bg: '#ffedd5', color: '#c2410c' },
@@ -285,28 +289,38 @@ const PublicGallery = () => {
         <div className="lp-container" style={{ textAlign: 'center' }}>
           <span className="lp-eyebrow">{t('landing.pricing.eyebrow')}</span>
           <h2 className="lp-section-title">{t('landing.pricing.title')}</h2>
-          <div className="lp-pricing-single lp-fade-up">
-            <div className="lp-pricing-price-row">
-              <span className="amount">$19</span>
-              <span className="suffix">{t('landing.pricing.priceSuffix')}</span>
-            </div>
-            <div className="lp-pricing-note">{t('landing.pricing.note')}</div>
-            <ul className="lp-pricing-features">
-              {[1, 2, 3, 4].map((n) => (
-                <li key={n}>
-                  <Icon name="check" size={16} />
-                  {t(`landing.pricing.li${n}`)}
-                </li>
-              ))}
-            </ul>
-            <div className="lp-pricing-spots">
-              <Icon name="zap" size={16} />
-              {t('landing.pricing.spots', { n: SPOTS_LEFT })}
-            </div>
-            <button onClick={() => setDemoOpen(true)} className="lp-btn-primary lp-btn-full">
+          <div className="lp-pricing-grid lp-fade-up">
+            {PRICING_TIERS.map((tier) => (
+              <div className={`lp-pricing-card${tier.popular ? ' popular' : ''}`} key={tier.id}>
+                {tier.popular && (
+                  <span className="lp-pricing-badge">{t('landing.pricing.badgePopular')}</span>
+                )}
+                <div className="lp-pricing-tier-name">{t(`landing.pricing.${tier.id}.name`)}</div>
+                {tier.id === 'enterprise' && (
+                  <div className="lp-pricing-price-prefix">{t('landing.pricing.enterprise.pricePrefix')}</div>
+                )}
+                <div className="lp-pricing-price-row">
+                  <span className="amount">{t(`landing.pricing.${tier.id}.price`)}</span>
+                  <span className="suffix">{t('landing.pricing.priceSuffix')}</span>
+                </div>
+                <div className="lp-pricing-annual">{t(`landing.pricing.${tier.id}.annual`)}</div>
+                <ul className="lp-pricing-features">
+                  {Array.from({ length: tier.liCount }, (_, i) => (
+                    <li key={i}>
+                      <Icon name="check" size={15} />
+                      {t(`landing.pricing.${tier.id}.li${i + 1}`)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="lp-pricing-cta lp-fade-up">
+            <button onClick={() => setDemoOpen(true)} className="lp-btn-primary">
               {t('landing.pricing.btn')}
               <Icon name="arrow-right" size={16} />
             </button>
+            <p className="lp-pricing-note">{t('landing.pricing.note')}</p>
           </div>
         </div>
       </section>
