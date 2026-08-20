@@ -250,10 +250,11 @@ export default function EventDetails() {
 
   const getJobStatusInfo = (status) => {
     switch (status) {
-      case 'COMPLETED': return { label: t('jobs.statusCompleted'), class: 'completed', icon: 'check' };
-      case 'RUNNING':   return { label: t('jobs.statusRunning'),   class: 'running',   icon: 'loader' };
-      case 'ERROR':     return { label: t('jobs.statusError'),     class: 'error',     icon: 'x' };
-      default:          return { label: status,                    class: 'unknown',   icon: 'help-circle' };
+      case 'COMPLETED':              return { label: t('jobs.statusCompleted'),           class: 'completed', icon: 'check' };
+      case 'RUNNING':                return { label: t('jobs.statusRunning'),             class: 'running',   icon: 'loader' };
+      case 'ERROR':                  return { label: t('jobs.statusError'),               class: 'error',     icon: 'x' };
+      case 'COMPLETED_WITH_ERRORS':  return { label: t('jobs.statusCompletedWithErrors'), class: 'warning',   icon: 'alert-triangle' };
+      default:                       return { label: status,                              class: 'unknown',   icon: 'help-circle' };
     }
   };
 

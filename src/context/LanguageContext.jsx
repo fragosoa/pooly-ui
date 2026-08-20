@@ -249,6 +249,7 @@ const translations = {
     'jobs.statusCompleted': 'Completado',
     'jobs.statusRunning': 'En proceso',
     'jobs.statusError': 'Error',
+    'jobs.statusCompletedWithErrors': 'Completado con errores',
 
     // Analyze modal
     'analyzeModal.title': 'Iniciar análisis con IA',
@@ -798,6 +799,7 @@ const translations = {
     'jobs.statusCompleted': 'Completed',
     'jobs.statusRunning': 'Running',
     'jobs.statusError': 'Error',
+    'jobs.statusCompletedWithErrors': 'Completed with errors',
 
     // Analyze modal
     'analyzeModal.title': 'Start AI analysis',
