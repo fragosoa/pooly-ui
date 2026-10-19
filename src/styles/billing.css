@@ -1,0 +1,34 @@
+.billing-section { margin-top: 1.5rem; padding: 1.5rem; }
+.billing-header, .billing-summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.billing-header h2 { font-size: 1.25rem; margin: 0; }
+.billing-header p, .billing-footnote, .billing-current p { color: var(--text-secondary); }
+.billing-header p { margin: .5rem 0 1rem; }
+.billing-badge { padding: .35rem .65rem; background: var(--primary-light); color: var(--primary); font-size: .8rem; font-weight: 700; }
+.billing-message { padding: 1rem; margin: 1rem 0; border: 1px solid var(--border); background: var(--bg-secondary); }
+.billing-message p { margin: 0 0 .5rem; }
+.billing-message p:last-child { margin-bottom: 0; }
+.billing-message-mock { border-color: var(--primary); background: var(--primary-light); }
+.billing-message-error { border-color: var(--error); color: var(--error); }
+.billing-access { padding-left: .8rem; border-left: 3px solid var(--secondary); }
+.billing-current { padding: 1rem 0; border-block: 1px solid var(--border); margin: 1rem 0; }
+.billing-summary h3 { margin: .3rem 0; }
+.billing-summary span { font-size: .875rem; }
+.billing-status { padding: .35rem .6rem; background: var(--bg-secondary); }
+.billing-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: .75rem; }
+.billing-confirm, .billing-mock-checkout { padding: 1rem; border: 1px solid var(--primary); margin-top: 1rem; }
+.billing-mock-checkout h3 { margin-top: 0; }
+.billing-plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin-top: 1.25rem; }
+.billing-plan { padding: 1rem; border: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
+.billing-plan h3 { font-size: 1rem; margin: 0 0 .5rem; }
+.billing-price { font-size: 1.3rem; font-weight: 700; margin: .3rem 0 .75rem; }
+.billing-price small { display: block; font-size: .8rem; font-weight: 400; color: var(--text-secondary); }
+.billing-plan ul { padding-left: 1.15rem; font-size: .85rem; flex-grow: 1; margin: .4rem 0 1rem; }
+.billing-plan li + li { margin-top: .4rem; }
+.billing-plan .btn { width: 100%; white-space: normal; text-align: center; }
+.billing-footnote { font-size: .8rem; margin: 1rem 0 0; }
+.billing-section button:disabled { cursor: not-allowed; opacity: .55; }
+@media (max-width: 640px) {
+    .billing-plans { grid-template-columns: 1fr; }
+    .billing-section { padding: 1rem; }
+    .billing-actions .btn { width: 100%; }
+}

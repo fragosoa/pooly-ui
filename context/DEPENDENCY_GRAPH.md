@@ -178,3 +178,11 @@
 | Tipos de pregunta (`open`, `multiple`, `numeric`, `date`) | `CreateEvent`, `EditEvent`, `PublicSurvey`, `ImportResults`, backend (`pooly-core`) |
 | `src/pages/EventDetails.jsx` | `OverviewTab` y `TrendsTab` (son sub-componentes renderizados desde aquí) |
 | Formato del reporte JSON del backend | `EventDetails.jsx`, `OverviewTab.jsx`, `TrendsTab.jsx` (todos parsean los reportes) |
+
+
+## Billing UI (2026-10-18)
+
+- `Settings.jsx` → `components/BillingSection.jsx`.
+- `BillingSection.jsx` → `services/billing.js`, `LanguageContext.jsx`, React Router search params, `styles/billing.css`.
+- `services/billing.js` → existing Axios instance in `services/api.js`.
+- No new global state provider, route or frontend dependency.
