@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import api from '../services/api';
+import BillingSection from '../components/BillingSection';
 
 const Settings = () => {
     const { user, updateUser } = useAuth();
@@ -35,7 +36,7 @@ const Settings = () => {
     };
 
     return (
-        <div className="container" style={{ paddingTop: '5rem', paddingBottom: '4rem', maxWidth: '640px' }}>
+        <div className="container" style={{ paddingTop: '5rem', paddingBottom: '4rem', maxWidth: '880px' }}>
             <Link to="/admin" className="back-link">{t('settings.back')}</Link>
 
             <h1 className="page-title" style={{ marginTop: '1rem' }}>{t('settings.title')}</h1>
@@ -74,8 +75,10 @@ const Settings = () => {
                 </div>
             </div>
 
+            <BillingSection />
+
             {/* Notifications */}
-            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: '1.5rem' }}>
                 <div style={{
                     padding: '1rem 1.25rem',
                     background: 'var(--bg-secondary)',

@@ -1,3 +1,15 @@
+# Billing UI — 2026-10-18
+
+Branch: `feat/stripe-migration-ui`. Settings now includes a subscription section
+with API-backed plans, explicit mock checkout outcomes, pending checkout recovery,
+current subscription, temporary access and end-of-period cancellation. Real mode
+redirects to Stripe Checkout/Portal. ES/EN translations and responsive layout.
+No analysis quotas or paywall yet. See [local mock guide](../docs/BILLING.md).
+
+Earlier state below is historical.
+
+---
+
 # context/PROJECT_STATE.md
 
 **Última actualización:** 2026-06-02
@@ -124,3 +136,9 @@ Ver detalle en [DECISIONS.md](DECISIONS.md). Resumen rápido:
 **Branch actual:** `task/KAN-85-frontend` (clean, sin cambios sin commitear a 2026-06-02)
 
 El frontend está en buen estado. Los últimos merges completan el flujo de autenticación vía magic link + password reset (KAN-72) y el guardado automático de borradores (KAN-87). Las próximas prioridades son: page titles dinámicos, dashboard mejorado (top urgencias, scatter, distribución sentimiento), y tests + CI/CD.
+
+Billing UI verified end-to-end with Flask and isolated PostgreSQL, including
+reload persistence, rejection, abandonment, success and cancellation. Production
+build passed. New billing files/Settings pass lint; LanguageContext retains its
+pre-existing Fast Refresh export warning/error. Demo startup and credentials are
+in `docs/BILLING.md`.
